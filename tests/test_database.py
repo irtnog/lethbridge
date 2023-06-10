@@ -27,7 +27,11 @@ import pytest
 test_data = {
     'id64': 0,
     'name': 'Test System A',
-    # coords
+    'coords': {
+        'x': 1.0,
+        'y': 2.0,
+        'z': 3.0,
+    },
     'allegiance': None,
     'government': None,
     'primaryEconomy': None,
@@ -54,6 +58,9 @@ def mock_database(tmp_path):
         test_system_a = System(
             id64=0,
             name='Test System A',
+            x=1.0,              # coords
+            y=2.0,
+            z=3.0,
             date=datetime(1970, 1, 1),
         )
         session.add(test_system_a)
@@ -79,6 +86,9 @@ def test_system_load(mock_database):
     test_system_a_secunde = System(
         id64=0,
         name='Test System A',
+        x=1.0,                  # coords
+        y=2.0,
+        z=3.0,
         date=datetime(1970, 1, 1),
     )
     assert test_system_a_prime == test_system_a_secunde

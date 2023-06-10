@@ -18,6 +18,8 @@
 from __future__ import annotations
 from datetime import datetime
 from marshmallow import EXCLUDE
+from marshmallow import post_dump
+from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -35,7 +37,9 @@ class System(Base):
 
     id64: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]           # not unique, e.g., AH Cancri
-    # coords
+    x: Mapped[float]            # coords
+    y: Mapped[float]
+    z: Mapped[float]
     allegiance: Mapped[Optional[str]]
     government: Mapped[Optional[str]]
     primaryEconomy: Mapped[Optional[str]]
@@ -55,13 +59,28 @@ class System(Base):
         return f'<System(id64={self.id64!r}, {self.name!r})>'
 
     def __eq__(self, other):
-        if not isinstance(other, System):
-            return False
-        if self.id64 != other.id64:
-            return False
-        if self.name != other.name:
-            return False
-        return True
+        return (
+            isinstance(other, System)
+            and self.id64 == other.id64
+            and self.name == other.name
+            and self.x == other.x  # coords
+            and self.y == other.y
+            and self.z == other.z
+            and self.allegiance == other.allegiance
+            and self.government == other.government
+            and self.primaryEconomy == other.primaryEconomy
+            and self.secondaryEconomy == other.secondaryEconomy
+            and self.security == other.security
+            and self.population == other.population
+            and self.bodyCount == other.bodyCount
+            # controllingFaction
+            # factions
+            # powers
+            and self.powerState == other.powerState
+            and self.date == other.date
+            # bodies
+            # stations
+        )
 
 
 class SystemSchema(SQLAlchemyAutoSchema):
@@ -71,3 +90,19 @@ class SystemSchema(SQLAlchemyAutoSchema):
         include_fk = True
         include_relationships = True
         load_instance = True
+
+    @post_dump
+    def wrap_coords(self, out_data, **kwargs):
+        coords = {
+            'x': out_data.pop('x'),
+            'y': out_data.pop('y'),
+            'z': out_data.pop('z'),
+        }
+        out_data['coords'] = coords
+        return out_data
+
+    @pre_load
+    def flatten_coords(self, in_data, **kwargs):
+        coords = in_data.pop('coords')
+        in_data.update(coords)
+        return in_data
