@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lethbridge"
+version = "0.0.1"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Environment :: No Input/Output (Daemon)",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Games/Entertainment :: Simulation",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "colorama",
+    "ijson",
+    "marshmallow-sqlalchemy",
+    "pytest",
+    "shellingham",
+    "sqlalchemy>=2",
+    "typer",
+]
+
+[project.scripts]
+lethbridge = "lethbridge.__main__:main"
+
+[tool.setuptools.package-dir]
+lethbridge = "src"
