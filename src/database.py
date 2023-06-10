@@ -64,12 +64,7 @@ class System(Base):
         return True
 
 
-# tracks the following object serializers
-class BaseSchema(SQLAlchemyAutoSchema):
-    pass
-
-
-class SystemSchema(BaseSchema):
+class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
         unknown = EXCLUDE
