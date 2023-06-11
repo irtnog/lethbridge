@@ -41,12 +41,12 @@ class System(Base):
     y: Mapped[float]
     z: Mapped[float]
     allegiance: Mapped[Optional[str]]
-    government: Mapped[Optional[str]]
-    primaryEconomy: Mapped[Optional[str]]
-    secondaryEconomy: Mapped[Optional[str]]
-    security: Mapped[Optional[str]]
-    population: Mapped[Optional[int]]
-    bodyCount: Mapped[Optional[int]]
+    government: Mapped[str] = mapped_column(default='None')
+    primaryEconomy: Mapped[str] = mapped_column(default='None')
+    secondaryEconomy: Mapped[str] = mapped_column(default='None')
+    security: Mapped[str] = mapped_column(default='Anarchy')
+    population: Mapped[int] = mapped_column(default=0)
+    bodyCount: Mapped[int] = mapped_column(default=0)
     # controllingFaction
     # factions
     # powers
