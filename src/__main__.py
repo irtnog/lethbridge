@@ -16,6 +16,10 @@
 # <https://www.gnu.org/licenses/>.
 
 from lethbridge import cli, __app_name__
+import logging
+
+# configure module-level logging
+logger = logging.getLogger(__name__)
 
 
 def main():

@@ -18,7 +18,11 @@
 from . import __app_name__
 from . import __version__
 from typing import Optional
+import logging
 import typer
+
+# configure module-level logging
+logger = logging.getLogger(__name__)
 
 app = typer.Typer()
 

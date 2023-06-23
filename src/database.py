@@ -25,6 +25,10 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from typing import Optional
+import logging
+
+# configure module-level logging
+logger = logging.getLogger(__name__)
 
 
 # tracks definitions and related metadata for the tables created below
