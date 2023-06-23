@@ -15,7 +15,8 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from lethbridge import cli, __app_name__
+from . import __app_name__
+from . import cli
 import logging
 
 # configure module-level logging
