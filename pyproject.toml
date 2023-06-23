@@ -27,6 +27,9 @@ dependencies = [
     "typer",
 ]
 
+[project.license]
+file = "LICENSE"
+
 [project.scripts]
 lethbridge = "lethbridge.__main__:main"
 
