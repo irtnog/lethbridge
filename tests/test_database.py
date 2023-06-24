@@ -23,7 +23,9 @@ from lethbridge.database import SystemSchema
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-import pytest
+from pytest import fixture
+from pytest import param
+from pytest import mark
 
 test_data = {
     'id64': 0,
@@ -51,16 +53,23 @@ test_data = {
 }
 
 
-@pytest.fixture
-def mock_database(tmp_path):
-    mock_database_uri = 'sqlite:///' + str(tmp_path / 'lethbridge.sqlite')
+@fixture
+def mock_sqlite(tmp_path):
+    mock_database_uri = 'sqlite:///' + str(tmp_path / 'galaxy.sqlite')
     engine = create_engine(mock_database_uri)
-    Base.metadata.create_all(engine)
     return engine
 
 
-def test_system_schema(mock_database):
-    with Session(mock_database) as session:
+@mark.parametrize(
+    'engine_fixture',
+    [
+        param('mock_sqlite'),
+    ]
+)
+def test_system_schema(engine_fixture, request):
+    engine = request.getfixturevalue(engine_fixture)
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
         test_system_prime = SystemSchema().load(
             deepcopy(test_data),
             session=session,
@@ -78,8 +87,16 @@ def test_system_schema(mock_database):
         assert test_data[i] == dump_data[i]
 
 
-def test_system_defaults(mock_database):
-    with Session(mock_database) as session:
+@mark.parametrize(
+    'engine_fixture',
+    [
+        param('mock_sqlite'),
+    ]
+)
+def test_system_defaults(engine_fixture, request):
+    engine = request.getfixturevalue(engine_fixture)
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
         test_system_prime = System(
             id64=test_data.get('id64'),
             name=test_data.get('name'),
