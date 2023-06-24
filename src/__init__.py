@@ -30,3 +30,15 @@ formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+# exit codes
+(                               # TODO: better exit codes
+    SUCCESS,
+    CONFIG_ERROR,
+    DATABASE_ERROR,
+) = range(3)
+
+ERRORS = {                      # TODO: better error messages
+    CONFIG_ERROR: 'Configuration error',
+    DATABASE_ERROR: 'Database error',
+}
