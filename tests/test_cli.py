@@ -15,8 +15,10 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from lethbridge import __app_name__
+from lethbridge import __version__
+from lethbridge import cli
 from typer.testing import CliRunner
-from lethbridge import __app_name__, __version__, cli
 
 runner = CliRunner()
 
