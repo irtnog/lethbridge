@@ -15,8 +15,10 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from ..config import CONFIG_FILE_PATH
 from .. import __app_name__
 from .. import __version__
+from pathlib import Path
 from typing import Optional
 import logging
 import typer
@@ -38,6 +40,12 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
+        config: Optional[Path] = typer.Option(
+            CONFIG_FILE_PATH,
+            '--config',
+            '-f',
+            help='Override the default configuration file.',
+        ),
         version: Optional[bool] = typer.Option(
             None,
             '--version',
@@ -47,4 +55,6 @@ def main(
             is_eager=True
         ),
 ) -> None:
+    if config:
+        CONFIG_FILE_PATH = config  # noqa: F841
     return
