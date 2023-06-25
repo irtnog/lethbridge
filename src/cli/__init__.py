@@ -20,13 +20,38 @@ from .. import __app_name__
 from .. import __version__
 from pathlib import Path
 from typing import Optional
+import importlib
 import logging
+import pkgutil
 import typer
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
 
+# create the CLI
 app = typer.Typer()
+
+# build a list of submodules
+__path__ = pkgutil.extend_path(__path__, __name__)  # noqa: F821
+_commands = [
+    _modname for _importer, _modname, _ispkg
+    in pkgutil.walk_packages(path=__path__, prefix=__name__ + '.')
+]
+
+# load submodules and add them as submodules
+for _command in _commands:
+    _mdl = importlib.import_module(_command)
+
+    # respect the module's external symbol list if present
+    if '__all__' in _mdl.__dict__:
+        _mdl_names = _mdl.__dict__['__all__']
+    else:
+        _mdl_names = [_sym for _sym in _mdl.__dict__]
+
+    if 'app' in _mdl_names:
+        _subcommand = getattr(_mdl, 'app')
+        if isinstance(_subcommand, typer.Typer):
+            app.add_typer(_subcommand, name=_command.split('.')[-1])
 
 
 def _version_callback(value: bool) -> None:

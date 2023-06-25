@@ -15,21 +15,7 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from lethbridge import __app_name__
-from lethbridge import __version__
-from lethbridge import cli
-from typer import Typer
-from typer.testing import CliRunner
+import typer
 
-runner = CliRunner()
-
-
-def test_version():
-    result = runner.invoke(cli.app, ['--version'])
-    assert result.exit_code == 0
-    assert f'{__app_name__} {__version__}' in result.stdout
-
-
-def test_cli_autoloader():
-    assert 'configure' in cli.__dict__
-    assert isinstance(cli.configure.app, Typer)
+# create the CLI
+app = typer.Typer()
