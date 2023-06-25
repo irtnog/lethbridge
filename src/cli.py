@@ -29,7 +29,10 @@ app = typer.Typer()
 
 def _version_callback(value: bool) -> None:
     if value:
-        typer.echo(f'{__app_name__} v{__version__}')
+        typer.echo(f'{__app_name__} {__version__}, a free/libre/open source client for EDDN (and more)')
+        typer.echo('Copyright (C) 2023  Matthew X. Economou')
+        typer.echo('License AGPLv3+: GNU AGPL version 3 or later <https://www.gnu.org/licenses/agpl.html>.')
+        typer.echo('Source code for this version can be found at <https://github.com/irtnog/lethbridge>.')
         raise typer.Exit()
 
 
