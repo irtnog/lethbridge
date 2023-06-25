@@ -15,8 +15,8 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from . import __app_name__
-from . import __version__
+from .. import __app_name__
+from .. import __version__
 from typing import Optional
 import logging
 import typer
