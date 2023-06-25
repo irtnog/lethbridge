@@ -16,16 +16,22 @@
 # <https://www.gnu.org/licenses/>.
 
 FROM python as builder
-COPY . /usr/src
 RUN set -eux; \
-    pip install --user /usr/src; \
-    python -m pytest /usr/src/tests
+    apt-get update; \
+    apt-get install -y --no-install-recommends postgresql; \
+    groupadd -g 1000 lethbridge; \
+    useradd -m -g 1000 -u 1000 lethbridge;
+USER lethbridge:lethbridge
+COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
+RUN set -eux; \
+    pip install --user /home/lethbridge/src; \
+    python -m pytest /home/lethbridge/src
 
 FROM python
 RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge
-COPY --from=builder --chown=lethbridge:lethbridge /root/.local /home/lethbridge/.local
+COPY --from=builder /home/lethbridge/.local /home/lethbridge/.local
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 USER lethbridge:lethbridge

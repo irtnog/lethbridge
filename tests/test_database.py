@@ -54,6 +54,13 @@ test_data = {
 
 
 @fixture
+def mock_postgresql(postgresql):
+    mock_database_uri = f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
+    engine = create_engine(mock_database_uri)
+    return engine
+
+
+@fixture
 def mock_sqlite(tmp_path):
     mock_database_uri = 'sqlite:///' + str(tmp_path / 'galaxy.sqlite')
     engine = create_engine(mock_database_uri)
@@ -64,6 +71,7 @@ def mock_sqlite(tmp_path):
     'engine_fixture',
     [
         param('mock_sqlite'),
+        param('mock_postgresql'),
     ]
 )
 def test_system_schema(engine_fixture, request):
@@ -91,6 +99,7 @@ def test_system_schema(engine_fixture, request):
     'engine_fixture',
     [
         param('mock_sqlite'),
+        param('mock_postgresql'),
     ]
 )
 def test_system_defaults(engine_fixture, request):
