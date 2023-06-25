@@ -20,12 +20,16 @@ from datetime import datetime
 from lethbridge.database import Base
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
+from psycopg2cffi import compat
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from pytest import fixture
 from pytest import param
 from pytest import mark
+
+# invoke psycopg2cffi compatibility hook
+compat.register()
 
 test_data = {
     'id64': 0,
