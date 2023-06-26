@@ -59,27 +59,24 @@ test_data = {
 
 @fixture
 def mock_postgresql(postgresql):
-    mock_database_uri = f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
-    engine = create_engine(mock_database_uri)
-    return engine
+    return f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
 
 
 @fixture
 def mock_sqlite(tmp_path):
-    mock_database_uri = 'sqlite:///' + str(tmp_path / 'galaxy.sqlite')
-    engine = create_engine(mock_database_uri)
-    return engine
+    return ('sqlite:///' + str(tmp_path / 'galaxy.sqlite'))
 
 
 @mark.parametrize(
-    'engine_fixture',
+    'db_uri_fixture',
     [
         param('mock_sqlite'),
         param('mock_postgresql'),
-    ]
+    ],
 )
-def test_system_schema(engine_fixture, request):
-    engine = request.getfixturevalue(engine_fixture)
+def test_system_schema(db_uri_fixture, request):
+    db_uri = request.getfixturevalue(db_uri_fixture)
+    engine = create_engine(db_uri)
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         test_system_prime = SystemSchema().load(
@@ -100,14 +97,15 @@ def test_system_schema(engine_fixture, request):
 
 
 @mark.parametrize(
-    'engine_fixture',
+    'db_uri_fixture',
     [
         param('mock_sqlite'),
         param('mock_postgresql'),
-    ]
+    ],
 )
-def test_system_defaults(engine_fixture, request):
-    engine = request.getfixturevalue(engine_fixture)
+def test_system_defaults(db_uri_fixture, request):
+    db_uri = request.getfixturevalue(db_uri_fixture)
+    engine = create_engine(db_uri)
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         test_system_prime = System(
