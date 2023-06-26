@@ -80,15 +80,46 @@ def main(
             '-f',
             help='Override the default configuration file.',
         ),
+        debug: Optional[bool] = typer.Option(
+            None,
+            '--debug',
+            '-d',
+            help='Enable detailed activity tracing.',
+        ),
+        quiet: Optional[bool] = typer.Option(
+            None,
+            '--quiet',
+            '-q',
+            help='Silence all program output.',
+        ),
+        verbose: Optional[bool] = typer.Option(
+            None,
+            '--verbose',
+            '-v',
+            help='Include backtraces in error messages.',
+        ),
         version: Optional[bool] = typer.Option(
             None,
             '--version',
-            '-v',
             help='Show the application\'s version and exit.',
             callback=_version_callback,
-            is_eager=True
+            is_eager=True,
         ),
 ) -> None:
+    app_logger = logging.getLogger(__app_name__)
+    app_logger.setLevel(
+        logging.DEBUG if debug else
+        logging.INFO if verbose else
+        logging.WARNING
+    )
+    if not quiet:
+        cerr = logging.StreamHandler()
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        cerr.setFormatter(formatter)
+        app_logger.addHandler(cerr)
+    logger.debug('Configured logging.')
+
     logger.debug(f'Using configuration file: {config_file}')
     load_config(config_file)
     return

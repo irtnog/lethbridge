@@ -21,15 +21,8 @@ import pkg_resources
 __app_name__ = __name__
 __version__ = pkg_resources.require(__app_name__)[0].version
 
-# configure logging
-logger = logging.getLogger(__app_name__)
-logger.setLevel(logging.WARNING)  # default to WARNING or above
-ch = logging.StreamHandler()      # log to stderr by default
-ch.setLevel(logging.DEBUG)        # do not filter logs to stderr
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+# configure module-level logging
+logger = logging.getLogger(__name__)
 
 # exit codes
 (                               # TODO: better exit codes
