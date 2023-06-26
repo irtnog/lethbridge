@@ -124,4 +124,5 @@ def main(
     if load_config_error:
         typer.secho(ERRORS[load_config_error], fg=typer.colors.RED)
         raise typer.Exit(load_config_error)
+    CONFIG_FILE_PATH = config_file  # noqa: F841
     return
