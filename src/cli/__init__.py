@@ -19,6 +19,7 @@ from ..config import CONFIG_FILE_PATH
 from ..config import load_config
 from .. import __app_name__
 from .. import __version__
+from .. import ERRORS
 from pathlib import Path
 from typing import Optional
 import importlib
@@ -118,8 +119,9 @@ def main(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         cerr.setFormatter(formatter)
         app_logger.addHandler(cerr)
-    logger.debug('Configured logging.')
 
-    logger.debug(f'Using configuration file: {config_file}')
-    load_config(config_file)
+    load_config_error = load_config(config_file)
+    if load_config_error:
+        typer.secho(ERRORS[load_config_error], fg=typer.colors.RED)
+        raise typer.Exit(load_config_error)
     return
