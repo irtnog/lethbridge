@@ -18,8 +18,8 @@
 from . import __app_name__
 from . import CONFIG_ERROR
 from . import SUCCESS
+from configparser import ConfigParser
 from pathlib import Path
-import configparser
 import logging
 import typer
 
@@ -29,49 +29,37 @@ logger = logging.getLogger(__name__)
 # defaults
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
-configuration = configparser.ConfigParser()
+configuration = ConfigParser()
 configuration['database'] = {
     'uri': 'sqlite:///' + str(CONFIG_DIR_PATH / 'galaxy.sqlite')
 }
 
 
-def init_config(config_file: Path) -> int:
-    # create the configuration file if it doesn't already exist
+def load_config(config_file: Path) -> int:
+    '''Merge the configuration file with the defaults.'''
     try:
-        config_file.parent.mkdir(parents=True, exist_ok=True)
-        config_file.touch(exist_ok=True)
+        if config_file.exists():
+            logger.debug(f'Configuration file {config_file} exists; loading.')
+            configuration.read(config_file)
+        else:
+            logger.debug(f'Configuration file {config_file} does not exist; skipping.')
     except Exception as e:
+        logger.error(f'Could not read or parse {config_file}.')
         logger.info(e)
         return CONFIG_ERROR
     return SUCCESS
 
 
-def load_config(config_file: Path) -> int:
-    # make sure the configuration file exists first
-    init_config_error = init_config(config_file)
-    if init_config_error:
-        return init_config_error
-
-    # merge the configuration file with the defaults
+def save_config(config_file: Path, new_cfg: ConfigParser) -> int:
+    '''Save the new configuration to a file.'''
     try:
-        configuration.read(config_file)
-    except Exception as e:
-        logger.warning(f'Could not read configuration file: {config_file}')
-        logger.info(e)
-        pass
-    return SUCCESS
-
-
-def save_config(config_file: Path) -> int:
-    # make sure the configuration file exists first
-    init_config_error = init_config(config_file)
-    if init_config_error:
-        return init_config_error
-
-    # save the current configuration
-    try:
+        logger.debug(f'Making the directory {config_file.parent} (if it does not exist).')
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        logger.debug(f'Touching the configuration file {config_file}.')
+        config_file.touch(exist_ok=True)
+        logger.debug('Writing the configuration.')
         with config_file.open('w') as file:
-            configuration.write(file)
+            new_cfg.write(file)
     except Exception as e:
         logger.info(e)
         return CONFIG_ERROR
