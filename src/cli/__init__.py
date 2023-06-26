@@ -33,14 +33,14 @@ app = typer.Typer()
 
 # build a list of submodules
 __path__ = pkgutil.extend_path(__path__, __name__)  # noqa: F821
-_commands = [
+_submodules = [
     _modname for _importer, _modname, _ispkg
     in pkgutil.walk_packages(path=__path__, prefix=__name__ + '.')
 ]
 
-# load submodules and add them as submodules
-for _command in _commands:
-    _mdl = importlib.import_module(_command)
+# load submodules and add them as CLI subcommands
+for _submodule in _submodules:
+    _mdl = importlib.import_module(_submodule)
 
     # respect the module's external symbol list if present
     if '__all__' in _mdl.__dict__:
@@ -51,7 +51,10 @@ for _command in _commands:
     if 'app' in _mdl_names:
         _subcommand = getattr(_mdl, 'app')
         if isinstance(_subcommand, typer.Typer):
-            app.add_typer(_subcommand, name=_command.split('.')[-1])
+            app.add_typer(
+                _subcommand,
+                name=_submodule.split('.')[-1],
+            )
 
 
 def _version_callback(value: bool) -> None:
