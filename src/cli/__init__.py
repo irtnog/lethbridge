@@ -50,10 +50,15 @@ for _submodule in _submodules:
 
     if 'app' in _mdl_names:
         _subcommand = getattr(_mdl, 'app')
+        if 'help' in _mdl_names:
+            _help = getattr(_mdl, 'help')
+        else:
+            _help = None
         if isinstance(_subcommand, typer.Typer):
             app.add_typer(
                 _subcommand,
                 name=_submodule.split('.')[-1],
+                help=_help
             )
 
 
