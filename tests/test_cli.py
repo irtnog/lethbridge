@@ -16,8 +16,12 @@
 # <https://www.gnu.org/licenses/>.
 
 from lethbridge import __app_name__
-from lethbridge import __version__
 from lethbridge import cli
+from lethbridge import DATABASE_ERROR
+from lethbridge import SUCCESS
+from lethbridge import __version__
+from pytest import mark
+from pytest import param
 from typer import Typer
 from typer.testing import CliRunner
 
@@ -33,3 +37,19 @@ def test_version():
 def test_cli_autoloader():
     assert 'configure' in cli.__dict__
     assert isinstance(cli.configure.app, Typer)
+
+
+@mark.parametrize(
+    'uri, force, expected_error',
+    [
+        param('obvious nonsense', False, DATABASE_ERROR),
+        param('sqlite://', False, SUCCESS),
+        param('sqlite://', True, SUCCESS),
+    ],
+)
+def test_cli_database_init(uri, force, expected_error):
+    cmd = ['database', 'init', '--uri', uri]
+    if force:
+        cmd += ['--force']
+    result = runner.invoke(cli.app, cmd)
+    assert result.exit_code == expected_error

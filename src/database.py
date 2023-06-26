@@ -16,11 +16,15 @@
 # <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from . import DATABASE_ERROR
+from . import SUCCESS
 from datetime import datetime
 from marshmallow import EXCLUDE
 from marshmallow import post_dump
 from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from psycopg2cffi import compat
+from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -29,6 +33,9 @@ import logging
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
+
+# invoke psycopg2cffi compatibility hook
+compat.register()
 
 
 # tracks definitions and related metadata for the tables created below
@@ -110,3 +117,19 @@ class SystemSchema(SQLAlchemyAutoSchema):
         coords = in_data.pop('coords')
         in_data.update(coords)
         return in_data
+
+
+def init_database(uri: str, force: bool) -> int:
+    '''Create tables, etc., in the database.'''
+    try:
+        logger.debug('Creating engine.')
+        engine = create_engine(uri)
+        if force:
+            logger.debug('Dropping existing tables, etc.')
+            Base.metadata.drop_all(engine)
+        logger.debug('Creating tables, etc.')
+        Base.metadata.create_all(engine)
+    except Exception as e:
+        logger.info(e)
+        return DATABASE_ERROR
+    return SUCCESS

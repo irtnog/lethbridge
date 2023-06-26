@@ -17,9 +17,11 @@
 
 from copy import deepcopy
 from datetime import datetime
+from lethbridge import SUCCESS
 from lethbridge.database import Base
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
+from lethbridge.database import init_database
 from psycopg2cffi import compat
 from sqlalchemy import create_engine
 from sqlalchemy import select
@@ -65,6 +67,21 @@ def mock_postgresql(postgresql):
 @fixture
 def mock_sqlite(tmp_path):
     return ('sqlite:///' + str(tmp_path / 'galaxy.sqlite'))
+
+
+@mark.parametrize(
+    'db_uri_fixture, force',
+    [
+        param('mock_sqlite', False),
+        param('mock_sqlite', True),
+        param('mock_postgresql', False),
+        param('mock_postgresql', True),
+    ],
+)
+def test_metadata(db_uri_fixture, force, request):
+    db_uri = request.getfixturevalue(db_uri_fixture)
+    init_database_error = init_database(db_uri, force)
+    assert init_database_error == SUCCESS
 
 
 @mark.parametrize(
