@@ -29,55 +29,50 @@ logger = logging.getLogger(__name__)
 # defaults
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
-DEFAULT_DATABASE_URI = 'sqlite:///' + str(CONFIG_DIR_PATH / 'galaxy.sqlite')
+configuration = configparser.ConfigParser()
+configuration['database'] = {
+    'uri': 'sqlite:///' + str(CONFIG_DIR_PATH / 'galaxy.sqlite')
+}
 
 
-def _init_config(config_file: Path) -> int:
+def init_config(config_file: Path) -> int:
+    # create the configuration file if it doesn't already exist
     try:
         config_file.parent.mkdir(parents=True, exist_ok=True)
         config_file.touch(exist_ok=True)
     except Exception as e:
-        logger.debug(e)
+        logger.info(e)
         return CONFIG_ERROR
     return SUCCESS
 
 
-def get_database_uri(config_file: Path) -> str:
-    '''Return the current database connection information.'''
-    cfg = configparser.ConfigParser()
-    try:
-        cfg.read(config_file)
-    except Exception as e:
-        logger.warning(e)
-        pass
-    return cfg.get('database', 'uri', fallback=DEFAULT_DATABASE_URI)
-
-
-def set_database_uri(config_file: Path, database_uri: str) -> int:
-    # TODO: validate database_uri
-    init_config_error = _init_config(config_file)
+def load_config(config_file: Path) -> int:
+    # make sure the configuration file exists first
+    init_config_error = init_config(config_file)
     if init_config_error:
         return init_config_error
 
-    cfg = configparser.ConfigParser()
+    # merge the configuration file with the defaults
     try:
-        cfg.read(config_file)
+        configuration.read(config_file)
     except Exception as e:
-        logger.debug(e)
-        return CONFIG_ERROR
+        logger.warning(f'Could not read configuration file: {config_file}')
+        logger.info(e)
+        pass
+    return SUCCESS
 
-    if 'database' not in cfg:
-        cfg['database'] = {}
-    if database_uri:
-        cfg['database']['uri'] = database_uri
-    else:
-        # remove from config if false-ish
-        cfg['database'].pop('uri', None)
 
+def save_config(config_file: Path) -> int:
+    # make sure the configuration file exists first
+    init_config_error = init_config(config_file)
+    if init_config_error:
+        return init_config_error
+
+    # save the current configuration
     try:
         with config_file.open('w') as file:
-            cfg.write(file)
+            configuration.write(file)
     except Exception as e:
-        logger.debug(e)
+        logger.info(e)
         return CONFIG_ERROR
     return SUCCESS
