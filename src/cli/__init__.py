@@ -64,6 +64,12 @@ for _submodule in _submodules:
             )
 
 
+@app.command()
+def listen() -> None:
+    '''Connect to the Elite Dangerous Data Network (EDDN).'''
+    pass
+
+
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(f'{__app_name__} {__version__}, a free/libre/open source client for EDDN (and more)')

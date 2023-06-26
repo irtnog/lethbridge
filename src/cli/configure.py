@@ -15,7 +15,46 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from ..config import configuration
+from typing import Annotated
+from typing import Optional
 import typer
 
 # create the CLI
 app = typer.Typer()
+help = 'Inspect or modify Lethbridge CLI options.'
+
+
+@app.command()
+def get(
+        section: Annotated[Optional[str], typer.Argument(
+            help='Find the setting in the specified section of the configuration.  Leave blank to show all settings in all sections.',
+        )] = None,
+        key: Annotated[Optional[str], typer.Argument(
+            help='The name of the setting.  Leave blank to show all settings in this section of the configuration.',
+        )] = None,
+) -> None:
+    '''Print the current configuration.'''
+    if section and key:
+        pass
+    elif section:
+        pass
+    else:
+        pass
+
+
+@app.command()
+def set(
+        section: Annotated[str, typer.Argument(
+            help='The section of the configuration.',
+        )],
+        key: Annotated[str, typer.Argument(
+            help='The name of the setting.',
+        )],
+        value: Annotated[str, typer.Argument(
+            help='',
+        )],
+) -> None:
+    '''Change the value of a setting.'''
+    # TODO new_cfg.read_string(f'[{section}]\n{key} = {value}')
+    pass
