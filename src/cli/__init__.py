@@ -16,6 +16,7 @@
 # <https://www.gnu.org/licenses/>.
 
 from ..config import CONFIG_FILE_PATH
+from ..config import load_config
 from .. import __app_name__
 from .. import __version__
 from pathlib import Path
@@ -73,7 +74,7 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
-        config: Optional[Path] = typer.Option(
+        config_file: Optional[Path] = typer.Option(
             CONFIG_FILE_PATH,
             '--config',
             '-f',
@@ -88,6 +89,6 @@ def main(
             is_eager=True
         ),
 ) -> None:
-    if config:
-        CONFIG_FILE_PATH = config  # noqa: F841
+    logger.debug(f'Using configuration file: {config_file}')
+    load_config(config_file)
     return
