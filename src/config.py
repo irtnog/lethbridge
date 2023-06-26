@@ -31,7 +31,7 @@ CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
 configuration = ConfigParser()
 configuration['database'] = {
-    'uri': 'sqlite:///' + str(CONFIG_DIR_PATH / 'galaxy.sqlite')
+    'uri': 'sqlite:///galaxy.sqlite'
 }
 
 
