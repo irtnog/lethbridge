@@ -23,6 +23,7 @@ dependencies = [
     "marshmallow-sqlalchemy",
     "psycopg2cffi",
     "pytest",
+    "pytest-cov",
     "pytest-postgresql",
     "shellingham",
     "sqlalchemy>=2",
