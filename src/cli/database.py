@@ -16,7 +16,6 @@
 # <https://www.gnu.org/licenses/>.
 
 from .. import ERRORS
-from ..config import configuration
 from ..database import init_database
 from typing import Annotated
 from typing import Optional
@@ -29,6 +28,7 @@ help = 'Manage the database back end.'
 
 @app.command()
 def init(
+        ctx: typer.Context,
         uri: Annotated[Optional[str], typer.Argument(
             help='Connect to the specified database instead of the configured default.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.',
         )] = None,
@@ -38,8 +38,9 @@ def init(
         )] = False,
 ) -> None:
     '''Initialze the database, creating tables, views, etc.'''
+    app_cfg = ctx.obj['app_cfg']
     if not uri:
-        uri = configuration['database']['uri']
+        uri = app_cfg['database']['uri']
     init_database_error = init_database(uri, force)
     if init_database_error:
         typer.secho(ERRORS[init_database_error], fg=typer.colors.RED)

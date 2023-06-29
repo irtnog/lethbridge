@@ -19,8 +19,10 @@ from .. import ERRORS
 from .. import __app_name__
 from .. import __version__
 from ..config import CONFIG_FILE_PATH
-from ..config import configuration
+from ..config import DEFAULT_CONFIG
 from ..config import load_config
+from configparser import ConfigParser
+from io import StringIO
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -83,6 +85,7 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
+        ctx: typer.Context,
         config_file: Annotated[Optional[Path], typer.Option(
             '--config',
             '-f',
@@ -110,6 +113,9 @@ def main(
             is_eager=True,
         )] = None,
 ) -> None:
+    ctx.obj = {}                # user-defined shared state
+
+    # configure logging
     app_logger = logging.getLogger(__app_name__)
     app_logger.setLevel(
         logging.DEBUG if debug else
@@ -123,10 +129,21 @@ def main(
         cerr.setFormatter(formatter)
         app_logger.addHandler(cerr)
 
-    # load the configuration
-    load_config_error = load_config(config_file, configuration)
+    # copy the default configuration
+    config_string = StringIO()
+    DEFAULT_CONFIG.write(config_string)
+    config_string.seek(0)
+    app_cfg = ConfigParser()
+    app_cfg.read_file(config_string)
+
+    # load the configuration file (overwrites the defaults)
+    load_config_error = load_config(config_file, app_cfg)
     if load_config_error:
         typer.secho(ERRORS[load_config_error], fg=typer.colors.RED)
         raise typer.Exit(load_config_error)
-    CONFIG_FILE_PATH = config_file  # noqa: F841
+
+    # pass global state like application configuration to other parts
+    # of the UI via Typer's/Click's context object
+    ctx.obj['config_file'] = config_file
+    ctx.obj['app_cfg'] = app_cfg
     return
