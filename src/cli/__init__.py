@@ -22,6 +22,7 @@ from ..config import CONFIG_FILE_PATH
 from ..config import configuration
 from ..config import load_config
 from pathlib import Path
+from typing import Annotated
 from typing import Optional
 import importlib
 import logging
@@ -82,37 +83,32 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
-        config_file: Optional[Path] = typer.Option(
-            CONFIG_FILE_PATH,
+        config_file: Annotated[Optional[Path], typer.Option(
             '--config',
             '-f',
             help='Override the default configuration file.',
-        ),
-        debug: Optional[bool] = typer.Option(
-            None,
+        )] = CONFIG_FILE_PATH,
+        debug: Annotated[Optional[bool], typer.Option(
             '--debug',
             '-d',
             help='Enable detailed activity tracing.',
-        ),
-        quiet: Optional[bool] = typer.Option(
-            None,
+        )] = None,
+        quiet: Annotated[Optional[bool], typer.Option(
             '--quiet',
             '-q',
             help='Silence all program output.',
-        ),
-        verbose: Optional[bool] = typer.Option(
-            None,
+        )] = None,
+        verbose: Annotated[Optional[bool], typer.Option(
             '--verbose',
             '-v',
             help='Include backtraces in error messages.',
-        ),
-        version: Optional[bool] = typer.Option(
-            None,
+        )] = None,
+        version: Annotated[Optional[bool], typer.Option(
             '--version',
             help='Show the application\'s version and exit.',
             callback=_version_callback,
             is_eager=True,
-        ),
+        )] = None,
 ) -> None:
     app_logger = logging.getLogger(__app_name__)
     app_logger.setLevel(

@@ -18,6 +18,8 @@
 from .. import ERRORS
 from ..config import configuration
 from ..database import init_database
+from typing import Annotated
+from typing import Optional
 import typer
 
 # create the CLI
@@ -27,19 +29,17 @@ help = 'Manage the database back end.'
 
 @app.command()
 def init(
-        uri: str = typer.Option(
-            configuration['database']['uri'],
-            '--uri',
-            '-u',
-            help='Connect to the specified database.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.',
-        ),
-        force: bool = typer.Option(
-            False,
+        uri: Annotated[Optional[str], typer.Argument(
+            help='Connect to the specified database instead of the configured default.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.',
+        )] = None,
+        force: Annotated[bool, typer.Option(
             '--force',
             help='Force database re-initialization.',
-        ),
+        )] = False,
 ) -> None:
     '''Initialze the database, creating tables, views, etc.'''
+    if not uri:
+        uri = configuration['database']['uri']
     init_database_error = init_database(uri, force)
     if init_database_error:
         typer.secho(ERRORS[init_database_error], fg=typer.colors.RED)

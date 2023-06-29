@@ -27,12 +27,12 @@ help = 'Inspect or modify Lethbridge CLI options.'
 
 @app.command()
 def get(
-        section: Annotated[Optional[str], typer.Argument(
-            help='Find the setting in the specified section of the configuration.  Leave blank to show all settings in all sections.',
-        )] = None,
-        key: Annotated[Optional[str], typer.Argument(
-            help='The name of the setting.  Leave blank to show all settings in this section of the configuration.',
-        )] = None,
+        section: Annotated[str, typer.Argument(
+            help='Find the setting in this part of the configuration.',
+        )],
+        option: Annotated[str, typer.Argument(
+            help='The name of the setting.',
+        )],
 ) -> None:
     '''Print the current configuration.'''
     if section and key:
@@ -46,14 +46,18 @@ def get(
 @app.command()
 def set(
         section: Annotated[str, typer.Argument(
-            help='The section of the configuration.',
+            help='Find the setting in this part of the configuration.',
         )],
-        key: Annotated[str, typer.Argument(
+        option: Annotated[str, typer.Argument(
             help='The name of the setting.',
         )],
-        value: Annotated[str, typer.Argument(
-            help='',
-        )],
+        value: Annotated[Optional[str], typer.Argument(
+            help='The setting\'s new value.',
+        )] = None,
+        reset: Annotated[bool, typer.Option(
+            '--reset',
+            help='Reset this setting to its default value.  Any new value is ignored.'
+        )] = False,
 ) -> None:
     '''Change the value of a setting.'''
     # TODO new_cfg.read_string(f'[{section}]\n{key} = {value}')

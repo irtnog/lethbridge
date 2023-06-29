@@ -48,7 +48,7 @@ def test_cli_autoloader():
     ],
 )
 def test_cli_database_init(uri, force, expected_error):
-    cmd = ['database', 'init', '--uri', uri]
+    cmd = ['database', 'init', uri]
     if force:
         cmd += ['--force']
     result = runner.invoke(cli.app, cmd)
