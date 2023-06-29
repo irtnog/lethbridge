@@ -17,18 +17,18 @@
 
 from copy import deepcopy
 from datetime import datetime
-from lethbridge import SUCCESS
 from lethbridge.database import Base
+from lethbridge.database import init_database
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
-from lethbridge.database import init_database
+from lethbridge import SUCCESS
 from psycopg2cffi import compat
+from pytest import fixture
+from pytest import mark
+from pytest import param
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from pytest import fixture
-from pytest import param
-from pytest import mark
 
 # invoke psycopg2cffi compatibility hook
 compat.register()

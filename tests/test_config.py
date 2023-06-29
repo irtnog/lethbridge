@@ -21,8 +21,8 @@ from lethbridge import SUCCESS
 from lethbridge.config import load_config
 from lethbridge.config import save_config
 from pytest import fixture
-from pytest import param
 from pytest import mark
+from pytest import param
 
 
 # FIXME: find a more reliable way to mock this

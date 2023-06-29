@@ -15,11 +15,11 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from ..config import CONFIG_FILE_PATH
-from ..config import load_config
+from .. import ERRORS
 from .. import __app_name__
 from .. import __version__
-from .. import ERRORS
+from ..config import CONFIG_FILE_PATH
+from ..config import load_config
 from pathlib import Path
 from typing import Optional
 import importlib

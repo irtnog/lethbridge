@@ -15,9 +15,9 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from . import __app_name__
 from . import CONFIG_ERROR
 from . import SUCCESS
+from . import __app_name__
 from configparser import ConfigParser
 from pathlib import Path
 import logging
