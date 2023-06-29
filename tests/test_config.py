@@ -18,6 +18,7 @@
 from configparser import ConfigParser
 from lethbridge import CONFIG_ERROR
 from lethbridge import SUCCESS
+from lethbridge.config import configuration
 from lethbridge.config import load_config
 from lethbridge.config import save_config
 from pytest import fixture
@@ -47,7 +48,7 @@ def mock_config_file(tmp_path):
 )
 def test_load_config(config_file_fixture, expected_error, request):
     config_file = request.getfixturevalue(config_file_fixture)
-    load_config_error = load_config(config_file)
+    load_config_error = load_config(config_file, configuration)
     assert load_config_error == expected_error
 
 

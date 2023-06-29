@@ -36,12 +36,12 @@ configuration['database'] = {
 }
 
 
-def load_config(config_file: Path) -> int:
-    '''Merge the configuration file with the defaults.'''
+def load_config(config_file: Path, existing_cfg: ConfigParser) -> int:
+    '''Merge the configuration file with an existing configuration.'''
     try:
         if config_file.exists():
             logger.debug(f'Configuration file {config_file} exists; loading.')
-            configuration.read(config_file)
+            existing_cfg.read(config_file)
         else:
             logger.debug(f'Configuration file {config_file} does not exist; skipping.')
     except Exception as e:

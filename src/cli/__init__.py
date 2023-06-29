@@ -19,6 +19,7 @@ from .. import ERRORS
 from .. import __app_name__
 from .. import __version__
 from ..config import CONFIG_FILE_PATH
+from ..config import configuration
 from ..config import load_config
 from pathlib import Path
 from typing import Optional
@@ -126,7 +127,8 @@ def main(
         cerr.setFormatter(formatter)
         app_logger.addHandler(cerr)
 
-    load_config_error = load_config(config_file)
+    # load the configuration
+    load_config_error = load_config(config_file, configuration)
     if load_config_error:
         typer.secho(ERRORS[load_config_error], fg=typer.colors.RED)
         raise typer.Exit(load_config_error)
