@@ -90,6 +90,8 @@ class Faction(Base):
     allegiance: Mapped[str]
     government: Mapped[str]
 
+    controlledSystems: Mapped[List['System']] = relationship(back_populates='controllingFaction')
+
     systems: Mapped[List['State']] = relationship(back_populates='faction')
 
     def __repr__(self):
@@ -121,7 +123,8 @@ class System(Base):
     security: Mapped[str] = mapped_column(default='Anarchy')
     population: Mapped[int] = mapped_column(default=0)
     bodyCount: Mapped[int] = mapped_column(default=0)
-    controllingFaction: Mapped[Optional['Faction']] = mapped_column(ForeignKey('faction.name'))
+    controllingFaction_id: Mapped[Optional[str]] = mapped_column(ForeignKey('faction.name'))
+    controllingFaction: Mapped[Optional['Faction']] = relationship(back_populates='controlledSystems')
     factions: Mapped[List['State']] = relationship(back_populates='system')
     # powers
     powerState: Mapped[Optional[str]]

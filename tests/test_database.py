@@ -101,7 +101,7 @@ def test_orm_basic(db_uri_fixture, request):
         param('mock_postgresql'),
     ],
 )
-def test_factions(db_uri_fixture, request):
+def test_orm_relationships(db_uri_fixture, request):
     db_uri = request.getfixturevalue(db_uri_fixture)
     init_database_error = init_database(db_uri)
     assert init_database_error == SUCCESS
@@ -128,6 +128,8 @@ def test_factions(db_uri_fixture, request):
             date=datetime(1970, 1, 1, 0, 1),
         )
         bubble_system.factions.append(bubble_faction_state)
+        bubble_system.controllingFaction = bubble_faction
         session.add_all([bubble_faction, bubble_faction_state, bubble_system])
 
+        assert len(bubble_faction.controlledSystems) == 1
         assert bubble_faction_state.system == bubble_system
