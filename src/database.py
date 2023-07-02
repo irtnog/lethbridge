@@ -119,7 +119,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
-def init_database(uri: str, force: bool) -> int:
+def init_database(uri: str, force: bool = False) -> int:
     '''Create tables, etc., in the database.'''
     try:
         logger.debug('Creating engine.')
