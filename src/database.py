@@ -24,10 +24,14 @@ from marshmallow import post_dump
 from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from psycopg2cffi import compat
+from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import sessionmaker
+from typing import List
 from typing import Optional
 import logging
 
@@ -43,7 +47,65 @@ class Base(DeclarativeBase):
     pass
 
 
+class State(Base):
+    '''A faction's influence over and status within a given system.
+
+    This models a faction's state in the background simulation (BGS)
+    as a bi-directional association table in the SQLAlchemy ORM since
+    BGS state must include data beyond the system/faction many-to-many
+    relationship.
+
+    '''
+    __tablename__ = 'bgs_state'
+
+    # foreign keys linking the two tables
+    faction_name: Mapped[str] = mapped_column(
+        ForeignKey('faction.name'),
+        primary_key=True,
+    )
+    system_id64: Mapped[int] = mapped_column(
+        ForeignKey('system.id64'),
+        primary_key=True,
+    )
+
+    # extra data
+    # TODO: happiness? not in Spansh dumps
+    influence: Mapped[float]
+    state: Mapped[str]
+
+    # link this association to the corresponding ORM object via the
+    # named attribute (and vice verse in the named ORM classes)
+    faction: Mapped['Faction'] = relationship(back_populates='systems')
+    system: Mapped['System'] = relationship(back_populates='factions')
+
+
+class Faction(Base):
+    '''A minor faction, player or otherwise---as opposed to a Power,
+    superpower, or species.'''
+    __tablename__ = 'faction'
+
+    # FIXME: create index column for factions? (why would one?)
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(primary_key=True)
+    allegiance: Mapped[str]
+    government: Mapped[str]
+
+    systems: Mapped[List['State']] = relationship(back_populates='faction')
+
+    def __repr__(self):
+        return f'<Faction({self.name!r})>'
+
+    def __eq__(self, other: Faction) -> bool:
+        return (
+            self.name == other.name
+            and self.allegiance == other.allegiance
+            and self.government == other.government
+        )
+
+
 class System(Base):
+    '''A gravitationally bound group of stars, planets, and other
+    bodies.'''
     __tablename__ = 'system'
 
     id64: Mapped[int] = mapped_column(primary_key=True)
@@ -52,14 +114,15 @@ class System(Base):
     y: Mapped[float]
     z: Mapped[float]
     allegiance: Mapped[Optional[str]]
+    # TODO: switch to Mapped[Optional[str]]?
     government: Mapped[str] = mapped_column(default='None')
     primaryEconomy: Mapped[str] = mapped_column(default='None')
     secondaryEconomy: Mapped[str] = mapped_column(default='None')
     security: Mapped[str] = mapped_column(default='Anarchy')
     population: Mapped[int] = mapped_column(default=0)
     bodyCount: Mapped[int] = mapped_column(default=0)
-    # controllingFaction
-    # factions
+    controllingFaction: Mapped[Optional['Faction']] = mapped_column(ForeignKey('faction.name'))
+    factions: Mapped[List['State']] = relationship(back_populates='system')
     # powers
     powerState: Mapped[Optional[str]]
     date: Mapped[datetime]
@@ -69,10 +132,9 @@ class System(Base):
     def __repr__(self):
         return f'<System(id64={self.id64!r}, {self.name!r})>'
 
-    def __eq__(self, other):
+    def __eq__(self, other: System) -> bool:
         return (
-            isinstance(other, System)
-            and self.id64 == other.id64
+            self.id64 == other.id64
             and self.name == other.name
             and self.x == other.x  # coords
             and self.y == other.y
@@ -84,8 +146,9 @@ class System(Base):
             and self.security == other.security
             and self.population == other.population
             and self.bodyCount == other.bodyCount
-            # controllingFaction
-            # factions
+            # TODO
+            # and self.controllingFaction == other.controllingFaction
+            # and self.factions == other.factions
             # powers
             and self.powerState == other.powerState
             and self.date == other.date
