@@ -129,7 +129,20 @@ def test_orm_relationships(db_uri_fixture, request):
         )
         bubble_system.factions.append(bubble_faction_state)
         bubble_system.controllingFaction = bubble_faction
-        session.add_all([bubble_faction, bubble_faction_state, bubble_system])
+        session.add(bubble_system)
 
-        assert len(bubble_faction.controlledSystems) == 1
-        assert bubble_faction_state.system == bubble_system
+    with Session.begin() as session:
+        stmt = select(Faction)
+        rows = session.scalars(stmt).all()
+        assert len(rows) == 1
+        this_faction = rows[0]
+        assert len(this_faction.controlledSystems) == 1
+        assert len(this_faction.systems) == 1
+
+        stmt = select(System).where(System.id64 == 1)
+        this_system = session.scalars(stmt).one()
+        assert this_system.controllingFaction == this_faction
+        assert len(this_system.factions) == 1
+
+        this_bgs_state = this_faction.systems[0]
+        assert this_bgs_state.system == this_system
