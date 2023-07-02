@@ -17,6 +17,8 @@
 
 from datetime import datetime
 from lethbridge import SUCCESS
+from lethbridge.database import Faction
+from lethbridge.database import State
 from lethbridge.database import System
 from lethbridge.database import init_database
 from psycopg2cffi import compat
@@ -90,3 +92,42 @@ def test_orm_basic(db_uri_fixture, request):
         stmt = select(System).where(System.name.ilike('%test%'))
         existing_system = session.scalars(stmt).one()
         assert existing_system.name == 'Test System'
+
+
+@mark.parametrize(
+    'db_uri_fixture',
+    [
+        param('mock_sqlite'),
+        param('mock_postgresql'),
+    ],
+)
+def test_factions(db_uri_fixture, request):
+    db_uri = request.getfixturevalue(db_uri_fixture)
+    init_database_error = init_database(db_uri)
+    assert init_database_error == SUCCESS
+
+    engine = create_engine(db_uri)
+    Session = sessionmaker(engine)
+    with Session.begin() as session:
+        bubble_faction = Faction(
+            name='Bubble Faction',
+            allegiance='Independent',
+            government='Collective',
+        )
+        bubble_faction_state = State(
+            faction=bubble_faction,
+            influence=0.5,
+            state='None',
+        )
+        bubble_system = System(
+            id64=1,
+            name='Bubble System',
+            x=1.1,
+            y=2.1,
+            z=3.1,
+            date=datetime(1970, 1, 1, 0, 1),
+        )
+        bubble_system.factions.append(bubble_faction_state)
+        session.add_all([bubble_faction, bubble_faction_state, bubble_system])
+
+        assert bubble_faction_state.system == bubble_system
