@@ -15,48 +15,21 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from copy import deepcopy
 from datetime import datetime
-from lethbridge.database import Base
-from lethbridge.database import init_database
-from lethbridge.database import System
-from lethbridge.database import SystemSchema
 from lethbridge import SUCCESS
+from lethbridge.database import System
+from lethbridge.database import init_database
 from psycopg2cffi import compat
 from pytest import fixture
 from pytest import mark
 from pytest import param
 from sqlalchemy import create_engine
+from sqlalchemy import func
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
 # invoke psycopg2cffi compatibility hook
 compat.register()
-
-test_data = {
-    'id64': 0,
-    'name': 'Test System A',
-    'coords': {
-        'x': 1.0,
-        'y': 2.0,
-        'z': 3.0,
-    },
-    'allegiance': None,
-    'government': 'None',
-    'primaryEconomy': 'None',
-    'secondaryEconomy': 'None',
-    'security': 'Anarchy',
-    'population': 0,
-    'bodyCount': 0,
-    # controllingFaction
-    # factions
-    # powers
-    'powerState': None,         # FIXME: omitted in dumps, presence
-                                # demarcates the Bubble?
-    'date': '1970-01-01T00:00:00',
-    # bodies
-    # stations
-}
 
 
 @fixture
@@ -64,87 +37,37 @@ def mock_postgresql(postgresql):
     return f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
 
 
-@fixture
-def mock_sqlite(tmp_path):
-    return ('sqlite:///' + str(tmp_path / 'galaxy.sqlite'))
+@fixture(scope='session')
+def mock_sqlite(tmp_path_factory):
+    sqlite_path = tmp_path_factory.mktemp('db') / 'galaxy.sqlite'
+    return ('sqlite:///' + str(sqlite_path))
 
 
 @mark.parametrize(
-    'db_uri_fixture, force',
+    'db_uri_fixture',
     [
-        param('mock_sqlite', False),
-        param('mock_sqlite', True),
-        param('mock_postgresql', False),
-        param('mock_postgresql', True),
+        param('mock_sqlite'),
+        param('mock_postgresql'),
     ],
 )
-def test_metadata(db_uri_fixture, force, request):
+def test_orm_basic(db_uri_fixture, request):
     db_uri = request.getfixturevalue(db_uri_fixture)
-    init_database_error = init_database(db_uri, force)
+    init_database_error = init_database(db_uri)
     assert init_database_error == SUCCESS
 
-
-@mark.parametrize(
-    'db_uri_fixture',
-    [
-        param('mock_sqlite'),
-        param('mock_postgresql'),
-    ],
-)
-def test_system_schema(db_uri_fixture, request):
-    db_uri = request.getfixturevalue(db_uri_fixture)
     engine = create_engine(db_uri)
-    Base.metadata.create_all(engine)
-    with Session(engine) as session:
-        test_system_prime = SystemSchema().load(
-            deepcopy(test_data),
-            session=session,
+    Session = sessionmaker(engine)
+    with Session.begin() as session:
+        new_system = System(
+            id64=0,
+            name='Test System',
+            x=1.0,
+            y=2.0,
+            z=3.0,
+            date=datetime(1970, 1, 1, 0, 0),
         )
-        session.add(test_system_prime)
-        session.commit()
+        session.add(new_system)
 
-        stmt = select(System).where(System.id64 == test_data.get('id64'))
-        test_system_secunde = session.scalars(stmt).one()
-        dump_data = SystemSchema().dump(test_system_secunde)
-
-    assert test_system_prime == test_system_secunde
-    assert len(test_data) == len(dump_data)
-    for i in test_data:
-        assert test_data[i] == dump_data[i]
-
-
-@mark.parametrize(
-    'db_uri_fixture',
-    [
-        param('mock_sqlite'),
-        param('mock_postgresql'),
-    ],
-)
-def test_system_defaults(db_uri_fixture, request):
-    db_uri = request.getfixturevalue(db_uri_fixture)
-    engine = create_engine(db_uri)
-    Base.metadata.create_all(engine)
-    with Session(engine) as session:
-        test_system_prime = System(
-            id64=test_data.get('id64'),
-            name=test_data.get('name'),
-            x=test_data.get('coords').get('x'),
-            y=test_data.get('coords').get('y'),
-            z=test_data.get('coords').get('z'),
-            date=datetime.fromisoformat(test_data.get('date')),
-        )
-        session.add(test_system_prime)
-        session.commit()
-        dump_data = SystemSchema().dump(test_system_prime)
-
-        stmt = select(System).where(System.id64 == test_data.get('id64'))
-        test_system_secunde = session.scalars(stmt).one()
-
-    assert test_system_prime == test_system_secunde
-    assert len(test_data) == len(dump_data)
-    for i in test_data:
-        assert test_data[i] == dump_data[i]
-
-
-# TODO: more things that should work
-# TODO: things that should fail
+        stmt = select(func.count(System.name))
+        cnt = session.scalars(stmt).one()
+        assert cnt == 1
