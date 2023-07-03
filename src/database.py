@@ -181,6 +181,7 @@ class StateSchema(SQLAlchemyAutoSchema):
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
+        exclude = ['controllingFaction_id']
         unknown = EXCLUDE
         include_fk = True
         include_relationships = True
