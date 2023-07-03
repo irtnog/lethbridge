@@ -195,19 +195,21 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def wrap_coords(self, out_data, **kwargs):
+        new_data = out_data.copy()
         coords = {
-            'x': out_data.pop('x'),
-            'y': out_data.pop('y'),
-            'z': out_data.pop('z'),
+            'x': new_data.pop('x'),
+            'y': new_data.pop('y'),
+            'z': new_data.pop('z'),
         }
-        out_data['coords'] = coords
-        return out_data
+        new_data['coords'] = coords
+        return new_data
 
     @pre_load
     def flatten_coords(self, in_data, **kwargs):
-        coords = in_data.pop('coords')
-        in_data.update(coords)
-        return in_data
+        new_data = in_data.copy()
+        coords = new_data.pop('coords')
+        new_data.update(coords)
+        return new_data
 
 
 def init_database(uri: str, force: bool = False) -> int:
