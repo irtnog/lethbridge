@@ -23,6 +23,7 @@ from marshmallow import EXCLUDE
 from marshmallow import post_dump
 from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy.fields import Nested
 from psycopg2cffi import compat
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
@@ -160,6 +161,23 @@ class System(Base):
         )
 
 
+class FactionSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Faction
+        # exclude = ['id']
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
+class StateSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = State
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
@@ -167,6 +185,12 @@ class SystemSchema(SQLAlchemyAutoSchema):
         include_fk = True
         include_relationships = True
         load_instance = True
+
+    controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
+    factions = Nested(StateSchema, many=True, required=False)
+
+    # TODO: translate between 'Anarchy'/'None' and None
+    # TODO: powerState key denotes Bubble system?
 
     @post_dump
     def wrap_coords(self, out_data, **kwargs):

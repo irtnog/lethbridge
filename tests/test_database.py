@@ -20,6 +20,7 @@ from lethbridge import SUCCESS
 from lethbridge.database import Faction
 from lethbridge.database import State
 from lethbridge.database import System
+from lethbridge.database import SystemSchema
 from lethbridge.database import init_database
 from psycopg2cffi import compat
 from pytest import fixture
@@ -146,3 +147,57 @@ def test_orm_relationships(db_uri_fixture, request):
 
         this_bgs_state = this_faction.systems[0]
         assert this_bgs_state.system == this_system
+
+
+@mark.parametrize(
+    'db_uri_fixture',
+    [
+        param('mock_sqlite'),
+        param('mock_postgresql'),
+    ],
+)
+def test_systemschema(db_uri_fixture, request):
+    db_uri = request.getfixturevalue(db_uri_fixture)
+    init_database_error = init_database(db_uri)
+    assert init_database_error == SUCCESS
+
+    engine = create_engine(db_uri)
+    Session = sessionmaker(engine)
+    with Session.begin() as session:
+        another_system = System(
+            id64=2,
+            name='Another System',
+            x=1.2,
+            y=2.2,
+            z=3.2,
+            date=datetime(1970, 1, 1, 0, 2),
+        )
+        session.add(another_system)
+
+    # Default values don't get set until commit time, but ending the
+    # session (which automatically triggers a commit) breaks the ORM
+    # object.  So get a new ORM object before proceeding.  (Using
+    # sessionmaker sessions like this means session.commit() doesn't
+    # work.  I don't know why.)
+    with Session.begin() as session:
+        another_system = session.get(System, 2)
+        dump_data = SystemSchema().dump(another_system)
+        assert 'id64' in dump_data
+        assert dump_data['name'] == 'Another System'
+        load_data = SystemSchema().load(dump_data, session=session)
+        assert load_data == another_system
+        session.delete(another_system)
+
+    # The contents of dump_data shouldn't be mutated by
+    # @post_dump/@pre_load methods of the relevant schemas, so it
+    # should be fully reusable from session to session.
+    with Session.begin() as session:
+        deleted_system = session.get(System, 2)
+        assert deleted_system is None
+        restored_system = SystemSchema().load(dump_data, session=session)
+        session.add(restored_system)
+
+    with Session.begin() as session:
+        checked_system = session.get(System, 2)
+        assert checked_system is not None
+        assert checked_system.name == 'Another System'
