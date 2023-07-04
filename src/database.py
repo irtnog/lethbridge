@@ -25,6 +25,7 @@ from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
 from psycopg2cffi import compat
+from sqlalchemy import BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase
@@ -115,7 +116,7 @@ class System(Base):
 
     __tablename__ = "system"
 
-    id64: Mapped[int] = mapped_column(primary_key=True)
+    id64: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str]  # not unique, e.g., AH Cancri
     x: Mapped[float]  # coords
     y: Mapped[float]
