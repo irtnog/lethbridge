@@ -174,6 +174,6 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
         new_system = session.get(System, mock_system_data.get('id64'))
         dump_data = SystemSchema().dump(new_system)
 
-    assert len(dump_data) == len(mock_system_data)
+    assert len(dump_data) <= len(mock_system_data)
     for i in dump_data:         # only check supported attributes
         assert dump_data[i] == mock_system_data[i]

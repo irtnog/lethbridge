@@ -203,6 +203,19 @@ class SystemSchema(SQLAlchemyAutoSchema):
         new_data['coords'] = coords
         return new_data
 
+    @post_dump
+    def filter_nil_attributes(self, out_data, **kwargs):
+        new_data = out_data.copy()
+        for k in out_data:
+            if k not in ['bodies', 'stations']:
+                if (
+                        (new_data.get(k) is None) or
+                        (k == 'factions' and not new_data.get(k))
+                ):
+                    new_data.pop(k)
+                    continue
+        return new_data
+
     @pre_load
     def flatten_coords(self, in_data, **kwargs):
         new_data = in_data.copy()
