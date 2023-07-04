@@ -163,3 +163,22 @@ def test_systemschema_basic(mock_db_uri, request):
         checked_system = session.get(System, 2)
         assert checked_system is not None
         assert checked_system.name == 'Another System'
+
+
+def test_systemschema_real(mock_db_uri, mock_system_data):
+    init_database_error = init_database(mock_db_uri)
+    assert init_database_error == SUCCESS
+
+    engine = create_engine(mock_db_uri)
+    Session = sessionmaker(engine)
+    with Session.begin() as session:
+        new_system = SystemSchema().load(mock_system_data, session=session)
+        session.add(new_system)
+
+    with Session.begin() as session:
+        new_system = session.get(System, mock_system_data.get('id64'))
+        dump_data = SystemSchema().dump(new_system)
+
+    assert len(dump_data) == len(mock_system_data)
+    for i in dump_data:         # only check supported attributes
+        assert dump_data[i] == mock_system_data[i]
