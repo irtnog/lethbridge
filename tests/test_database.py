@@ -22,6 +22,7 @@ from lethbridge.database import State
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
 from psycopg2cffi import compat
+from pytest import mark
 from pytest import raises
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -33,6 +34,10 @@ from sqlalchemy.orm import sessionmaker
 compat.register()
 
 
+# Invoke smoke tests with `pytest -k smoke`.  See also
+# https://docs.pytest.org/en/stable/mark.html,
+# https://stackoverflow.com/a/52369721.
+@mark.smoke
 def test_orm_basic(mock_db_uri):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
@@ -71,6 +76,7 @@ def test_orm_basic(mock_db_uri):
         assert existing_system.name == "Test System"
 
 
+@mark.smoke
 def test_orm_relationships(mock_db_uri):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
@@ -116,6 +122,7 @@ def test_orm_relationships(mock_db_uri):
         assert this_bgs_state.system == this_system
 
 
+@mark.smoke
 def test_systemschema_basic(mock_db_uri):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
