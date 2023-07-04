@@ -1,1 +1,44 @@
-{"id64":114630449779,"name":"Eactainds QQ-C d13-3","coords":{"x":5087.5625,"y":580.875,"z":43651.90625},"allegiance":null,"government":"None","primaryEconomy":"None","secondaryEconomy":"None","security":"Anarchy","population":0,"bodyCount":1,"date":"2023-06-06 18:23:55+00","bodies":[{"id64":114630449779,"bodyId":0,"name":"Eactainds QQ-C d13-3","type":"Star","subType":"F (White) Star","distanceToArrival":0.0,"mainStar":true,"age":2590,"spectralClass":"F3","luminosity":"Vb","absoluteMagnitude":3.399719,"solarMasses":1.476563,"solarRadius":1.32992552120776,"surfaceTemperature":6964.0,"rotationalPeriod":1.76384644699074,"rotationalPeriodTidallyLocked":false,"axialTilt":0.0,"timestamps":{"distanceToArrival":"2023-06-06T18:23:31"},"stations":[],"updateTime":"2023-06-06 18:23:31+00"}],"stations":[]}
+{
+  "id64": 114630449779,
+  "name": "Eactainds QQ-C d13-3",
+  "coords": {
+    "x": 5087.5625,
+    "y": 580.875,
+    "z": 43651.90625
+  },
+  "allegiance": null,
+  "government": "None",
+  "primaryEconomy": "None",
+  "secondaryEconomy": "None",
+  "security": "Anarchy",
+  "population": 0,
+  "bodyCount": 1,
+  "date": "2023-06-06 18:23:55+00",
+  "bodies": [
+    {
+      "id64": 114630449779,
+      "bodyId": 0,
+      "name": "Eactainds QQ-C d13-3",
+      "type": "Star",
+      "subType": "F (White) Star",
+      "distanceToArrival": 0,
+      "mainStar": true,
+      "age": 2590,
+      "spectralClass": "F3",
+      "luminosity": "Vb",
+      "absoluteMagnitude": 3.399719,
+      "solarMasses": 1.476563,
+      "solarRadius": 1.32992552120776,
+      "surfaceTemperature": 6964,
+      "rotationalPeriod": 1.76384644699074,
+      "rotationalPeriodTidallyLocked": false,
+      "axialTilt": 0,
+      "timestamps": {
+        "distanceToArrival": "2023-06-06T18:23:31"
+      },
+      "stations": [],
+      "updateTime": "2023-06-06 18:23:31+00"
+    }
+  ],
+  "stations": []
+}
