@@ -25,13 +25,13 @@ __version__ = pkg_resources.require(__app_name__)[0].version
 logger = logging.getLogger(__name__)
 
 # exit codes
-(                               # TODO: better exit codes
+(  # TODO: better exit codes
     SUCCESS,
     CONFIG_ERROR,
     DATABASE_ERROR,
 ) = range(3)
 
-ERRORS = {                      # TODO: better error messages
-    CONFIG_ERROR: 'Configuration error',
-    DATABASE_ERROR: 'Database error',
+ERRORS = {  # TODO: better error messages
+    CONFIG_ERROR: "Configuration error",
+    DATABASE_ERROR: "Database error",
 }

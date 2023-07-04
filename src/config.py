@@ -28,37 +28,39 @@ logger = logging.getLogger(__name__)
 
 # defaults
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
-CONFIG_FILE_PATH = CONFIG_DIR_PATH / 'config.ini'
+CONFIG_FILE_PATH = CONFIG_DIR_PATH / "config.ini"
 DEFAULT_CONFIG = ConfigParser()
-DEFAULT_CONFIG['database'] = {
-    'uri': 'sqlite:///galaxy.sqlite',
+DEFAULT_CONFIG["database"] = {
+    "uri": "sqlite:///galaxy.sqlite",
 }
 
 
 def load_config(config_file: Path, existing_cfg: ConfigParser) -> int:
-    '''Merge the configuration file with an existing configuration.'''
+    """Merge the configuration file with an existing configuration."""
     try:
         if config_file.exists():
-            logger.debug(f'Configuration file {config_file} exists; loading.')
+            logger.debug(f"Configuration file {config_file} exists; loading.")
             existing_cfg.read(config_file)
         else:
-            logger.debug(f'Configuration file {config_file} does not exist; skipping.')
+            logger.debug(f"Configuration file {config_file} does not exist; skipping.")
     except Exception as e:
-        logger.error(f'Could not read or parse {config_file}.')
+        logger.error(f"Could not read or parse {config_file}.")
         logger.info(e)
         return CONFIG_ERROR
     return SUCCESS
 
 
 def save_config(config_file: Path, new_cfg: ConfigParser) -> int:
-    '''Save the new configuration to a file.'''
+    """Save the new configuration to a file."""
     try:
-        logger.debug(f'Making the directory {config_file.parent} (if it does not exist).')
+        logger.debug(
+            f"Making the directory {config_file.parent} (if it does not exist)."
+        )
         config_file.parent.mkdir(parents=True, exist_ok=True)
-        logger.debug(f'Touching the configuration file {config_file}.')
+        logger.debug(f"Touching the configuration file {config_file}.")
         config_file.touch(exist_ok=True)
-        logger.debug('Writing the configuration.')
-        with config_file.open('w') as file:
+        logger.debug("Writing the configuration.")
+        with config_file.open("w") as file:
             new_cfg.write(file)
     except Exception as e:
         logger.info(e)

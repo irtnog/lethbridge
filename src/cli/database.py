@@ -23,26 +23,32 @@ import typer
 
 # create the CLI
 app = typer.Typer()
-help = 'Manage the database back end.'
+help = "Manage the database back end."
 
 
 @app.command()
 def init(
-        ctx: typer.Context,
-        uri: Annotated[Optional[str], typer.Argument(
-            help='Connect to the specified database instead of the configured default.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.',
-        )] = None,
-        force: Annotated[bool, typer.Option(
-            '--force',
-            help='Force database re-initialization.',
-        )] = False,
+    ctx: typer.Context,
+    uri: Annotated[
+        Optional[str],
+        typer.Argument(
+            help="Connect to the specified database instead of the configured default.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.",
+        ),
+    ] = None,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Force database re-initialization.",
+        ),
+    ] = False,
 ) -> None:
-    '''Initialze the database, creating tables, views, etc.'''
-    app_cfg = ctx.obj['app_cfg']
+    """Initialze the database, creating tables, views, etc."""
+    app_cfg = ctx.obj["app_cfg"]
     if not uri:
-        uri = app_cfg['database']['uri']
+        uri = app_cfg["database"]["uri"]
     init_database_error = init_database(uri, force)
     if init_database_error:
         typer.secho(ERRORS[init_database_error], fg=typer.colors.RED)
         raise typer.Exit(init_database_error)
-    typer.secho('Initialization succeeded.', fg=typer.colors.GREEN)
+    typer.secho("Initialization succeeded.", fg=typer.colors.GREEN)

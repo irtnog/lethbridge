@@ -41,7 +41,7 @@ def test_orm_basic(mock_db_uri):
     with Session.begin() as session:
         new_system = System(
             id64=0,
-            name='Test System',
+            name="Test System",
             x=1.0,
             y=2.0,
             z=3.0,
@@ -57,7 +57,7 @@ def test_orm_basic(mock_db_uri):
         with Session.begin() as session:
             bad_system = System(
                 id64=0,
-                name='Bad System',
+                name="Bad System",
                 x=1.0,
                 y=2.0,
                 z=3.0,
@@ -66,9 +66,9 @@ def test_orm_basic(mock_db_uri):
             session.add(bad_system)
 
     with Session.begin() as session:
-        stmt = select(System).where(System.name.ilike('%test%'))
+        stmt = select(System).where(System.name.ilike("%test%"))
         existing_system = session.scalars(stmt).one()
-        assert existing_system.name == 'Test System'
+        assert existing_system.name == "Test System"
 
 
 def test_orm_relationships(mock_db_uri):
@@ -78,18 +78,18 @@ def test_orm_relationships(mock_db_uri):
 
     with Session.begin() as session:
         bubble_faction = Faction(
-            name='Bubble Faction',
-            allegiance='Independent',
-            government='Collective',
+            name="Bubble Faction",
+            allegiance="Independent",
+            government="Collective",
         )
         bubble_faction_state = State(
             faction=bubble_faction,
             influence=0.5,
-            state='None',
+            state="None",
         )
         bubble_system = System(
             id64=1,
-            name='Bubble System',
+            name="Bubble System",
             x=1.1,
             y=2.1,
             z=3.1,
@@ -124,7 +124,7 @@ def test_systemschema_basic(mock_db_uri, request):
     with Session.begin() as session:
         another_system = System(
             id64=2,
-            name='Another System',
+            name="Another System",
             x=1.2,
             y=2.2,
             z=3.2,
@@ -140,8 +140,8 @@ def test_systemschema_basic(mock_db_uri, request):
     with Session.begin() as session:
         another_system = session.get(System, 2)
         dump_data = SystemSchema().dump(another_system)
-        assert 'id64' in dump_data
-        assert dump_data['name'] == 'Another System'
+        assert "id64" in dump_data
+        assert dump_data["name"] == "Another System"
         load_data = SystemSchema().load(dump_data, session=session)
         assert load_data == another_system
         session.delete(another_system)
@@ -158,7 +158,7 @@ def test_systemschema_basic(mock_db_uri, request):
     with Session.begin() as session:
         checked_system = session.get(System, 2)
         assert checked_system is not None
-        assert checked_system.name == 'Another System'
+        assert checked_system.name == "Another System"
 
 
 def test_systemschema_real(mock_db_uri, mock_system_data):
@@ -171,12 +171,12 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
         session.add(new_system)
 
     with Session.begin() as session:
-        new_system = session.get(System, mock_system_data.get('id64'))
+        new_system = session.get(System, mock_system_data.get("id64"))
         dump_data = SystemSchema().dump(new_system)
 
     assert len(dump_data) <= len(mock_system_data)
     for i in dump_data:
-        if i == 'date':
+        if i == "date":
             # TODO: Spansh's dumps do not use ISO 8601.  We do, and we
             # don't plan to be compatible with Spansh in this case.
             # Skip testing for now.  Parse and compare native datetime

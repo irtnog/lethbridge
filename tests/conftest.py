@@ -20,31 +20,31 @@ from pytest import fixture
 import simplejson as json
 
 
-@fixture(params=['postgresql', 'sqlite'])
+@fixture(params=["postgresql", "sqlite"])
 def mock_db_uri(postgresql, tmp_path_factory, request):
-    if request.param == 'postgresql':
-        yield f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
-    elif request.param == 'sqlite':
+    if request.param == "postgresql":
+        yield f"postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
+    elif request.param == "sqlite":
         yield f'sqlite:///{str(tmp_path_factory.mktemp("db") / "galaxy.sqlite")}'
 
 
 @fixture(
-    scope='module',
+    scope="module",
     params=[
-        'Eactainds QE-A c29-0',
-        'Eactainds QQ-C d13-3',
-        'Eactaips ZI-X c28-72',
-        'S171 43',
-        'Sachmet',
-        'Sagittarius A*',
-        'Saktsak',
-        'Sol',
-        'SZ Ursae Majoris',
-        'x1 Centauri',
-        'x2 Centauri',
+        "Eactainds QE-A c29-0",
+        "Eactainds QQ-C d13-3",
+        "Eactaips ZI-X c28-72",
+        "S171 43",
+        "Sachmet",
+        "Sagittarius A*",
+        "Saktsak",
+        "Sol",
+        "SZ Ursae Majoris",
+        "x1 Centauri",
+        "x2 Centauri",
     ],
 )
 def mock_system_data(request):
-    data_file = Path(__file__).parent.joinpath('data') / f'{request.param}.json'
+    data_file = Path(__file__).parent.joinpath("data") / f"{request.param}.json"
     with data_file.open() as df:
         yield json.load(df)

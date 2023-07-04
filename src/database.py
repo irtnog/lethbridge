@@ -48,23 +48,24 @@ class Base(DeclarativeBase):
 
 
 class State(Base):
-    '''A faction's influence over and status within a given system.
+    """A faction's influence over and status within a given system.
 
     This models a faction's state in the background simulation (BGS)
     as a bi-directional association table in the SQLAlchemy ORM since
     BGS state must include data beyond the system/faction many-to-many
     relationship.
 
-    '''
-    __tablename__ = 'bgs_state'
+    """
+
+    __tablename__ = "bgs_state"
 
     # foreign keys linking the two tables
     faction_name: Mapped[str] = mapped_column(
-        ForeignKey('faction.name'),
+        ForeignKey("faction.name"),
         primary_key=True,
     )
     system_id64: Mapped[int] = mapped_column(
-        ForeignKey('system.id64'),
+        ForeignKey("system.id64"),
         primary_key=True,
     )
 
@@ -75,14 +76,15 @@ class State(Base):
 
     # link this association to the corresponding ORM object via the
     # named attribute (and vice verse in the named ORM classes)
-    faction: Mapped['Faction'] = relationship(back_populates='systems')
-    system: Mapped['System'] = relationship(back_populates='factions')
+    faction: Mapped["Faction"] = relationship(back_populates="systems")
+    system: Mapped["System"] = relationship(back_populates="factions")
 
 
 class Faction(Base):
-    '''A minor faction, player or otherwise---as opposed to a Power,
-    superpower, or species.'''
-    __tablename__ = 'faction'
+    """A minor faction, player or otherwise---as opposed to a Power,
+    superpower, or species."""
+
+    __tablename__ = "faction"
 
     # FIXME: create index column for factions? (why would one?)
     # id: Mapped[int] = mapped_column(primary_key=True)
@@ -90,12 +92,14 @@ class Faction(Base):
     allegiance: Mapped[str]
     government: Mapped[str]
 
-    controlledSystems: Mapped[List['System']] = relationship(back_populates='controllingFaction')
+    controlledSystems: Mapped[List["System"]] = relationship(
+        back_populates="controllingFaction"
+    )
 
-    systems: Mapped[List['State']] = relationship(back_populates='faction')
+    systems: Mapped[List["State"]] = relationship(back_populates="faction")
 
     def __repr__(self):
-        return f'<Faction({self.name!r})>'
+        return f"<Faction({self.name!r})>"
 
     def __eq__(self, other: Faction) -> bool:
         return (
@@ -106,13 +110,14 @@ class Faction(Base):
 
 
 class System(Base):
-    '''A gravitationally bound group of stars, planets, and other
-    bodies.'''
-    __tablename__ = 'system'
+    """A gravitationally bound group of stars, planets, and other
+    bodies."""
+
+    __tablename__ = "system"
 
     id64: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]           # not unique, e.g., AH Cancri
-    x: Mapped[float]            # coords
+    name: Mapped[str]  # not unique, e.g., AH Cancri
+    x: Mapped[float]  # coords
     y: Mapped[float]
     z: Mapped[float]
     allegiance: Mapped[str | None]
@@ -122,9 +127,13 @@ class System(Base):
     security: Mapped[str | None]
     population: Mapped[int | None]
     bodyCount: Mapped[int | None]
-    controllingFaction_id: Mapped[str | None] = mapped_column(ForeignKey('faction.name'))
-    controllingFaction: Mapped[Optional['Faction']] = relationship(back_populates='controlledSystems')
-    factions: Mapped[List['State']] = relationship(back_populates='system')
+    controllingFaction_id: Mapped[str | None] = mapped_column(
+        ForeignKey("faction.name")
+    )
+    controllingFaction: Mapped[Optional["Faction"]] = relationship(
+        back_populates="controlledSystems"
+    )
+    factions: Mapped[List["State"]] = relationship(back_populates="system")
     # powers
     powerState: Mapped[str | None]
     date: Mapped[datetime]
@@ -132,7 +141,7 @@ class System(Base):
     # stations
 
     def __repr__(self):
-        return f'<System(id64={self.id64!r}, {self.name!r})>'
+        return f"<System(id64={self.id64!r}, {self.name!r})>"
 
     def __eq__(self, other: System) -> bool:
         return (
@@ -162,7 +171,7 @@ class System(Base):
 class FactionSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Faction
-        exclude = ['controlledSystems', 'systems']
+        exclude = ["controlledSystems", "systems"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -171,7 +180,7 @@ class FactionSchema(SQLAlchemyAutoSchema):
 class StateSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = State
-        exclude = ['system', 'system_id64']
+        exclude = ["system", "system_id64"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -180,7 +189,7 @@ class StateSchema(SQLAlchemyAutoSchema):
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
-        exclude = ['controllingFaction_id']
+        exclude = ["controllingFaction_id"]
         unknown = EXCLUDE
         include_fk = True
         include_relationships = True
@@ -196,21 +205,20 @@ class SystemSchema(SQLAlchemyAutoSchema):
     def wrap_coords(self, out_data, **kwargs):
         new_data = out_data.copy()
         coords = {
-            'x': new_data.pop('x'),
-            'y': new_data.pop('y'),
-            'z': new_data.pop('z'),
+            "x": new_data.pop("x"),
+            "y": new_data.pop("y"),
+            "z": new_data.pop("z"),
         }
-        new_data['coords'] = coords
+        new_data["coords"] = coords
         return new_data
 
     @post_dump
     def filter_nil_attributes(self, out_data, **kwargs):
         new_data = out_data.copy()
         for k in out_data:
-            if k not in ['bodies', 'stations']:
-                if (
-                        (new_data.get(k) is None) or
-                        (k == 'factions' and not new_data.get(k))
+            if k not in ["bodies", "stations"]:
+                if (new_data.get(k) is None) or (
+                    k == "factions" and not new_data.get(k)
                 ):
                     new_data.pop(k)
                     continue
@@ -219,20 +227,20 @@ class SystemSchema(SQLAlchemyAutoSchema):
     @pre_load
     def flatten_coords(self, in_data, **kwargs):
         new_data = in_data.copy()
-        coords = new_data.pop('coords')
+        coords = new_data.pop("coords")
         new_data.update(coords)
         return new_data
 
 
 def init_database(uri: str, force: bool = False) -> int:
-    '''Create tables, etc., in the database.'''
+    """Create tables, etc., in the database."""
     try:
-        logger.debug('Creating engine.')
+        logger.debug("Creating engine.")
         engine = create_engine(uri)
         if force:
-            logger.debug('Dropping existing tables, etc.')
+            logger.debug("Dropping existing tables, etc.")
             Base.metadata.drop_all(engine)
-        logger.debug('Creating tables, etc.')
+        logger.debug("Creating tables, etc.")
         Base.metadata.create_all(engine)
     except Exception as e:
         logger.info(e)

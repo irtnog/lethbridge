@@ -28,21 +28,21 @@ from pytest import param
 # FIXME: find a more reliable way to mock this
 @fixture
 def mock_inaccessible_file(tmp_path):
-    return '/inaccessible/config.ini'
+    return "/inaccessible/config.ini"
 
 
 @fixture
 def mock_config_file(tmp_path):
-    config_file = tmp_path / 'config.ini'
+    config_file = tmp_path / "config.ini"
     config_file.touch()
     return config_file
 
 
 @mark.parametrize(
-    'config_file_fixture, expected_error',
+    "config_file_fixture, expected_error",
     [
-        param('mock_inaccessible_file', CONFIG_ERROR),
-        param('mock_config_file', SUCCESS),
+        param("mock_inaccessible_file", CONFIG_ERROR),
+        param("mock_config_file", SUCCESS),
     ],
 )
 def test_load_config(config_file_fixture, expected_error, request):
@@ -53,15 +53,15 @@ def test_load_config(config_file_fixture, expected_error, request):
 
 
 @mark.parametrize(
-    'config_file_fixture, expected_error',
+    "config_file_fixture, expected_error",
     [
-        param('mock_inaccessible_file', CONFIG_ERROR),
-        param('mock_config_file', SUCCESS),
+        param("mock_inaccessible_file", CONFIG_ERROR),
+        param("mock_config_file", SUCCESS),
     ],
 )
 def test_save_config(config_file_fixture, expected_error, request):
     config_file = request.getfixturevalue(config_file_fixture)
     new_cfg = ConfigParser()
-    new_cfg['database'] = {'uri': 'sqlite://'}
+    new_cfg["database"] = {"uri": "sqlite://"}
     save_config_error = save_config(config_file, new_cfg)
     assert save_config_error == expected_error

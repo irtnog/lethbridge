@@ -22,7 +22,7 @@ import typer
 
 # create the CLI
 app = typer.Typer()
-help = 'Import data from non-EDDN sources.'
+help = "Import data from non-EDDN sources."
 
 
 @app.command()
@@ -32,44 +32,52 @@ def status() -> None:
 
 @app.command()
 def spansh(
-        dataset: Annotated[str, typer.Argument(
-            help='Which dataset to import, e.g., galaxy_7days.  For the list of available datasets, refer to <https://www.spansh.co.uk/dumps>.'
-        )],
-        foreground: Annotated[Optional[bool], typer.Option(
-            '--foreground',
-            '--fg',
-            help='Perform the import now, interactively, instead of queuing to run in the background.',
-        )] = None,
+    dataset: Annotated[
+        str,
+        typer.Argument(
+            help="Which dataset to import, e.g., galaxy_7days.  For the list of available datasets, refer to <https://www.spansh.co.uk/dumps>."
+        ),
+    ],
+    foreground: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--foreground",
+            "--fg",
+            help="Perform the import now, interactively, instead of queuing to run in the background.",
+        ),
+    ] = None,
 ) -> None:
-    '''Import galaxy or system data from a Spansh data dump.'''
+    """Import galaxy or system data from a Spansh data dump."""
     pass
 
 
 @app.command()
 def canonn(
-        dataset: Annotated[str, typer.Argument(
-            help='Which dataset to import.'
-        )],
-        foreground: Annotated[Optional[bool], typer.Option(
-            '--foreground',
-            '--fg',
-            help='Perform the import now, interactively, instead of queuing to run in the background.',
-        )] = None,
+    dataset: Annotated[str, typer.Argument(help="Which dataset to import.")],
+    foreground: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--foreground",
+            "--fg",
+            help="Perform the import now, interactively, instead of queuing to run in the background.",
+        ),
+    ] = None,
 ) -> None:
-    '''Import the specified points of interest from a Canonn database.'''
+    """Import the specified points of interest from a Canonn database."""
     pass
 
 
 @app.command()
 def edtools(
-        dataset: Annotated[str, typer.Argument(
-            help='Which dataset to import.'
-        )],
-        foreground: Annotated[Optional[bool], typer.Option(
-            '--foreground',
-            '--fg',
-            help='Perform the import now, interactively, instead of queuing to run in the background.',
-        )] = None,
+    dataset: Annotated[str, typer.Argument(help="Which dataset to import.")],
+    foreground: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--foreground",
+            "--fg",
+            help="Perform the import now, interactively, instead of queuing to run in the background.",
+        ),
+    ] = None,
 ) -> None:
-    '''Import the specified dataset from the Elite:Dangerous tools collection.  For the list of available datasets, refer to <https://edtools.cc/list.php>.'''
+    """Import the specified dataset from the Elite:Dangerous tools collection.  For the list of available datasets, refer to <https://edtools.cc/list.php>."""
     pass
