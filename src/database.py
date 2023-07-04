@@ -80,6 +80,13 @@ class State(Base):
     faction: Mapped["Faction"] = relationship(back_populates="systems")
     system: Mapped["System"] = relationship(back_populates="factions")
 
+    def __repr__(self):
+        return (
+            f"<BGS State({self.faction.name!r} in "
+            + f"{(self.system or 'pending')!r}: "
+            + f"{self.state}, influence={self.influence})>"
+        )
+
 
 class Faction(Base):
     """A minor faction, player or otherwise---as opposed to a Power,
