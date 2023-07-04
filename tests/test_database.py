@@ -17,6 +17,7 @@
 
 from datetime import datetime
 from lethbridge import SUCCESS
+from lethbridge.database import Base
 from lethbridge.database import Faction
 from lethbridge.database import State
 from lethbridge.database import System
@@ -35,11 +36,10 @@ compat.register()
 
 
 def test_orm_basic(mock_db_uri):
-    init_database_error = init_database(mock_db_uri)
-    assert init_database_error == SUCCESS
-
     engine = create_engine(mock_db_uri)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
+
     with Session.begin() as session:
         new_system = System(
             id64=0,
@@ -74,11 +74,10 @@ def test_orm_basic(mock_db_uri):
 
 
 def test_orm_relationships(mock_db_uri):
-    init_database_error = init_database(mock_db_uri)
-    assert init_database_error == SUCCESS
-
     engine = create_engine(mock_db_uri)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
+
     with Session.begin() as session:
         bubble_faction = Faction(
             name='Bubble Faction',
@@ -120,11 +119,10 @@ def test_orm_relationships(mock_db_uri):
 
 
 def test_systemschema_basic(mock_db_uri, request):
-    init_database_error = init_database(mock_db_uri)
-    assert init_database_error == SUCCESS
-
     engine = create_engine(mock_db_uri)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
+
     with Session.begin() as session:
         another_system = System(
             id64=2,
@@ -166,11 +164,10 @@ def test_systemschema_basic(mock_db_uri, request):
 
 
 def test_systemschema_real(mock_db_uri, mock_system_data):
-    init_database_error = init_database(mock_db_uri)
-    assert init_database_error == SUCCESS
-
     engine = create_engine(mock_db_uri)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
+
     with Session.begin() as session:
         new_system = SystemSchema().load(mock_system_data, session=session)
         session.add(new_system)
