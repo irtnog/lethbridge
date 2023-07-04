@@ -23,9 +23,6 @@ from lethbridge.database import System
 from lethbridge.database import SystemSchema
 from lethbridge.database import init_database
 from psycopg2cffi import compat
-from pytest import fixture
-from pytest import mark
-from pytest import param
 from pytest import raises
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -37,30 +34,11 @@ from sqlalchemy.orm import sessionmaker
 compat.register()
 
 
-@fixture
-def mock_postgresql(postgresql):
-    return f'postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}'
-
-
-@fixture(scope='session')
-def mock_sqlite(tmp_path_factory):
-    sqlite_path = tmp_path_factory.mktemp('db') / 'galaxy.sqlite'
-    return ('sqlite:///' + str(sqlite_path))
-
-
-@mark.parametrize(
-    'db_uri_fixture',
-    [
-        param('mock_sqlite'),
-        param('mock_postgresql'),
-    ],
-)
-def test_orm_basic(db_uri_fixture, request):
-    db_uri = request.getfixturevalue(db_uri_fixture)
-    init_database_error = init_database(db_uri)
+def test_orm_basic(mock_db_uri):
+    init_database_error = init_database(mock_db_uri)
     assert init_database_error == SUCCESS
 
-    engine = create_engine(db_uri)
+    engine = create_engine(mock_db_uri)
     Session = sessionmaker(engine)
     with Session.begin() as session:
         new_system = System(
@@ -95,19 +73,11 @@ def test_orm_basic(db_uri_fixture, request):
         assert existing_system.name == 'Test System'
 
 
-@mark.parametrize(
-    'db_uri_fixture',
-    [
-        param('mock_sqlite'),
-        param('mock_postgresql'),
-    ],
-)
-def test_orm_relationships(db_uri_fixture, request):
-    db_uri = request.getfixturevalue(db_uri_fixture)
-    init_database_error = init_database(db_uri)
+def test_orm_relationships(mock_db_uri):
+    init_database_error = init_database(mock_db_uri)
     assert init_database_error == SUCCESS
 
-    engine = create_engine(db_uri)
+    engine = create_engine(mock_db_uri)
     Session = sessionmaker(engine)
     with Session.begin() as session:
         bubble_faction = Faction(
@@ -149,19 +119,11 @@ def test_orm_relationships(db_uri_fixture, request):
         assert this_bgs_state.system == this_system
 
 
-@mark.parametrize(
-    'db_uri_fixture',
-    [
-        param('mock_sqlite'),
-        param('mock_postgresql'),
-    ],
-)
-def test_systemschema(db_uri_fixture, request):
-    db_uri = request.getfixturevalue(db_uri_fixture)
-    init_database_error = init_database(db_uri)
+def test_systemschema_basic(mock_db_uri, request):
+    init_database_error = init_database(mock_db_uri)
     assert init_database_error == SUCCESS
 
-    engine = create_engine(db_uri)
+    engine = create_engine(mock_db_uri)
     Session = sessionmaker(engine)
     with Session.begin() as session:
         another_system = System(
