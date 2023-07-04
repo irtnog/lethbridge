@@ -215,6 +215,8 @@ class SystemSchema(SQLAlchemyAutoSchema):
     @post_dump
     def filter_nil_attributes(self, out_data, **kwargs):
         new_data = out_data.copy()
+        # deliberately loop over keys from the original dict since
+        # we're modifying keys in the new one
         for k in out_data:
             if k not in ["bodies", "stations"]:
                 if (new_data.get(k) is None) or (
