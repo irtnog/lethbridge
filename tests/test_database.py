@@ -168,6 +168,49 @@ def test_systemschema_basic(mock_db_uri):
         assert checked_system.name == "Another System"
 
 
+@mark.smoke
+def test_systemschema_complex(mock_db_uri):
+    engine = create_engine(mock_db_uri)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(engine)
+    complex_system_data = {
+        "id64": 3,
+        "name": "Complex System",
+        "coords": {
+            "x": 1.3,
+            "y": 2.3,
+            "z": 3.3,
+        },
+        "controllingFaction": {
+            "name": "Complex Faction",
+            "allegiance": "Independent",
+            "government": "Collective",
+        },
+        "factions": [
+            {
+                "name": "Complex Faction",
+                "allegiance": "Independent",
+                "government": "Collective",
+                "influence": 0.5,
+                "state": "None",
+            },
+        ],
+        "date": "1970-01-01T00:03",
+    }
+
+    with Session.begin() as session:
+        complex_system = SystemSchema().load(complex_system_data, session=session)
+        session.add(complex_system)
+
+    with Session.begin() as session:
+        complex_system = session.get(System, 3)
+        dump_data = SystemSchema().dump(complex_system)
+
+    assert len(dump_data) == len(complex_system_data)
+    for k in dump_data:
+        assert dump_data[k] == complex_system_data[k]
+
+
 def test_systemschema_real(mock_db_uri, mock_system_data):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
