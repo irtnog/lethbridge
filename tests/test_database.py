@@ -192,7 +192,7 @@ def test_systemschema_complex(mock_db_uri):
                 "state": "None",
             },
         ],
-        "date": "1970-01-01T00:03",
+        "date": "1970-01-01T00:03:00",
     }
 
     with Session.begin() as session:
