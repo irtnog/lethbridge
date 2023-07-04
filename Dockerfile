@@ -25,7 +25,7 @@ USER lethbridge:lethbridge
 COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
 RUN set -eux; \
     pip install --user /home/lethbridge/src; \
-    python -m pytest /home/lethbridge/src
+    python -m pytest --cov=lethbridge /home/lethbridge/src
 
 FROM python
 RUN set -eux; \
