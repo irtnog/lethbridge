@@ -135,7 +135,7 @@ class System(Base):
     primaryEconomy: Mapped[str | None]
     secondaryEconomy: Mapped[str | None]
     security: Mapped[str | None]
-    population: Mapped[int | None]
+    population: Mapped[int | None] = mapped_column(BigInteger)
     bodyCount: Mapped[int | None]
     controllingFaction_id: Mapped[str | None] = mapped_column(
         ForeignKey("faction.name")
