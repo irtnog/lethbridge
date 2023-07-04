@@ -162,7 +162,7 @@ class System(Base):
 class FactionSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Faction
-        # exclude = ['id']
+        exclude = ['controlledSystems', 'systems']
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -171,6 +171,7 @@ class FactionSchema(SQLAlchemyAutoSchema):
 class StateSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = State
+        exclude = ['system', 'system_id64']
         include_fk = True
         include_relationships = True
         load_instance = True
