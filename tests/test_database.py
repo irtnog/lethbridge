@@ -16,13 +16,11 @@
 # <https://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from lethbridge import SUCCESS
 from lethbridge.database import Base
 from lethbridge.database import Faction
 from lethbridge.database import State
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
-from lethbridge.database import init_database
 from psycopg2cffi import compat
 from pytest import raises
 from sqlalchemy import create_engine
