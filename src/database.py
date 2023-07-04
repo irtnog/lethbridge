@@ -181,7 +181,7 @@ class FactionSchema(SQLAlchemyAutoSchema):
 class StateSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = State
-        exclude = ["system", "system_id64"]
+        exclude = ["faction_name", "system", "system_id64"]
         include_fk = True
         include_relationships = True
         load_instance = True
