@@ -115,19 +115,18 @@ class System(Base):
     x: Mapped[float]            # coords
     y: Mapped[float]
     z: Mapped[float]
-    allegiance: Mapped[Optional[str]]
-    # TODO: switch to Mapped[Optional[str]]?
-    government: Mapped[str] = mapped_column(default='None')
-    primaryEconomy: Mapped[str] = mapped_column(default='None')
-    secondaryEconomy: Mapped[str] = mapped_column(default='None')
-    security: Mapped[str] = mapped_column(default='Anarchy')
-    population: Mapped[int] = mapped_column(default=0)
-    bodyCount: Mapped[int] = mapped_column(default=0)
-    controllingFaction_id: Mapped[Optional[str]] = mapped_column(ForeignKey('faction.name'))
+    allegiance: Mapped[str | None]
+    government: Mapped[str | None]
+    primaryEconomy: Mapped[str | None]
+    secondaryEconomy: Mapped[str | None]
+    security: Mapped[str | None]
+    population: Mapped[int | None]
+    bodyCount: Mapped[int | None]
+    controllingFaction_id: Mapped[str | None] = mapped_column(ForeignKey('faction.name'))
     controllingFaction: Mapped[Optional['Faction']] = relationship(back_populates='controlledSystems')
     factions: Mapped[List['State']] = relationship(back_populates='system')
     # powers
-    powerState: Mapped[Optional[str]]
+    powerState: Mapped[str | None]
     date: Mapped[datetime]
     # bodies
     # stations
