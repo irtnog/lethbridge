@@ -35,7 +35,7 @@ compat.register()
 
 
 def test_orm_basic(mock_db_uri):
-    engine = create_engine(mock_db_uri)
+    engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
@@ -73,7 +73,7 @@ def test_orm_basic(mock_db_uri):
 
 
 def test_orm_relationships(mock_db_uri):
-    engine = create_engine(mock_db_uri)
+    engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
@@ -118,7 +118,7 @@ def test_orm_relationships(mock_db_uri):
 
 
 def test_systemschema_basic(mock_db_uri):
-    engine = create_engine(mock_db_uri)
+    engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
@@ -167,7 +167,7 @@ def test_systemschema_basic(mock_db_uri):
 # https://stackoverflow.com/a/52369721.
 @mark.smoke
 def test_systemschema_complex(mock_db_uri):
-    engine = create_engine(mock_db_uri)
+    engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
     complex_system_data = {
@@ -209,7 +209,7 @@ def test_systemschema_complex(mock_db_uri):
 
 
 def test_systemschema_real(mock_db_uri, mock_system_data):
-    engine = create_engine(mock_db_uri)
+    engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
