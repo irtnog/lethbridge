@@ -215,7 +215,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def filter_nil_attributes(self, out_data, **kwargs):
-        new_data = out_data.copy()
+        new_data = out_data
         # deliberately loop over keys from the original dict since
         # we're modifying keys in the new one
         for k in out_data:
@@ -223,6 +223,9 @@ class SystemSchema(SQLAlchemyAutoSchema):
                 if (new_data.get(k) is None) or (
                     k == "factions" and not new_data.get(k)
                 ):
+                    # limit copying to just if we're making changes
+                    if new_data is out_data:
+                        new_data = out_data.copy()
                     new_data.pop(k)
                     continue
         return new_data
