@@ -232,6 +232,18 @@ class SystemSchema(SQLAlchemyAutoSchema):
         return new_data
 
     @post_dump
+    def sort_factions(self, out_data, **kwargs):
+        if not out_data.get("factions"):
+            return out_data
+        new_data = out_data.copy()
+        # get a copy of factions sorted by faction name; see also
+        # https://docs.python.org/3/library/functions.html#sorted
+        new_data["factions"] = sorted(
+            new_data["factions"], key=lambda faction: faction["name"]
+        )
+        return new_data
+
+    @post_dump
     def filter_nil_attributes(self, out_data, **kwargs):
         new_data = out_data
         # deliberately loop over keys from the original dict since
