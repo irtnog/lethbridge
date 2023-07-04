@@ -18,9 +18,11 @@
 from __future__ import annotations
 from . import DATABASE_ERROR
 from . import SUCCESS
+from copy import deepcopy
 from datetime import datetime
 from marshmallow import EXCLUDE
 from marshmallow import post_dump
+from marshmallow import post_load
 from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
@@ -193,6 +195,8 @@ class StateSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    faction = Nested(FactionSchema)
+
     @post_dump
     def flatten_faction(self, out_data, **kwargs):
         new_data = out_data.copy()
@@ -249,6 +253,61 @@ class SystemSchema(SQLAlchemyAutoSchema):
         new_data = in_data.copy()
         coords = new_data.pop("coords")
         new_data.update(coords)
+        return new_data
+
+    @pre_load
+    def wrap_factions(self, in_data, **kwargs):
+        """Transform this:
+
+        "factions": [
+            {
+                "name": "Aegis Core",
+                "allegiance": "Independent",
+                "government": "Cooperative",
+                "influence": 0.01001,
+                "state": "None"
+            },
+            ...
+        ]
+
+        into this:
+
+        "factions": [
+            {
+                "influence": 0.01001,
+                "state": "None",
+                "faction": {
+                    "name": "Aegis Core",
+                    "allegiance": "Independent",
+                    "government": "Cooperative",
+                },
+            },
+            ...
+        ]
+        """
+        if not in_data.get("factions"):
+            return in_data
+        # copy in_data _AND_ in_data["factions"]
+        new_data = deepcopy(in_data)
+        for f in new_data.get("factions"):
+            faction = {
+                "name": f.pop("name"),
+                "allegiance": f.pop("allegiance"),
+                "government": f.pop("government"),
+            }
+            f["faction"] = faction
+        return new_data
+
+    @post_load
+    def dedup_factions(self, data, **kwargs):
+        # make sure we're getting called after loading the system data
+        # and not after a nested object
+        if "factions" not in data or not data["factions"]:
+            return data
+        new_data = data.copy()
+        for bgs_state in new_data["factions"]:
+            if bgs_state.faction == new_data["controllingFaction"]:
+                bgs_state.faction = new_data["controllingFaction"]
         return new_data
 
 
