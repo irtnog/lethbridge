@@ -116,7 +116,7 @@ def test_orm_relationships(mock_db_uri):
         assert this_bgs_state.system == this_system
 
 
-def test_systemschema_basic(mock_db_uri, request):
+def test_systemschema_basic(mock_db_uri):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
