@@ -46,5 +46,10 @@ def mock_db_uri(postgresql, tmp_path_factory, request):
 )
 def mock_system_data(request):
     data_file = Path(__file__).parent.joinpath("data") / f"{request.param}.json"
-    with data_file.open() as df:
-        yield json.load(df)
+    yield json.loads(data_file.read_text())
+
+
+@fixture(scope="module")
+def mock_bubble_dump():
+    data_file = Path(__file__).parent / "data" / "small_bubble_dump.json"
+    yield json.loads(data_file.read_text())

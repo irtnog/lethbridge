@@ -230,3 +230,28 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
             # types later.
             continue
         assert dump_data[k] == mock_system_data[k]
+
+
+def test_small_load(mock_db_uri, mock_bubble_dump):
+    engine = create_engine(mock_db_uri, echo=True)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(engine)
+
+    for load_data in mock_bubble_dump:
+        with Session.begin() as session:
+            new_system = SystemSchema().load(load_data, session=session)
+            session.add(new_system)
+
+        with Session.begin() as session:
+            new_system = session.get(System, load_data.get("id64"))
+            dump_data = SystemSchema().dump(new_system)
+
+        assert len(dump_data) <= len(load_data)
+        for k in dump_data:
+            if k == "date":  # TODO
+                continue
+            assert dump_data[k] == load_data[k]
+
+    with Session.begin() as session:
+        fac = session.get(Faction, "Sol Workers' Party")
+        assert len(fac.systems) == 4
