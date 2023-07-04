@@ -186,6 +186,13 @@ class StateSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    @post_dump
+    def flatten_faction(self, out_data, **kwargs):
+        new_data = out_data.copy()
+        faction = new_data.pop("faction")
+        new_data.update(faction)
+        return new_data
+
 
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
