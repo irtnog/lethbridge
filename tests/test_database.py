@@ -182,11 +182,11 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
         dump_data = SystemSchema().dump(new_system)
 
     assert len(dump_data) <= len(mock_system_data)
-    for i in dump_data:
-        if i == "date":
+    for k in dump_data:
+        if k == "date":
             # TODO: Spansh's dumps do not use ISO 8601.  We do, and we
             # don't plan to be compatible with Spansh in this case.
             # Skip testing for now.  Parse and compare native datetime
             # types later.
             continue
-        assert dump_data[i] == mock_system_data[i]
+        assert dump_data[k] == mock_system_data[k]
