@@ -18,7 +18,6 @@
 from __future__ import annotations
 from . import DATABASE_ERROR
 from . import SUCCESS
-from copy import deepcopy
 from datetime import datetime
 from marshmallow import EXCLUDE
 from marshmallow import post_dump
@@ -198,10 +197,14 @@ class StateSchema(SQLAlchemyAutoSchema):
     faction = Nested(FactionSchema)
 
     @post_dump
-    def flatten_faction(self, out_data, **kwargs):
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
         new_data = out_data.copy()
+
+        # unwrap the faction data
         faction = new_data.pop("faction")
         new_data.update(faction)
+
         return new_data
 
 
@@ -221,106 +224,91 @@ class SystemSchema(SQLAlchemyAutoSchema):
     # TODO: powerState key denotes Bubble system?
 
     @post_dump
-    def wrap_coords(self, out_data, **kwargs):
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
         new_data = out_data.copy()
+
+        # wrap coords
         coords = {
             "x": new_data.pop("x"),
             "y": new_data.pop("y"),
             "z": new_data.pop("z"),
         }
         new_data["coords"] = coords
-        return new_data
 
-    @post_dump
-    def sort_factions(self, out_data, **kwargs):
-        if not out_data.get("factions"):
-            return out_data
-        new_data = out_data.copy()
-        # get a copy of factions sorted by faction name; see also
+        # make a copy of the factions list sorted by faction name; cf.
         # https://docs.python.org/3/library/functions.html#sorted
-        new_data["factions"] = sorted(
-            new_data["factions"], key=lambda faction: faction["name"]
-        )
-        return new_data
+        if new_data.get("factions"):
+            new_data["factions"] = sorted(
+                new_data["factions"], key=lambda faction: faction["name"]
+            )
 
-    @post_dump
-    def filter_nil_attributes(self, out_data, **kwargs):
-        new_data = out_data
-        # deliberately loop over keys from the original dict since
-        # we're modifying keys in the new one
-        for k in out_data:
-            if k not in ["bodies", "stations"]:
-                if (new_data.get(k) is None) or (
-                    k == "factions" and not new_data.get(k)
-                ):
-                    # limit copying to just if we're making changes
-                    if new_data is out_data:
-                        new_data = out_data.copy()
+        # remove empty keys to save space
+        optional_columns = [
+            "allegiance",
+            "government",
+            "primaryEconomy",
+            "secondaryEconomy",
+            "security",
+            "population",
+            "bodyCount",
+            "controllingFaction",
+            "factions",
+            "powerState",
+        ]
+        for k in optional_columns:
+            if not new_data.get(k):
+                try:
                     new_data.pop(k)
-                    continue
+                except KeyError:
+                    pass
+
         return new_data
 
     @pre_load
-    def flatten_coords(self, in_data, **kwargs):
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
         new_data = in_data.copy()
+
+        # unwrap coords
         coords = new_data.pop("coords")
         new_data.update(coords)
-        return new_data
 
-    @pre_load
-    def wrap_factions(self, in_data, **kwargs):
-        """Transform this:
-
-        "factions": [
+        new_data["factions"] = [
             {
-                "name": "Aegis Core",
-                "allegiance": "Independent",
-                "government": "Cooperative",
-                "influence": 0.01001,
-                "state": "None"
-            },
-            ...
-        ]
-
-        into this:
-
-        "factions": [
-            {
-                "influence": 0.01001,
-                "state": "None",
                 "faction": {
-                    "name": "Aegis Core",
-                    "allegiance": "Independent",
-                    "government": "Cooperative",
+                    "name": f.get("name"),
+                    "allegiance": f.get("allegiance"),
+                    "government": f.get("government"),
                 },
-            },
-            ...
-        ]
-        """
-        if not in_data.get("factions"):
-            return in_data
-        # copy in_data _AND_ in_data["factions"]
-        new_data = deepcopy(in_data)
-        for f in new_data.get("factions"):
-            faction = {
-                "name": f.pop("name"),
-                "allegiance": f.pop("allegiance"),
-                "government": f.pop("government"),
+                "state": f.get("state"),
+                "influence": f.get("influence"),
             }
-            f["faction"] = faction
+            for f in new_data.get("factions", [])
+        ]
+
         return new_data
 
     @post_load
-    def dedup_factions(self, data, **kwargs):
-        # make sure we're getting called after loading the system data
-        # and not after a nested object
-        if "factions" not in data or not data["factions"]:
-            return data
-        new_data = data.copy()
-        for bgs_state in new_data["factions"]:
-            if bgs_state.faction == new_data["controllingFaction"]:
-                bgs_state.faction = new_data["controllingFaction"]
-        return new_data
+    def post_process_input(self, in_data, **kwargs):
+        # make sure we're being called after the System object was
+        # created
+        if not isinstance(in_data, System):
+            return in_data
+
+        # Replace the duplicate of the controllingFaction object in
+        # the System's faction state list.  Otherwise, the ORM
+        # generates a duplicate INSERT, which violates the Faction's
+        # uniqueness constraint.  The ORM can't detect this, and
+        # StateSchema (when creating factions) does not communicate
+        # with FactionSchema (when creating controllingFaction).
+        for bgs_state in in_data.factions:
+            if bgs_state.faction == in_data.controllingFaction:
+                bgs_state.faction = in_data.controllingFaction
+
+        return in_data
 
 
 def init_database(uri: str, force: bool = False) -> int:
