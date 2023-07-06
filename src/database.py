@@ -78,7 +78,7 @@ class State(Base):
     state: Mapped[str]
 
     # link this association to the corresponding ORM object via the
-    # named attribute (and vice verse in the named ORM classes)
+    # named attribute (and vice versa in the named ORM classes)
     faction: Mapped["Faction"] = relationship(back_populates="systems")
     system: Mapped["System"] = relationship(back_populates="factions")
 
