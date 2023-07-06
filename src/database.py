@@ -161,6 +161,9 @@ class PowerPlay(Base):
     power: Mapped["Power"] = relationship(back_populates="systems")
     system: Mapped["System"] = relationship(back_populates="powers")
 
+    def __repr__(self):
+        return f"<PowerPlay({self.power!r} in " + f"{(self.system or 'pending')!r})>"
+
     def __eq__(self, other: PowerPlay) -> bool:
         # don't check back-populated columns since that would lead to
         # an infinite loop
@@ -180,6 +183,9 @@ class Power(Base):
     name: Mapped[str] = mapped_column(primary_key=True)
 
     systems: Mapped[List["PowerPlay"]] = relationship(back_populates="power")
+
+    def __repr__(self):
+        return f"<Power({self.name!r})>"
 
     def __eq__(self, other: Power) -> bool:
         # don't check back-populated columns since that would lead to
