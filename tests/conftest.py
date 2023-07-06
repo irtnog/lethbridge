@@ -23,9 +23,15 @@ import simplejson as json
 @fixture(params=["postgresql", "sqlite"])
 def mock_db_uri(postgresql, tmp_path_factory, request):
     if request.param == "postgresql":
-        yield f"postgresql+psycopg2://{postgresql.info.user}:@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
+        yield (
+            f"postgresql+psycopg2://{postgresql.info.user}"
+            + f":@{postgresql.info.host}"
+            + f":{postgresql.info.port}"
+            + f"/{postgresql.info.dbname}"
+        )
     elif request.param == "sqlite":
-        yield f'sqlite:///{str(tmp_path_factory.mktemp("db") / "galaxy.sqlite")}'
+        db_path = tmp_path_factory.mktemp("db") / "galaxy.sqlite"
+        yield f"sqlite:///{db_path}"
 
 
 @fixture(
