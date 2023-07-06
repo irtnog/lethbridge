@@ -83,7 +83,7 @@ class State(Base):
 
     def __repr__(self):
         return (
-            f"<BGS State({self.faction.name!r} in "
+            f"<BGS State({self.faction!r} in "
             + f"{(self.system or 'pending')!r}: "
             + f"{self.state}, influence={self.influence})>"
         )
