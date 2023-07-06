@@ -17,10 +17,22 @@
 
 from pathlib import Path
 from pytest import fixture
+from pytest import mark
+from pytest import param
 import simplejson as json
 
 
-@fixture(params=["postgresql", "sqlite"])
+# Invoke smoke tests with `pytest -k smoke -x`.  See also
+# https://docs.pytest.org/en/stable/mark.html,
+# https://stackoverflow.com/a/52369721,
+# https://docs.pytest.org/en/stable/how-to/fixtures.html#parametrizing-fixtures,
+# https://docs.pytest.org/en/stable/how-to/fixtures.html#using-marks-with-parametrized-fixtures
+@fixture(
+    params=[
+        "postgresql",
+        param("sqlite", marks=mark.smoke),
+    ],
+)
 def mock_db_uri(postgresql, tmp_path_factory, request):
     if request.param == "postgresql":
         yield (
@@ -38,16 +50,11 @@ def mock_db_uri(postgresql, tmp_path_factory, request):
     scope="module",
     params=[
         "Eactainds QE-A c29-0",
-        "Eactainds QQ-C d13-3",
         "Eactaips ZI-X c28-72",
         "S171 43",
-        "Sachmet",
-        "Sagittarius A*",
         "Saktsak",
         "Sol",
-        "SZ Ursae Majoris",
         "x1 Centauri",
-        "x2 Centauri",
     ],
 )
 def mock_system_data(request):

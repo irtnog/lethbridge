@@ -22,7 +22,6 @@ from lethbridge.database import State
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
 from psycopg2cffi import compat
-from pytest import mark
 from pytest import raises
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -162,10 +161,6 @@ def test_systemschema_basic(mock_db_uri):
         assert checked_system.name == "Another System"
 
 
-# Invoke smoke tests with `pytest -k smoke`.  See also
-# https://docs.pytest.org/en/stable/mark.html,
-# https://stackoverflow.com/a/52369721.
-@mark.smoke
 def test_systemschema_complex(mock_db_uri):
     engine = create_engine(mock_db_uri, echo=True)
     Base.metadata.create_all(engine)
