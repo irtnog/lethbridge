@@ -118,6 +118,50 @@ class Faction(Base):
         )
 
 
+class PowerPlay(Base):
+    """A Power's influence over a given system.
+
+    This models a Power's state in the background simulation (BGS) as
+    a bi-directional association table in the SQLAlchemy ORM since
+    that state might include data beyond the system/Power many-to-many
+    relationship.
+
+    """
+
+    __tablename__ = "powerplay"
+
+    # foreign keys linking the two tables
+    power_name: Mapped[str] = mapped_column(
+        ForeignKey("power.name"),
+        primary_key=True,
+    )
+    system_id64: Mapped[int] = mapped_column(
+        ForeignKey("system.id64"),
+        primary_key=True,
+    )
+
+    # TODO: extra data?  Find out how PowerPlay data gets collected.
+    # Is it available via the game journal, or do players scrape it
+    # manually from the game UI?  (It's probably the latter.)
+
+    # link this association to the corresponding ORM object via the
+    # named attribute (and vice versa in the named ORM classes)
+    power: Mapped["Power"] = relationship(back_populates="systems")
+    system: Mapped["System"] = relationship(back_populates="powers")
+
+
+class Power(Base):
+    """Individuals and organization who wield greater influence over
+    the galactic polity than minor factions but less than a
+    superpower"""
+
+    __tablename__ = "power"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+
+    systems: Mapped[List["PowerPlay"]] = relationship(back_populates="power")
+
+
 class System(Base):
     """A gravitationally bound group of stars, planets, and other
     bodies."""
@@ -143,7 +187,7 @@ class System(Base):
         back_populates="controlledSystems"
     )
     factions: Mapped[List["State"]] = relationship(back_populates="system")
-    # powers
+    powers: Mapped[List["PowerPlay"]] = relationship(back_populates="system")
     powerState: Mapped[str | None]
     date: Mapped[datetime]
     # bodies
@@ -208,6 +252,32 @@ class StateSchema(SQLAlchemyAutoSchema):
         return new_data
 
 
+class PowerSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Power
+        exclude = ["systems"]
+        unknown = EXCLUDE
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
+class PowerPlaySchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = PowerPlay
+        exclude = ["power_name", "system_id64", "system"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    power = Nested(PowerSchema)
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return out_data.get("power", {}).get("name")
+
+
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
@@ -219,6 +289,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     factions = Nested(StateSchema, many=True, required=False)
+    powers = Nested(PowerPlaySchema, many=True, required=False)
 
     # TODO: translate between 'Anarchy'/'None' and None
     # TODO: powerState key denotes Bubble system?
@@ -243,6 +314,10 @@ class SystemSchema(SQLAlchemyAutoSchema):
                 new_data["factions"], key=lambda faction: faction["name"]
             )
 
+        # make a sorted copy of the powers list
+        if new_data.get("powers"):
+            new_data["powers"] = sorted(new_data["powers"])
+
         # remove empty keys to save space
         optional_columns = [
             "allegiance",
@@ -254,6 +329,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
             "bodyCount",
             "controllingFaction",
             "factions",
+            "powers",
             "powerState",
         ]
         for k in optional_columns:
@@ -276,6 +352,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
         coords = new_data.pop("coords")
         new_data.update(coords)
 
+        # restructure factions and powers lists to match ORM
         new_data["factions"] = [
             {
                 "faction": {
@@ -287,6 +364,9 @@ class SystemSchema(SQLAlchemyAutoSchema):
                 "influence": f.get("influence"),
             }
             for f in new_data.get("factions", [])
+        ]
+        new_data["powers"] = [
+            {"power": {"name": power}} for power in new_data.get("powers", [])
         ]
 
         return new_data

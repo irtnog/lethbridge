@@ -192,6 +192,11 @@ def test_systemschema_complex(mock_db_uri):
                 "state": "None",
             },
         ],
+        "powers": [
+            "Billy Bob",
+            "Joe Bob",
+        ],
+        "powerState": "Contested",
         "date": "1970-01-01T00:03:00",
     }
 
@@ -223,6 +228,10 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
 
     assert len(dump_data) <= len(mock_system_data)
     for k in dump_data:
+        if k == "powers":
+            # not clear whether Spansh sorts this
+            assert set(dump_data[k]) <= set(mock_system_data[k])
+            continue
         if k == "date":
             # TODO: Spansh's dumps do not use ISO 8601.  We do, and we
             # don't plan to be compatible with Spansh in this case.
@@ -248,6 +257,10 @@ def test_small_load(mock_db_uri, mock_bubble_dump):
 
         assert len(dump_data) <= len(load_data)
         for k in dump_data:
+            if k == "powers":
+                # not clear whether Spansh sorts this
+                assert set(dump_data[k]) <= set(load_data[k])
+                continue
             if k == "date":  # TODO
                 continue
             assert dump_data[k] == load_data[k]
