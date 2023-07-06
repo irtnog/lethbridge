@@ -88,6 +88,16 @@ class State(Base):
             + f"{self.state}, influence={self.influence})>"
         )
 
+    def __eq__(self, other: State) -> bool:
+        # don't check back-populated columns since that would lead to
+        # an infinite loop
+        return (
+            self.faction_name == other.faction_name
+            and self.system_id64 == other.system_id64
+            and self.influence == other.influence
+            and self.state == other.state
+        )
+
 
 class Faction(Base):
     """A minor faction, player or otherwise---as opposed to a Power,
@@ -111,6 +121,8 @@ class Faction(Base):
         return f"<Faction({self.name!r})>"
 
     def __eq__(self, other: Faction) -> bool:
+        # don't check back-populated columns since that would lead to
+        # an infinite loop
         return (
             self.name == other.name
             and self.allegiance == other.allegiance
@@ -149,6 +161,14 @@ class PowerPlay(Base):
     power: Mapped["Power"] = relationship(back_populates="systems")
     system: Mapped["System"] = relationship(back_populates="powers")
 
+    def __eq__(self, other: PowerPlay) -> bool:
+        # don't check back-populated columns since that would lead to
+        # an infinite loop
+        return (
+            self.power_name == other.power_name
+            and self.system_id64 == other.system_id64
+        )
+
 
 class Power(Base):
     """Individuals and organization who wield greater influence over
@@ -160,6 +180,11 @@ class Power(Base):
     name: Mapped[str] = mapped_column(primary_key=True)
 
     systems: Mapped[List["PowerPlay"]] = relationship(back_populates="power")
+
+    def __eq__(self, other: Power) -> bool:
+        # don't check back-populated columns since that would lead to
+        # an infinite loop
+        return self.name == other.name
 
 
 class System(Base):
@@ -210,10 +235,9 @@ class System(Base):
             and self.security == other.security
             and self.population == other.population
             and self.bodyCount == other.bodyCount
-            # TODO
-            # and self.controllingFaction == other.controllingFaction
-            # and self.factions == other.factions
-            # powers
+            and self.controllingFaction == other.controllingFaction
+            and self.factions == other.factions
+            and self.powers == other.powers
             and self.powerState == other.powerState
             and self.date == other.date
             # bodies
