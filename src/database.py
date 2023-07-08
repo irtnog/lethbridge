@@ -44,8 +44,10 @@ logger = logging.getLogger(__name__)
 compat.register()
 
 
-# tracks definitions and related metadata for the tables created below
 class Base(DeclarativeBase):
+    """This class tracks ORM class definitions and related metadata
+    for the tables created in this module."""
+
     pass
 
 
@@ -101,7 +103,11 @@ class State(Base):
 
 class Faction(Base):
     """A minor faction, player or otherwise---as opposed to a Power,
-    superpower, or species."""
+    superpower, or species.
+
+    Note that fleet carriers, being stations, are controlled by a
+    virtual faction named FleetCarrier.  This faction has neither
+    allegiance nor government."""
 
     __tablename__ = "faction"
 
@@ -176,7 +182,7 @@ class PowerPlay(Base):
 class Power(Base):
     """Individuals and organization who wield greater influence over
     the galactic polity than minor factions but less than a
-    superpower"""
+    superpower."""
 
     __tablename__ = "power"
 
@@ -312,7 +318,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
         exclude = ["controllingFaction_id"]
-        unknown = EXCLUDE
+        unknown = EXCLUDE  # FIXME
         include_fk = True
         include_relationships = True
         load_instance = True
