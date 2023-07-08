@@ -18,6 +18,8 @@
 from datetime import datetime
 from lethbridge.database import Base
 from lethbridge.database import Faction
+from lethbridge.database import Power
+from lethbridge.database import PowerPlay
 from lethbridge.database import State
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
@@ -87,6 +89,8 @@ def test_orm_relationships(mock_db_uri):
             influence=0.5,
             state="None",
         )
+        bubble_power = Power(name="Billy Bob")
+        bubble_powerplay = PowerPlay(power=bubble_power)
         bubble_system = System(
             id64=1,
             name="Bubble System",
@@ -97,6 +101,8 @@ def test_orm_relationships(mock_db_uri):
         )
         bubble_system.factions.append(bubble_faction_state)
         bubble_system.controllingFaction = bubble_faction
+        bubble_system.powers.append(bubble_powerplay)
+        bubble_system.powerState = "Controlled"
         session.add(bubble_system)
 
     with Session.begin() as session:
