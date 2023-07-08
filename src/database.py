@@ -200,7 +200,7 @@ class StationService(Base):
 
     __tablename__ = "station_service"
 
-    service: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(primary_key=True)
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
 
@@ -451,7 +451,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         # wrap services
         if "services" in new_data:
             new_data["services"] = [
-                {"service": service} for service in new_data.get("services", [])
+                {"name": service} for service in new_data.get("services", [])
             ]
 
         # flatten landingPads

@@ -21,6 +21,7 @@ from lethbridge.database import Faction
 from lethbridge.database import Power
 from lethbridge.database import PowerPlay
 from lethbridge.database import State
+from lethbridge.database import StationService
 from lethbridge.database import Station
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
@@ -92,6 +93,7 @@ def test_orm_relationships(mock_db_uri):
         )
         bubble_power = Power(name="Billy Bob")
         bubble_powerplay = PowerPlay(power=bubble_power)
+        bubble_station_docking_service = StationService(name="Docking")
         bubble_station = Station(
             name="Bubble Station",
             id=1,
@@ -102,7 +104,7 @@ def test_orm_relationships(mock_db_uri):
             # economies
             allegiance=bubble_faction.allegiance,
             government=bubble_faction.government,
-            # services
+            services=[bubble_station_docking_service],
             type="Ocellus Starport",
             largeLandingPads=9,
             mediumLandingPads=18,
