@@ -381,17 +381,10 @@ class StationSchema(SQLAlchemyAutoSchema):
                 new_data[k] = 0
 
         # remove empty keys to save space
-        required_columns = [
-            "name",
-            "id",
-            "updateTime",
-        ]
-        for k in list(set(new_data.keys()) - set(required_columns)):
-            if new_data.get(k) is None:
-                try:
-                    new_data.pop(k)
-                except KeyError:
-                    pass
+        required_columns = ["name", "id", "updateTime"]
+        for k in set(new_data.keys()) - set(required_columns):
+            if new_data.get(k) is None or new_data.get(k) == []:
+                new_data.pop(k)
 
         # wrap landingPads
         landingPads = {}
@@ -473,37 +466,22 @@ class SystemSchema(SQLAlchemyAutoSchema):
         }
         new_data["coords"] = coords
 
+        # remove empty keys to save space
+        required_columns = ["id64", "name", "coords", "date", "bodies", "stations"]
+        for k in set(new_data.keys()) - set(required_columns):
+            if new_data.get(k) is None or new_data.get(k) == []:
+                new_data.pop(k)
+
         # make a copy of the factions list sorted by faction name; cf.
         # https://docs.python.org/3/library/functions.html#sorted
-        if new_data.get("factions"):
+        if "factions" in new_data:
             new_data["factions"] = sorted(
                 new_data["factions"], key=lambda faction: faction["name"]
             )
 
         # make a sorted copy of the powers list
-        if new_data.get("powers"):
+        if "powers" in new_data:
             new_data["powers"] = sorted(new_data["powers"])
-
-        # remove empty keys to save space
-        optional_columns = [
-            "allegiance",
-            "government",
-            "primaryEconomy",
-            "secondaryEconomy",
-            "security",
-            "population",
-            "bodyCount",
-            "controllingFaction",
-            "factions",
-            "powers",
-            "powerState",
-        ]
-        for k in optional_columns:
-            if not new_data.get(k):
-                try:
-                    new_data.pop(k)
-                except KeyError:
-                    pass
 
         return new_data
 
