@@ -194,6 +194,16 @@ class Power(Base):
         return self.name == other.name
 
 
+class StationService(Base):
+    """What services a station provides, modeled as a one-to-many
+    relationship."""
+
+    __tablename__ = "station_services"
+
+    service: Mapped[str] = mapped_column(primary_key=True)
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+
 class Station(Base):
     """A space station, mega ship, fleet carrier, surface port, or
     settlement.  Fleet carriers and mega ships are mobile."""
@@ -215,7 +225,7 @@ class Station(Base):
     # economies
     allegiance: Mapped[str | None]  # matches controllingFaction?
     government: Mapped[str | None]  # matches controllingFaction?
-    # services
+    services: Mapped[List["StationService"]] = relationship()
     type: Mapped[str | None]
     latitude: Mapped[float | None]
     longitude: Mapped[float | None]
@@ -356,6 +366,15 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
         return out_data.get("power", {}).get("name")
 
 
+class StationServiceSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = StationService
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
@@ -366,6 +385,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
+    services = Nested(StationServiceSchema, many=True, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -386,6 +406,14 @@ class StationSchema(SQLAlchemyAutoSchema):
             if new_data.get(k) is None or new_data.get(k) == []:
                 new_data.pop(k)
 
+        # flatten controllingFaction
+        if "controllingFaction" in new_data:
+            controlling_faction = new_data.get("controllingFaction", {})
+            new_data["controllingFaction"] = controlling_faction.get("name")
+            if "controllingFactionState" not in new_data:
+                # FIXME: why does Spansh do this?
+                new_data["controllingFactionState"] = None
+
         # wrap landingPads
         landingPads = {}
         for k_new, k_orig in [
@@ -398,13 +426,9 @@ class StationSchema(SQLAlchemyAutoSchema):
         if landingPads:
             new_data["landingPads"] = landingPads
 
-        # flatten controllingFaction
-        if "controllingFaction" in new_data:
-            controlling_faction = new_data.get("controllingFaction", {})
-            new_data["controllingFaction"] = controlling_faction.get("name")
-            if "controllingFactionState" not in new_data:
-                # FIXME: why does Spansh do this?
-                new_data["controllingFactionState"] = None
+        # flatten services
+        if "services" in new_data:
+            new_data["services"] = [s["service"] for s in new_data["services"]]
 
         return new_data
 
@@ -415,15 +439,20 @@ class StationSchema(SQLAlchemyAutoSchema):
         this schema."""
         new_data = in_data.copy()
 
-        # if present, wrap faction data for the nested attribute but
-        # do not remove the station-level allegiance and government
-        # attributes to match Spansh
+        # wrap faction data but do not remove the station-level
+        # allegiance and government attributes
         if "controllingFaction" in new_data:
             new_data["controllingFaction"] = {
                 "name": new_data.get("controllingFaction"),
                 "allegiance": new_data.get("allegiance"),
                 "government": new_data.get("government"),
             }
+
+        # wrap services
+        if "services" in new_data:
+            new_data["services"] = [
+                {"service": service} for service in new_data.get("services", [])
+            ]
 
         # flatten landingPads
         landingPads = new_data.pop("landingPads", {})

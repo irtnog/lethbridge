@@ -22,7 +22,6 @@ from lethbridge.database import Power
 from lethbridge.database import PowerPlay
 from lethbridge.database import State
 from lethbridge.database import Station
-from lethbridge.database import StationSchema
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
 from psycopg2cffi import compat
@@ -232,22 +231,22 @@ def test_systemschema_complex(mock_db_uri):
                 "primaryEconomy": "Private Enterprise",
                 # "economies": {"Private Enterprise": 100},
                 "government": "Private Ownership",
-                # "services": [
-                #     "Dock",
-                #     "Autodock",
-                #     "Market",
-                #     "Contacts",
-                #     "Crew Lounge",
-                #     "Restock",
-                #     "Refuel",
-                #     "Repair",
-                #     "Workshop",
-                #     "Flight Controller",
-                #     "Station Operations",
-                #     "Station Menu",
-                #     "Fleet Carrier Management",
-                #     "Fleet Carrier Fuel",
-                # ],
+                "services": [
+                    "Dock",
+                    "Autodock",
+                    "Market",
+                    "Contacts",
+                    "Crew Lounge",
+                    "Restock",
+                    "Refuel",
+                    "Repair",
+                    "Workshop",
+                    "Flight Controller",
+                    "Station Operations",
+                    "Station Menu",
+                    "Fleet Carrier Management",
+                    "Fleet Carrier Fuel",
+                ],
                 "type": "Drake-Class Carrier",
                 "landingPads": {"large": 8, "medium": 4, "small": 4},
                 # "market": {
