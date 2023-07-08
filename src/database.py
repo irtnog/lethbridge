@@ -198,7 +198,7 @@ class StationService(Base):
     """What services a station provides, modeled as a one-to-many
     relationship."""
 
-    __tablename__ = "station_services"
+    __tablename__ = "station_service"
 
     service: Mapped[str] = mapped_column(primary_key=True)
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
