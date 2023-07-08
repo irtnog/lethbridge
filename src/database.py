@@ -111,8 +111,6 @@ class Faction(Base):
 
     __tablename__ = "faction"
 
-    # FIXME: create index column for factions? (why would one?)
-    # id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(primary_key=True)
     allegiance: Mapped[str]
     government: Mapped[str]
