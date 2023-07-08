@@ -414,6 +414,10 @@ class StationSchema(SQLAlchemyAutoSchema):
                 # FIXME: why does Spansh do this?
                 new_data["controllingFactionState"] = None
 
+        # flatten services
+        if "services" in new_data:
+            new_data["services"] = [service["name"] for service in new_data["services"]]
+
         # wrap landingPads
         landingPads = {}
         for k_new, k_orig in [
@@ -425,10 +429,6 @@ class StationSchema(SQLAlchemyAutoSchema):
                 landingPads[k_new] = new_data.pop(k_orig)
         if landingPads:
             new_data["landingPads"] = landingPads
-
-        # flatten services
-        if "services" in new_data:
-            new_data["services"] = [s["service"] for s in new_data["services"]]
 
         return new_data
 
