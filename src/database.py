@@ -112,8 +112,8 @@ class Faction(Base):
     __tablename__ = "faction"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    allegiance: Mapped[str]
-    government: Mapped[str]
+    allegiance: Mapped[str | None]
+    government: Mapped[str | None]
 
     controlledSystems: Mapped[List["System"]] = relationship(
         back_populates="controllingFaction"
@@ -125,13 +125,7 @@ class Faction(Base):
         return f"<Faction({self.name!r})>"
 
     def __eq__(self, other: Faction) -> bool:
-        # don't check back-populated columns since that would lead to
-        # an infinite loop
-        return (
-            self.name == other.name
-            and self.allegiance == other.allegiance
-            and self.government == other.government
-        )
+        return self.name == other.name
 
 
 class PowerPlay(Base):
