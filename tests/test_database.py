@@ -99,8 +99,8 @@ def test_orm_relationships(mock_db_uri):
             z=3.1,
             date=datetime(1970, 1, 1, 0, 1),
         )
-        bubble_system.factions.append(bubble_faction_state)
         bubble_system.controllingFaction = bubble_faction
+        bubble_system.factions.append(bubble_faction_state)
         bubble_system.powers.append(bubble_powerplay)
         bubble_system.powerState = "Controlled"
         session.add(bubble_system)
