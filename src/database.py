@@ -118,6 +118,9 @@ class Faction(Base):
     controlledSystems: Mapped[List["System"]] = relationship(
         back_populates="controllingFaction"
     )
+    controlledStations: Mapped[List["Station"]] = relationship(
+        back_populates="controllingFaction"
+    )
 
     systems: Mapped[List["State"]] = relationship(back_populates="faction")
 
@@ -191,6 +194,51 @@ class Power(Base):
         return self.name == other.name
 
 
+class Station(Base):
+    """A space station, mega ship, fleet carrier, surface port, or
+    settlement.  Fleet carriers and mega ships are mobile."""
+
+    __tablename__ = "station"
+
+    name: Mapped[str]
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    updateTime: Mapped[datetime]
+    controllingFaction_id: Mapped[str | None] = mapped_column(
+        ForeignKey("faction.name")
+    )
+    controllingFaction: Mapped[Optional["Faction"]] = relationship(
+        back_populates="controlledStations"
+    )
+    controllingFactionState: Mapped[str | None]
+    distanceToArrival: Mapped[float | None]
+    primaryEconomy: Mapped[str | None]
+    # economies
+    allegiance: Mapped[str | None]  # matches controllingFaction?
+    government: Mapped[str | None]  # matches controllingFaction?
+    # services
+    type: Mapped[str | None]
+    latitude: Mapped[float | None]
+    longitude: Mapped[float | None]
+    # landingPads
+    # market
+    # shipyard
+    # outfitting
+
+    # a system may contain many space stations; model this as a
+    # bi-directional, nullable, many-to-one relationship
+    # (stations:system)
+    system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
+    system: Mapped[Optional["System"]] = relationship(back_populates="stations")
+
+    # TODO: a body might support many surface ports...
+
+    def __repr__(self):
+        return f"<Station({self.name} in {(self.system or 'pending')!r})>"
+
+    def __eq__(self, other: Station) -> bool:
+        return self.id == other.id
+
+
 class System(Base):
     """A gravitationally bound group of stars, planets, and other
     bodies."""
@@ -220,7 +268,7 @@ class System(Base):
     powerState: Mapped[str | None]
     date: Mapped[datetime]
     # bodies
-    # stations
+    stations: Mapped[List["Station"]] = relationship(back_populates="system")
 
     def __repr__(self):
         return f"<System(id64={self.id64!r}, {self.name!r})>"
@@ -245,14 +293,14 @@ class System(Base):
             and self.powerState == other.powerState
             and self.date == other.date
             # bodies
-            # stations
+            and self.stations == other.stations
         )
 
 
 class FactionSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Faction
-        exclude = ["controlledSystems", "systems"]
+        exclude = ["controlledSystems", "controlledStations", "systems"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -306,6 +354,73 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
         return out_data.get("power", {}).get("name")
 
 
+class StationSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Station
+        exclude = ["controllingFaction_id", "system_id64", "system"]
+        unknown = EXCLUDE  # FIXME
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        new_data = out_data.copy()
+
+        # convert 0.0 to 0
+        float_columns = [
+            "distanceToArrival",
+        ]
+        for k in float_columns:
+            if k in new_data and new_data[k] == 0.0:
+                new_data[k] = 0
+
+        # remove empty keys to save space
+        required_columns = [
+            "name",
+            "id",
+            "updateTime",
+        ]
+        for k in list(set(new_data.keys()) - set(required_columns)):
+            if new_data.get(k) is None:
+                try:
+                    new_data.pop(k)
+                except KeyError:
+                    pass
+
+        # unwrap controllingFaction
+        if "controllingFaction" in new_data:
+            controlling_faction = new_data.get("controllingFaction", {})
+            new_data["controllingFaction"] = controlling_faction.get("name")
+            if "controllingFactionState" not in new_data:
+                # FIXME: why does Spansh do this?
+                new_data["controllingFactionState"] = None
+
+        return new_data
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        new_data = in_data.copy()
+
+        # if present, wrap faction data for the nested attribute but
+        # do not remove the station-level allegiance and government
+        # attributes to match Spansh
+        if "controllingFaction" in new_data:
+            new_data["controllingFaction"] = {
+                "name": new_data.get("controllingFaction"),
+                "allegiance": new_data.get("allegiance"),
+                "government": new_data.get("government"),
+            }
+
+        return new_data
+
+
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
@@ -318,6 +433,8 @@ class SystemSchema(SQLAlchemyAutoSchema):
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     factions = Nested(StateSchema, many=True, required=False)
     powers = Nested(PowerPlaySchema, many=True, required=False)
+    # bodies
+    stations = Nested(StationSchema, many=True, required=False)
 
     # TODO: translate between 'Anarchy'/'None' and None
     # TODO: powerState key denotes Bubble system?
@@ -415,6 +532,14 @@ class SystemSchema(SQLAlchemyAutoSchema):
         if in_data.controllingFaction:
             _cfac = in_data.controllingFaction
             in_data.controllingFaction = _factions[_cfac.name]
+        for station in in_data.stations:
+            _cfac = station.controllingFaction
+            if _cfac:  # not all stations have a controlling faction
+                if _cfac.name in _factions:
+                    station.controllingFaction = _factions[_cfac.name]
+                else:
+                    # add novel factions to the index, e.g., FleetCarrier
+                    _factions[_cfac.name] = _cfac
 
         return in_data
 

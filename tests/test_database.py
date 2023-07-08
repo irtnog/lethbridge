@@ -21,6 +21,8 @@ from lethbridge.database import Faction
 from lethbridge.database import Power
 from lethbridge.database import PowerPlay
 from lethbridge.database import State
+from lethbridge.database import Station
+from lethbridge.database import StationSchema
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
 from psycopg2cffi import compat
@@ -91,6 +93,23 @@ def test_orm_relationships(mock_db_uri):
         )
         bubble_power = Power(name="Billy Bob")
         bubble_powerplay = PowerPlay(power=bubble_power)
+        bubble_station = Station(
+            name="Bubble Station",
+            id=1,
+            updateTime=datetime(1970, 1, 1, 0, 1),
+            controllingFaction=bubble_faction,
+            distanceToArrival=123.45,
+            primaryEconomy="Refinery",
+            # economies
+            allegiance=bubble_faction.allegiance,
+            government=bubble_faction.government,
+            # services
+            type="Ocellus Starport"
+            # landingPads
+            # market
+            # shipyard
+            # outfitting
+        )
         bubble_system = System(
             id64=1,
             name="Bubble System",
@@ -103,6 +122,7 @@ def test_orm_relationships(mock_db_uri):
         bubble_system.factions.append(bubble_faction_state)
         bubble_system.powers.append(bubble_powerplay)
         bubble_system.powerState = "Controlled"
+        bubble_system.stations.append = bubble_station
         session.add(bubble_system)
 
     with Session.begin() as session:
@@ -198,6 +218,64 @@ def test_systemschema_complex(mock_db_uri):
             "Joe Bob",
         ],
         "powerState": "Contested",
+        # "bodies": [],
+        "stations": [
+            {
+                "name": "ABC-123",
+                "id": 1,
+                "updateTime": "1970-01-01T00:03:00",
+                "controllingFaction": "FleetCarrier",
+                "controllingFactionState": None,
+                "distanceToArrival": 0,
+                "primaryEconomy": "Private Enterprise",
+                # "economies": {"Private Enterprise": 100},
+                "government": "Private Ownership",
+                # "services": [
+                #     "Dock",
+                #     "Autodock",
+                #     "Market",
+                #     "Contacts",
+                #     "Crew Lounge",
+                #     "Restock",
+                #     "Refuel",
+                #     "Repair",
+                #     "Workshop",
+                #     "Flight Controller",
+                #     "Station Operations",
+                #     "Station Menu",
+                #     "Fleet Carrier Management",
+                #     "Fleet Carrier Fuel",
+                # ],
+                "type": "Drake-Class Carrier",
+                # "landingPads": {"large": 8, "medium": 4, "small": 4},
+                # "market": {
+                #     "commodities": [
+                #         {
+                #             "name": "Alien Stuff",
+                #             "symbol": "AlienStuff",
+                #             "category": "Stuff",
+                #             "commodityId": 1,
+                #             "demand": 20,
+                #             "supply": 0,
+                #             "buyPrice": 0,
+                #             "sellPrice": 64,
+                #         },
+                #         {
+                #             "name": "My Junk",
+                #             "symbol": "MyJunk",
+                #             "category": "Salvage",
+                #             "commodityId": 2,
+                #             "demand": 5,
+                #             "supply": 0,
+                #             "buyPrice": 0,
+                #             "sellPrice": 128,
+                #         },
+                #     ],
+                #     "prohibitedCommodities": [],
+                #     "updateTime": "1970-01-01T00:03:00",
+                # },
+            }
+        ],
         "date": "1970-01-01T00:03:00",
     }
 
@@ -232,6 +310,8 @@ def test_systemschema_real(mock_db_uri, mock_system_data):
         if k == "powers":
             # not clear whether Spansh sorts this
             assert set(dump_data[k]) <= set(mock_system_data[k])
+        elif k == "stations":
+            assert len(dump_data[k]) == len(mock_system_data[k])
         elif k == "date":
             # TODO: Spansh's dumps do not use ISO 8601.  We do, and we
             # don't plan to be compatible with Spansh in this case.
@@ -261,6 +341,8 @@ def test_small_load(mock_db_uri, mock_bubble_dump):
             if k == "powers":
                 # not clear whether Spansh sorts this
                 assert set(dump_data[k]) <= set(load_data[k])
+            elif k == "stations":
+                assert len(dump_data[k]) == len(load_data[k])
             elif k == "date":  # TODO
                 pass
             else:
