@@ -21,6 +21,7 @@ from lethbridge.database import Faction
 from lethbridge.database import Power
 from lethbridge.database import PowerPlay
 from lethbridge.database import State
+from lethbridge.database import StationEconomy
 from lethbridge.database import StationService
 from lethbridge.database import Station
 from lethbridge.database import System
@@ -93,6 +94,7 @@ def test_orm_relationships(mock_db_uri):
         )
         bubble_power = Power(name="Billy Bob")
         bubble_powerplay = PowerPlay(power=bubble_power)
+        bubble_station_refinery_economy = StationEconomy(name="Refinery", weight=100)
         bubble_station_docking_service = StationService(name="Docking")
         bubble_station = Station(
             name="Bubble Station",
@@ -101,7 +103,7 @@ def test_orm_relationships(mock_db_uri):
             controllingFaction=bubble_faction,
             distanceToArrival=123.45,
             primaryEconomy="Refinery",
-            # economies
+            economies=[bubble_station_refinery_economy],
             allegiance=bubble_faction.allegiance,
             government=bubble_faction.government,
             services=[bubble_station_docking_service],
@@ -231,7 +233,7 @@ def test_systemschema_complex(mock_db_uri):
                 "controllingFactionState": None,
                 "distanceToArrival": 0,
                 "primaryEconomy": "Private Enterprise",
-                # "economies": {"Private Enterprise": 100},
+                "economies": {"Private Enterprise": 100},
                 "government": "Private Ownership",
                 "services": [
                     "Dock",

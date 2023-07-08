@@ -194,6 +194,18 @@ class Power(Base):
         return self.name == other.name
 
 
+class StationEconomy(Base):
+    """Stations can have multiple active market economies, which
+    influences (or reflects) the station's services and commodity
+    market.  This is modeled as a one-to-many relationship."""
+
+    __tablename__ = "station_economy"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    weight: Mapped[int]
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+
 class StationService(Base):
     """What services a station provides, modeled as a one-to-many
     relationship."""
@@ -222,7 +234,7 @@ class Station(Base):
     controllingFactionState: Mapped[str | None]
     distanceToArrival: Mapped[float | None]
     primaryEconomy: Mapped[str | None]
-    # economies
+    economies: Mapped[List["StationEconomy"]] = relationship()
     allegiance: Mapped[str | None]  # matches controllingFaction?
     government: Mapped[str | None]  # matches controllingFaction?
     services: Mapped[List["StationService"]] = relationship()
@@ -366,6 +378,15 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
         return out_data.get("power", {}).get("name")
 
 
+class StationEconomySchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = StationEconomy
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
 class StationServiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = StationService
@@ -385,6 +406,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
+    economies = Nested(StationEconomySchema, many=True, required=False)
     services = Nested(StationServiceSchema, many=True, required=False)
 
     @post_dump
@@ -413,6 +435,13 @@ class StationSchema(SQLAlchemyAutoSchema):
             if "controllingFactionState" not in new_data:
                 # FIXME: why does Spansh do this?
                 new_data["controllingFactionState"] = None
+
+        # rewrap economies
+        if "economies" in new_data:
+            new_data["economies"] = {
+                economy.get("name"): economy.get("weight")
+                for economy in new_data["economies"]
+            }
 
         # flatten services
         if "services" in new_data:
@@ -447,6 +476,13 @@ class StationSchema(SQLAlchemyAutoSchema):
                 "allegiance": new_data.get("allegiance"),
                 "government": new_data.get("government"),
             }
+
+        # rewrap economies
+        if "economies" in new_data:
+            new_data["economies"] = [
+                {"name": economy, "weight": weight}
+                for economy, weight in new_data["economies"].items()
+            ]
 
         # wrap services
         if "services" in new_data:
