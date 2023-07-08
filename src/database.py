@@ -406,15 +406,15 @@ class SystemSchema(SQLAlchemyAutoSchema):
         if not isinstance(in_data, System):
             return in_data
 
-        # Replace the duplicate of the controllingFaction object in
-        # the System's faction state list.  Otherwise, the ORM
-        # generates a duplicate INSERT, which violates the Faction's
-        # uniqueness constraint.  The ORM can't detect this, and
-        # StateSchema (when creating factions) does not communicate
-        # with FactionSchema (when creating controllingFaction).
-        for bgs_state in in_data.factions:
-            if bgs_state.faction == in_data.controllingFaction:
-                bgs_state.faction = in_data.controllingFaction
+        # index the faction list to facilitate deduplication
+        _factions = {fs.faction.name: fs.faction for fs in in_data.factions}
+
+        # replace duplicate controllingFaction objects (which the ORM
+        # cannot detect, leading to uniqueness constraint violations
+        # due to duplicate INSERT statements)
+        if in_data.controllingFaction:
+            _cfac = in_data.controllingFaction
+            in_data.controllingFaction = _factions[_cfac.name]
 
         return in_data
 
