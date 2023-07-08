@@ -219,7 +219,9 @@ class Station(Base):
     type: Mapped[str | None]
     latitude: Mapped[float | None]
     longitude: Mapped[float | None]
-    # landingPads
+    largeLandingPads: Mapped[int | None]  # landingPads
+    mediumLandingPads: Mapped[int | None]
+    smallLandingPads: Mapped[int | None]
     # market
     # shipyard
     # outfitting
@@ -391,7 +393,19 @@ class StationSchema(SQLAlchemyAutoSchema):
                 except KeyError:
                     pass
 
-        # unwrap controllingFaction
+        # wrap landingPads
+        landingPads = {}
+        for k_new, k_orig in [
+            ("large", "largeLandingPads"),
+            ("medium", "mediumLandingPads"),
+            ("small", "smallLandingPads"),
+        ]:
+            if k_orig in new_data:
+                landingPads[k_new] = new_data.pop(k_orig)
+        if landingPads:
+            new_data["landingPads"] = landingPads
+
+        # flatten controllingFaction
         if "controllingFaction" in new_data:
             controlling_faction = new_data.get("controllingFaction", {})
             new_data["controllingFaction"] = controlling_faction.get("name")
@@ -417,6 +431,13 @@ class StationSchema(SQLAlchemyAutoSchema):
                 "allegiance": new_data.get("allegiance"),
                 "government": new_data.get("government"),
             }
+
+        # flatten landingPads
+        landingPads = new_data.pop("landingPads", {})
+        if landingPads:
+            new_data["largeLandingPads"] = landingPads.get("large")
+            new_data["mediumLandingPads"] = landingPads.get("medium")
+            new_data["smallLandingPads"] = landingPads.get("small")
 
         return new_data
 

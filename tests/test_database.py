@@ -104,8 +104,10 @@ def test_orm_relationships(mock_db_uri):
             allegiance=bubble_faction.allegiance,
             government=bubble_faction.government,
             # services
-            type="Ocellus Starport"
-            # landingPads
+            type="Ocellus Starport",
+            largeLandingPads=9,
+            mediumLandingPads=18,
+            smallLandingPads=17,
             # market
             # shipyard
             # outfitting
@@ -247,7 +249,7 @@ def test_systemschema_complex(mock_db_uri):
                 #     "Fleet Carrier Fuel",
                 # ],
                 "type": "Drake-Class Carrier",
-                # "landingPads": {"large": 8, "medium": 4, "small": 4},
+                "landingPads": {"large": 8, "medium": 4, "small": 4},
                 # "market": {
                 #     "commodities": [
                 #         {
