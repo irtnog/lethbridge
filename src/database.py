@@ -216,6 +216,65 @@ class StationService(Base):
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
 
+class MarketOrder(Base):
+    """What a station is buying or selling, modeled as a one-to-many
+    relationship."""
+
+    __tablename__ = "market_order"
+
+    # TODO: break name..commodityId out into separate class? but that
+    # would require a SystemSchema-level de-duplication pass at
+    # de-serialization time
+    name: Mapped[str]
+    symbol: Mapped[str]
+    category: Mapped[str]
+    commodityId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    demand: Mapped[int]
+    supply: Mapped[int]
+    buyPrice: Mapped[int]
+    sellPrice: Mapped[int]
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<MarketOrder({'Buy' if self.demand else 'Sell'} "
+            + f"{self.demand if self.demand else self.supply} "
+            + f"{self.name} for "
+            + f"{self.buyPrice if self.sellPrice else self.sellPrice} CR, "
+            + f"station_id={self.station_id})>"
+        )
+
+    def __eq__(self, other: MarketOrder) -> bool:
+        return (
+            self.commodityId == other.commodityId
+            and self.demand == other.demand
+            and self.supply == other.supply
+            and self.buyPrice == other.buyPrice
+            and self.sellPrice == other.sellPrice
+            and self.station_id == other.station_id
+        )
+
+
+class ProhibitedCommodity(Base):
+    """These commodities, listed by name in the Spansh galaxy data
+    dump, are prohibited by the linked station."""
+
+    __tablename__ = "prohibited_commodity"
+
+    # TODO: link somehow to a future Commodity class? don't forget to
+    # modify the serialization schema if you do
+    name: Mapped[str] = mapped_column(primary_key=True)
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<ProhibitedCommodity({self.name!r}, " + f"station_id={self.station_id})>"
+        )
+
+    def __eq__(self, other: ProhibitedCommodity) -> bool:
+        return self.name == other.name and self.station_id == other.station_id
+
+
 class Station(Base):
     """A space station, mega ship, fleet carrier, surface port, or
     settlement.  Fleet carriers and mega ships are mobile."""
@@ -244,7 +303,9 @@ class Station(Base):
     largeLandingPads: Mapped[int | None]  # landingPads
     mediumLandingPads: Mapped[int | None]
     smallLandingPads: Mapped[int | None]
-    # market
+    marketOrders: Mapped[List["MarketOrder"]] = relationship()  # market
+    prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
+    marketUpdateTime: Mapped[datetime | None]
     # shipyard
     # outfitting
 
@@ -396,6 +457,29 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
 
+class MarketOrderSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = MarketOrder
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
+class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = ProhibitedCommodity
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return out_data.get("name")
+
+
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
@@ -408,6 +492,8 @@ class StationSchema(SQLAlchemyAutoSchema):
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     economies = Nested(StationEconomySchema, many=True, required=False)
     services = Nested(StationServiceSchema, many=True, required=False)
+    marketOrders = Nested(MarketOrderSchema, many=True, required=False)
+    prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -459,6 +545,20 @@ class StationSchema(SQLAlchemyAutoSchema):
         if landingPads:
             new_data["landingPads"] = landingPads
 
+        # wrap market
+        if "marketUpdateTime" in new_data:
+            new_data["market"] = {
+                # FIXME: Can a market that doesn't buy or sell
+                # anything have a list of prohibited commodities?
+                "commodities": new_data.pop("marketOrders", []),
+                # The reverse is definitely true, e.g., fleet carrier
+                # markets like WZL-B9Z in S171 43 in the sample data.
+                "prohibitedCommodities": new_data.pop("prohibitedCommodities", []),
+                # FIXME: assumes markets always have updateTime
+                # attributes
+                "updateTime": new_data.pop("marketUpdateTime"),
+            }
+
         return new_data
 
     @pre_load
@@ -496,6 +596,16 @@ class StationSchema(SQLAlchemyAutoSchema):
             new_data["largeLandingPads"] = landingPads.get("large")
             new_data["mediumLandingPads"] = landingPads.get("medium")
             new_data["smallLandingPads"] = landingPads.get("small")
+
+        # flatten market
+        if "market" in new_data:
+            new_data["marketOrders"] = new_data.get("market").get("commodities")
+            new_data["prohibitedCommodities"] = [
+                {"name": pc}
+                for pc in new_data.get("market").get("prohibitedCommodities")
+            ]
+            new_data["marketUpdateTime"] = new_data.get("market").get("updateTime")
+            new_data.pop("market")
 
         return new_data
 
