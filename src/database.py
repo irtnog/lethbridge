@@ -401,6 +401,7 @@ class FactionSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Faction
         exclude = ["controlledSystems", "controlledStations", "systems"]
+        unknown = EXCLUDE
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -426,6 +427,17 @@ class StateSchema(SQLAlchemyAutoSchema):
         new_data.update(faction)
 
         return new_data
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {
+            "faction": in_data,
+            "state": in_data["state"],
+            "influence": in_data["influence"],
+        }
 
 
 class PowerSchema(SQLAlchemyAutoSchema):
@@ -686,19 +698,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
         coords = new_data.pop("coords")
         new_data.update(coords)
 
-        # restructure factions and powers lists to match ORM
-        new_data["factions"] = [
-            {
-                "faction": {
-                    "name": f.get("name"),
-                    "allegiance": f.get("allegiance"),
-                    "government": f.get("government"),
-                },
-                "state": f.get("state"),
-                "influence": f.get("influence"),
-            }
-            for f in new_data.get("factions", [])
-        ]
+        # restructure powers
         new_data["powers"] = [
             {"power": {"name": power}} for power in new_data.get("powers", [])
         ]
