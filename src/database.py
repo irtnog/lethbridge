@@ -483,6 +483,18 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return out_data.get("name")
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data}
+
 
 class MarketOrderSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -556,10 +568,6 @@ class StationSchema(SQLAlchemyAutoSchema):
                 for economy in new_data["economies"]
             }
 
-        # flatten services
-        if "services" in new_data:
-            new_data["services"] = [service["name"] for service in new_data["services"]]
-
         # wrap landingPads
         landingPads = {}
         for k_new, k_orig in [
@@ -609,12 +617,6 @@ class StationSchema(SQLAlchemyAutoSchema):
             new_data["economies"] = [
                 {"name": economy, "weight": weight}
                 for economy, weight in new_data["economies"].items()
-            ]
-
-        # wrap services
-        if "services" in new_data:
-            new_data["services"] = [
-                {"name": service} for service in new_data.get("services", [])
             ]
 
         # flatten landingPads
