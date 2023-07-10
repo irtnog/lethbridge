@@ -449,6 +449,18 @@ class PowerSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return out_data.get("name")
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data}
+
 
 class PowerPlaySchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -463,7 +475,14 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
-        return out_data.get("power", {}).get("name")
+        return out_data.get("power")
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"power": in_data}
 
 
 class StationEconomySchema(SQLAlchemyAutoSchema):
@@ -700,14 +719,9 @@ class SystemSchema(SQLAlchemyAutoSchema):
         this schema."""
         new_data = in_data.copy()
 
-        # unwrap coords
+        # flatten coords
         coords = new_data.pop("coords")
         new_data.update(coords)
-
-        # restructure powers
-        new_data["powers"] = [
-            {"power": {"name": power}} for power in new_data.get("powers", [])
-        ]
 
         return new_data
 
