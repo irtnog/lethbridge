@@ -544,35 +544,34 @@ class StationSchema(SQLAlchemyAutoSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
-        new_data = out_data.copy()
 
         # convert 0.0 to 0
         float_columns = [
             "distanceToArrival",
         ]
         for k in float_columns:
-            if k in new_data and new_data[k] == 0.0:
-                new_data[k] = 0
+            if k in out_data and out_data[k] == 0.0:
+                out_data[k] = 0
 
         # remove empty keys to save space
         required_columns = ["name", "id", "updateTime"]
-        for k in set(new_data.keys()) - set(required_columns):
-            if new_data.get(k) is None or new_data.get(k) == []:
-                new_data.pop(k)
+        for k in set(out_data.keys()) - set(required_columns):
+            if out_data.get(k) is None or out_data.get(k) == []:
+                out_data.pop(k)
 
         # flatten controllingFaction
-        if "controllingFaction" in new_data:
-            controlling_faction = new_data.get("controllingFaction", {})
-            new_data["controllingFaction"] = controlling_faction.get("name")
-            if "controllingFactionState" not in new_data:
+        if "controllingFaction" in out_data:
+            controlling_faction = out_data.get("controllingFaction", {})
+            out_data["controllingFaction"] = controlling_faction.get("name")
+            if "controllingFactionState" not in out_data:
                 # FIXME: why does Spansh do this?
-                new_data["controllingFactionState"] = None
+                out_data["controllingFactionState"] = None
 
         # rewrap economies
-        if "economies" in new_data:
-            new_data["economies"] = {
+        if "economies" in out_data:
+            out_data["economies"] = {
                 economy.get("name"): economy.get("weight")
-                for economy in new_data["economies"]
+                for economy in out_data["economies"]
             }
 
         # wrap landingPads
@@ -582,26 +581,26 @@ class StationSchema(SQLAlchemyAutoSchema):
             ("medium", "mediumLandingPads"),
             ("small", "smallLandingPads"),
         ]:
-            if k_orig in new_data:
-                landingPads[k_new] = new_data.pop(k_orig)
+            if k_orig in out_data:
+                landingPads[k_new] = out_data.pop(k_orig)
         if landingPads:
-            new_data["landingPads"] = landingPads
+            out_data["landingPads"] = landingPads
 
         # wrap market
-        if "marketUpdateTime" in new_data:
-            new_data["market"] = {
+        if "marketUpdateTime" in out_data:
+            out_data["market"] = {
                 # FIXME: Can a market that doesn't buy or sell
                 # anything have a list of prohibited commodities?
-                "commodities": new_data.pop("marketOrders", []),
+                "commodities": out_data.pop("marketOrders", []),
                 # The reverse is definitely true, e.g., fleet carrier
                 # markets like WZL-B9Z in S171 43 in the sample data.
-                "prohibitedCommodities": new_data.pop("prohibitedCommodities", []),
+                "prohibitedCommodities": out_data.pop("prohibitedCommodities", []),
                 # FIXME: assumes markets always have updateTime
                 # attributes
-                "updateTime": new_data.pop("marketUpdateTime"),
+                "updateTime": out_data.pop("marketUpdateTime"),
             }
 
-        return new_data
+        return out_data
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
@@ -666,34 +665,33 @@ class SystemSchema(SQLAlchemyAutoSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
-        new_data = out_data.copy()
 
         # wrap coords
         coords = {
-            "x": new_data.pop("x"),
-            "y": new_data.pop("y"),
-            "z": new_data.pop("z"),
+            "x": out_data.pop("x"),
+            "y": out_data.pop("y"),
+            "z": out_data.pop("z"),
         }
-        new_data["coords"] = coords
+        out_data["coords"] = coords
 
         # remove empty keys to save space
         required_columns = ["id64", "name", "coords", "date", "bodies", "stations"]
-        for k in set(new_data.keys()) - set(required_columns):
-            if new_data.get(k) is None or new_data.get(k) == []:
-                new_data.pop(k)
+        for k in set(out_data.keys()) - set(required_columns):
+            if out_data.get(k) is None or out_data.get(k) == []:
+                out_data.pop(k)
 
         # make a copy of the factions list sorted by faction name; cf.
         # https://docs.python.org/3/library/functions.html#sorted
-        if "factions" in new_data:
-            new_data["factions"] = sorted(
-                new_data["factions"], key=lambda faction: faction["name"]
+        if "factions" in out_data:
+            out_data["factions"] = sorted(
+                out_data["factions"], key=lambda faction: faction["name"]
             )
 
         # make a sorted copy of the powers list
-        if "powers" in new_data:
-            new_data["powers"] = sorted(new_data["powers"])
+        if "powers" in out_data:
+            out_data["powers"] = sorted(out_data["powers"])
 
-        return new_data
+        return out_data
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
