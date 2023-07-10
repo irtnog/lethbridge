@@ -57,9 +57,7 @@ class State(Base):
     This models a faction's state in the background simulation (BGS)
     as a bi-directional association table in the SQLAlchemy ORM since
     BGS state must include data beyond the system/faction many-to-many
-    relationship.
-
-    """
+    relationship."""
 
     __tablename__ = "bgs_state"
 
@@ -137,9 +135,7 @@ class PowerPlay(Base):
     This models a Power's state in the background simulation (BGS) as
     a bi-directional association table in the SQLAlchemy ORM since
     that state might include data beyond the system/Power many-to-many
-    relationship.
-
-    """
+    relationship."""
 
     __tablename__ = "powerplay"
 
