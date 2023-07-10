@@ -518,6 +518,13 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         """Mimick the Spansh galaxy data dump format as best we can."""
         return out_data.get("name")
 
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data}
+
 
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -629,10 +636,9 @@ class StationSchema(SQLAlchemyAutoSchema):
         # flatten market
         if "market" in new_data:
             new_data["marketOrders"] = new_data.get("market").get("commodities")
-            new_data["prohibitedCommodities"] = [
-                {"name": pc}
-                for pc in new_data.get("market").get("prohibitedCommodities")
-            ]
+            new_data["prohibitedCommodities"] = new_data.get("market").get(
+                "prohibitedCommodities"
+            )
             new_data["marketUpdateTime"] = new_data.get("market").get("updateTime")
             new_data.pop("market")
 
