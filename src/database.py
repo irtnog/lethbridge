@@ -201,6 +201,19 @@ class StationEconomy(Base):
     weight: Mapped[int]
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
+    def __repr__(self):
+        return (
+            f"<StationEconomy({self.name!r}: {self.weight}, "
+            + f"station_id={self.station_id})>"
+        )
+
+    def __eq__(self, other: StationEconomy) -> bool:
+        return (
+            self.name == other.name
+            and self.weight == other.weight
+            and self.station_id == other.station_id
+        )
+
 
 class StationService(Base):
     """What services a station provides, modeled as a one-to-many
@@ -210,6 +223,12 @@ class StationService(Base):
 
     name: Mapped[str] = mapped_column(primary_key=True)
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return f"<StationService({self.name!r}, station_id={self.station_id})>"
+
+    def __eq__(self, other: StationService) -> bool:
+        return self.name == other.name and self.station_id == other.station_id
 
 
 class MarketOrder(Base):
