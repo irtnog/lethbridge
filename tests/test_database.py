@@ -61,14 +61,37 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
                 assert len(dump_data[k]) == len(load_data[k])
 
                 # compare each station
-                for dump_data_station, load_data_station in zip(
+                for d_st, l_st in zip(
                     sorted(dump_data[k], key=lambda st: st["name"]),
                     sorted(load_data[k], key=lambda st: st["name"]),
                 ):
-                    # dump_data_station should be a subset of
-                    # load_data_station until we finish the Station
-                    # class
-                    assert set(dump_data_station) <= set(load_data_station)
+                    assert set(d_st) == set(l_st)
+
+                    if "shipyard" in l_st:
+                        assert "shipyard" in d_st
+
+                        d_shipyard = d_st["shipyard"]
+                        d_ships = d_shipyard["ships"]
+                        l_shipyard = l_st["shipyard"]
+                        l_ships = l_shipyard["ships"]
+                        assert len(d_ships) == len(l_ships)
+
+                        d_update_time = d_shipyard["updateTime"]
+                        l_update_time = l_shipyard["updateTime"]
+                        assert parse(d_update_time) == parse(l_update_time[:-3])
+
+                    if "outfitting" in l_st:
+                        assert "outfitting" in d_st
+
+                        d_outfitting = d_st["outfitting"]
+                        d_modules = d_outfitting["modules"]
+                        l_outfitting = l_st["outfitting"]
+                        l_modules = l_outfitting["modules"]
+                        assert len(d_modules) == len(l_modules)
+
+                        d_update_time = d_outfitting["updateTime"]
+                        l_update_time = l_outfitting["updateTime"]
+                        assert parse(d_update_time) == parse(l_update_time[:-3])
 
             elif k == "date":
                 assert parse(dump_data[k]) == parse(load_data[k][:-3])
