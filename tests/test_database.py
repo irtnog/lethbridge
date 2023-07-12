@@ -42,7 +42,7 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
             session.add(new_system)
 
         with Session.begin() as session:
-            new_system = session.get(System, load_data.get("id64"))
+            new_system = session.get(System, load_data["id64"])
             dump_data = SystemSchema().dump(new_system)
 
         # compare keys; dump_data should be a subset of load_data
