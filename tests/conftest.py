@@ -40,6 +40,7 @@ def mock_db_uri(postgresql, tmp_path_factory, request):
             + f":@{postgresql.info.host}"
             + f":{postgresql.info.port}"
             + f"/{postgresql.info.dbname}"
+            + "?options=-c timezone=utc"
         )
     elif request.param == "sqlite":
         db_path = tmp_path_factory.mktemp("db") / "galaxy.sqlite"

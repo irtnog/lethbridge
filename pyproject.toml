@@ -25,6 +25,7 @@ dependencies = [
     "pytest",
     "pytest-cov",
     "pytest-postgresql",
+    "python-dateutil>=2.8.2",
     "shellingham",
     "simplejson",
     "sqlalchemy>=2",

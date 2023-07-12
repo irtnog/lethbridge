@@ -15,7 +15,7 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from datetime import datetime
+from dateutil.parser import parse
 from lethbridge.database import Base
 from lethbridge.database import Faction
 from lethbridge.database import System
@@ -52,8 +52,8 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
                 assert set(dump_data[k]) <= set(load_data[k])
             elif k == "stations":
                 assert len(dump_data[k]) == len(load_data[k])
-            elif k == "date":  # TODO
-                pass
+            elif k == "date":
+                assert parse(dump_data[k]) == parse(load_data[k][:-3])
             else:
                 assert dump_data[k] == load_data[k]
 
