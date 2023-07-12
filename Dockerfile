@@ -23,9 +23,10 @@ RUN set -eux; \
     useradd -m -g 1000 -u 1000 lethbridge;
 USER lethbridge:lethbridge
 COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
+WORKDIR /home/lethbridge/src
 RUN set -eux; \
-    pip install --user /home/lethbridge/src; \
-    python -m pytest --cov=lethbridge /home/lethbridge/src
+    pip install --user .; \
+    python -m pytest --cov=lethbridge
 
 FROM python
 RUN set -eux; \
