@@ -806,22 +806,22 @@ class SystemSchema(SQLAlchemyAutoSchema):
             return in_data
 
         # index the faction list to facilitate deduplication
-        _factions = {fs.faction.name: fs.faction for fs in in_data.factions}
+        factions = {fs.faction.name: fs.faction for fs in in_data.factions}
 
         # replace duplicate controllingFaction objects (which the ORM
         # cannot detect, leading to uniqueness constraint violations
         # due to duplicate INSERT statements)
         if in_data.controllingFaction:
-            _cfac = in_data.controllingFaction
-            in_data.controllingFaction = _factions[_cfac.name]
+            cfac = in_data.controllingFaction
+            in_data.controllingFaction = factions[cfac.name]
         for station in in_data.stations:
-            _cfac = station.controllingFaction
-            if _cfac:  # not all stations have a controlling faction
-                if _cfac.name in _factions:
-                    station.controllingFaction = _factions[_cfac.name]
+            cfac = station.controllingFaction
+            if cfac:  # not all stations have a controlling faction
+                if cfac.name in factions:
+                    station.controllingFaction = factions[cfac.name]
                 else:
                     # add novel factions to the index, e.g., FleetCarrier
-                    _factions[_cfac.name] = _cfac
+                    factions[cfac.name] = cfac
 
         return in_data
 
