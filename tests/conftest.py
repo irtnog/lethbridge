@@ -46,23 +46,7 @@ def mock_db_uri(postgresql, tmp_path_factory, request):
         yield f"sqlite:///{db_path}"
 
 
-@fixture(
-    scope="module",
-    params=[
-        "Eactainds QE-A c29-0",
-        "Eactaips ZI-X c28-72",
-        "S171 43",
-        "Saktsak",
-        "Sol",
-        "x1 Centauri",
-    ],
-)
-def mock_system_data(request):
-    data_file = Path(__file__).parent.joinpath("data") / f"{request.param}.json"
-    yield json.loads(data_file.read_text())
-
-
 @fixture(scope="module")
-def mock_bubble_dump():
-    data_file = Path(__file__).parent / "data" / "small_bubble_dump.json"
+def mock_galaxy_dump():
+    data_file = Path(__file__).parent / "galaxy.json"
     yield json.loads(data_file.read_text())
