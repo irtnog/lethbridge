@@ -290,6 +290,37 @@ class ProhibitedCommodity(Base):
         return self.name == other.name and self.station_id == other.station_id
 
 
+class OutfittingStock(Base):
+    __tablename__ = "outfitting_stock"
+
+    name: Mapped[str]
+    symbol: Mapped[str]
+    moduleId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    class_: Mapped[int]
+    rating: Mapped[str]
+    category: Mapped[str]
+    ship: Mapped[str | None]
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<Module({self.rating}{self.class_} {self.name}, "
+            + f"station_id={self.station_id})>"
+        )
+
+    def __eq__(self, other: OutfittingStock) -> bool:
+        return (
+            self.name == other.name
+            and self.symbol == other.symbol
+            and self.moduleId == other.moduleId
+            and self.class_ == other.class_
+            and self.rating == other.rating
+            and self.category == other.category
+            and self.ship == other.ship
+            and self.station_id == other.station_id
+        )
+
+
 class Station(Base):
     """A space station, mega ship, fleet carrier, surface port, or
     settlement.  Fleet carriers and mega ships are mobile."""
@@ -322,7 +353,8 @@ class Station(Base):
     prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
     marketUpdateTime: Mapped[datetime | None]
     # shipyard
-    # outfitting
+    outfittingStocks: Mapped[List["OutfittingStock"]] = relationship()
+    outfittingUpdateTime: Mapped[datetime | None]
 
     # a system may contain many space stations; model this as a
     # bi-directional, nullable, many-to-one relationship
@@ -545,6 +577,30 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         return {"name": in_data}
 
 
+class OutfittingStockSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = OutfittingStock
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        out_data["class"] = out_data.pop("class_")
+        return out_data
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        new_data = in_data.copy()
+        new_data["class_"] = new_data.pop("class")
+        return new_data
+
+
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
@@ -559,6 +615,8 @@ class StationSchema(SQLAlchemyAutoSchema):
     services = Nested(StationServiceSchema, many=True, required=False)
     marketOrders = Nested(MarketOrderSchema, many=True, required=False)
     prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
+    # shipyard
+    outfittingStocks = Nested(OutfittingStockSchema, many=True, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -619,6 +677,13 @@ class StationSchema(SQLAlchemyAutoSchema):
                 "updateTime": out_data.pop("marketUpdateTime"),
             }
 
+        # wrap outfitting
+        if "outfittingUpdateTime" in out_data:
+            out_data["outfitting"] = {
+                "modules": out_data.pop("outfittingStocks"),
+                "updateTime": out_data.pop("outfittingUpdateTime"),
+            }
+
         return out_data
 
     @pre_load
@@ -659,6 +724,14 @@ class StationSchema(SQLAlchemyAutoSchema):
             )
             new_data["marketUpdateTime"] = new_data.get("market").get("updateTime")
             new_data.pop("market")
+
+        # flatten outfitting
+        if "outfitting" in new_data:
+            new_data["outfittingStocks"] = new_data.get("outfitting").get("modules")
+            new_data["outfittingUpdateTime"] = new_data.get("outfitting").get(
+                "updateTime"
+            )
+            new_data.pop("outfitting")
 
         return new_data
 
