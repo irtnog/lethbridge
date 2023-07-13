@@ -379,7 +379,7 @@ class Station(Base):
     marketUpdateTime: Mapped[datetime | None]
     shipyardShips: Mapped[List["ShipyardStock"]] = relationship()
     shipyardUpdateTime: Mapped[datetime | None]
-    outfittingStocks: Mapped[List["OutfittingStock"]] = relationship()
+    outfittingModules: Mapped[List["OutfittingStock"]] = relationship()
     outfittingUpdateTime: Mapped[datetime | None]
 
     # a system may contain many space stations; model this as a
@@ -668,8 +668,8 @@ class StationSchema(SQLAlchemyAutoSchema):
     services = Nested(StationServiceSchema, many=True, required=False)
     marketOrders = Nested(MarketOrderSchema, many=True, required=False)
     prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
-    outfittingStocks = Nested(OutfittingStockSchema, many=True, required=False)
     shipyardShips = Nested(ShipyardStockSchema, many=True, required=False)
+    outfittingModules = Nested(OutfittingStockSchema, many=True, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -740,7 +740,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         # wrap outfitting
         if "outfittingUpdateTime" in out_data:
             out_data["outfitting"] = {
-                "modules": out_data.pop("outfittingStocks"),
+                "modules": out_data.pop("outfittingModules"),
                 "updateTime": out_data.pop("outfittingUpdateTime"),
             }
 
@@ -792,7 +792,7 @@ class StationSchema(SQLAlchemyAutoSchema):
 
         # flatten outfitting
         if "outfitting" in new_data:
-            new_data["outfittingStocks"] = new_data.get("outfitting").get("modules")
+            new_data["outfittingModules"] = new_data.get("outfitting").get("modules")
             new_data["outfittingUpdateTime"] = new_data.get("outfitting").get(
                 "updateTime"
             )
