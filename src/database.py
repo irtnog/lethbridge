@@ -290,9 +290,14 @@ class ProhibitedCommodity(Base):
         return self.name == other.name and self.station_id == other.station_id
 
 
-class ShipyardHull(Base):
-    __tablename__ = "shipyard_hull"
+class ShipyardStock(Base):
+    """Hulls for sale by a station's shipyard service."""
 
+    __tablename__ = "shipyard_stock"
+
+    # TODO: break name..shipId out into separate class? but that would
+    # require a SystemSchema-level de-duplication pass at
+    # de-serialization time
     name: Mapped[str]
     symbol: Mapped[str]
     shipId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -301,7 +306,7 @@ class ShipyardHull(Base):
     def __repr__(self):
         return f"<Ship({self.name}, station_id={self.station_id})>"
 
-    def __eq__(self, other: ShipyardHull) -> bool:
+    def __eq__(self, other: ShipyardStock) -> bool:
         return (
             self.name == other.name
             and self.symbol == other.symbol
@@ -372,7 +377,7 @@ class Station(Base):
     marketOrders: Mapped[List["MarketOrder"]] = relationship()  # market
     prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
     marketUpdateTime: Mapped[datetime | None]
-    shipyardHulls: Mapped[List["ShipyardHull"]] = relationship()
+    shipyardShips: Mapped[List["ShipyardStock"]] = relationship()
     shipyardUpdateTime: Mapped[datetime | None]
     outfittingStocks: Mapped[List["OutfittingStock"]] = relationship()
     outfittingUpdateTime: Mapped[datetime | None]
@@ -616,9 +621,9 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         return {"name": in_data}
 
 
-class ShipyardHullSchema(SQLAlchemyAutoSchema):
+class ShipyardStockSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = ShipyardHull
+        model = ShipyardStock
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
@@ -663,8 +668,8 @@ class StationSchema(SQLAlchemyAutoSchema):
     services = Nested(StationServiceSchema, many=True, required=False)
     marketOrders = Nested(MarketOrderSchema, many=True, required=False)
     prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
-    shipyardHulls = Nested(ShipyardHullSchema, many=True, required=False)
     outfittingStocks = Nested(OutfittingStockSchema, many=True, required=False)
+    shipyardShips = Nested(ShipyardStockSchema, many=True, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -728,7 +733,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         # wrap shipyard
         if "shipyardUpdateTime" in out_data:
             out_data["shipyard"] = {
-                "ships": out_data.pop("shipyardHulls"),
+                "ships": out_data.pop("shipyardShips"),
                 "updateTime": out_data.pop("shipyardUpdateTime"),
             }
 
@@ -782,7 +787,7 @@ class StationSchema(SQLAlchemyAutoSchema):
 
         # flatten shipyard
         if "shipyard" in new_data:
-            new_data["shipyardHulls"] = new_data.get("shipyard").get("ships")
+            new_data["shipyardShips"] = new_data.get("shipyard").get("ships")
             new_data["shipyardUpdateTime"] = new_data.get("shipyard").get("updateTime")
 
         # flatten outfitting
