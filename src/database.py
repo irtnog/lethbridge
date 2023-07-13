@@ -909,17 +909,6 @@ class SystemSchema(SQLAlchemyAutoSchema):
             if out_data.get(k) is None or out_data.get(k) == []:
                 out_data.pop(k)
 
-        # make a copy of the factions list sorted by faction name; cf.
-        # https://docs.python.org/3/library/functions.html#sorted
-        if "factions" in out_data:
-            out_data["factions"] = sorted(
-                out_data["factions"], key=lambda faction: faction["name"]
-            )
-
-        # make a sorted copy of the powers list
-        if "powers" in out_data:
-            out_data["powers"] = sorted(out_data["powers"])
-
         return out_data
 
     @pre_load
