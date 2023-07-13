@@ -32,7 +32,7 @@ compat.register()
 
 def test_systemschema(mock_db_uri, mock_galaxy_dump):
     # initialize the database
-    engine = create_engine(mock_db_uri, echo=True)
+    engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
