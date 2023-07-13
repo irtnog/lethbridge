@@ -459,6 +459,24 @@ class FactionSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    @post_load
+    def post_process_input(self, in_data, **kwargs):
+        """Memoize this object using the Marshmallow context.  This
+        removes duplicate Faction objects that violate the class's
+        uniquness constraint.  (The ORM cannot detect this on its
+        own.)"""
+        # make sure we're being called after the Faction object was
+        # created
+        if not isinstance(in_data, Faction):
+            return in_data
+
+        # de-duplicate factions
+        if in_data.name not in self.context["factions"]:
+            self.context["factions"][in_data.name] = in_data
+            return in_data
+        else:
+            return self.context["factions"][in_data.name]
+
 
 class StateSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -840,31 +858,12 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
         return new_data
 
-    @post_load
-    def post_process_input(self, in_data, **kwargs):
-        # make sure we're being called after the System object was
-        # created
-        if not isinstance(in_data, System):
-            return in_data
-
-        # index the faction list to facilitate deduplication
-        factions = {fs.faction.name: fs.faction for fs in in_data.factions}
-
-        # replace duplicate controllingFaction objects (which the ORM
-        # cannot detect, leading to uniqueness constraint violations
-        # due to duplicate INSERT statements)
-        if in_data.controllingFaction:
-            cfac = in_data.controllingFaction
-            in_data.controllingFaction = factions[cfac.name]
-        for station in in_data.stations:
-            cfac = station.controllingFaction
-            if cfac:  # not all stations have a controlling faction
-                if cfac.name in factions:
-                    station.controllingFaction = factions[cfac.name]
-                else:
-                    # add novel factions to the index, e.g., FleetCarrier
-                    factions[cfac.name] = cfac
-
+    @pre_load
+    def init_context(self, in_data, **kwargs):
+        """Initialize the de-serialization context if the caller
+        didn't."""
+        if not self.context:
+            self.context["factions"] = {}
         return in_data
 
 
