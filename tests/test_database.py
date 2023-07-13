@@ -54,7 +54,9 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
             if k == "powers":
                 assert set(dump_data[k]) == set(load_data[k])
 
-            # bodies
+            elif k == "bodies":
+                # dump_data should have the same number of bodies
+                assert len(dump_data[k]) == len(load_data[k])
 
             elif k == "stations":
                 # dump_data should have the same number of spaceports

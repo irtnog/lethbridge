@@ -190,6 +190,54 @@ class Power(Base):
         return self.name == other.name
 
 
+class Body(Base):
+    __tablename__ = "body"
+
+    id64: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    bodyId: Mapped[int]
+    name: Mapped[str]
+    type: Mapped[str]
+    subType: Mapped[str | None]
+    distanceToArrival: Mapped[float | None]
+    mainStar: Mapped[bool | None]
+    age: Mapped[int | None]
+    spectralClass: Mapped[str | None]
+    luminosity: Mapped[str | None]
+    absoluteMagnitude: Mapped[float | None]
+    solarMasses: Mapped[float | None]
+    solarRadius: Mapped[float | None]
+    isLandable: Mapped[bool | None]
+    gravity: Mapped[float | None]
+    earthMasses: Mapped[float | None]
+    radius: Mapped[float | None]
+    surfaceTemperature: Mapped[float | None]
+    surfacePressure: Mapped[float | None]
+    atmosphereType: Mapped[str | None]
+    # atmosphereComposition: Mapped[List["AtmosphereComposition"]]...
+    # solidComposition: Mapped[List["SolidComposition"]]...
+    terraformingState: Mapped[str | None]
+    rotationalPeriod: Mapped[float | None]
+    rotationalPeriodTidallyLocked: Mapped[bool | None]
+    axialTilt: Mapped[float | None]
+    # parents
+    orbitalPeriod: Mapped[float | None]
+    semiMajorAxis: Mapped[float | None]
+    orbitalEccentricity: Mapped[float | None]
+    orbitalInclination: Mapped[float | None]
+    argOfPeriapsis: Mapped[float | None]
+    meanAnomaly: Mapped[float | None]
+    ascendingNode: Mapped[float | None]
+    # timestamps: Mapped[List["BodyTimestamp"]]...
+    stations: Mapped[List["Station"]] = relationship(back_populates="body")
+    updateTime: Mapped[datetime]
+
+    # a system may contain many bodies; model this as a
+    # bi-directional, nullable, many-to-one relationship
+    # (bodies:system)
+    system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
+    system: Mapped[Optional["System"]] = relationship(back_populates="bodies")
+
+
 class StationEconomy(Base):
     """Stations can have multiple active market economies, which
     influences (or reflects) the station's services and commodity
@@ -316,8 +364,13 @@ class ShipyardStock(Base):
 
 
 class OutfittingStock(Base):
+    """Modules for sale by a station's outfitting service."""
+
     __tablename__ = "outfitting_stock"
 
+    # TODO: break name..ship out into separate class? but that would
+    # require a SystemSchema-level de-duplication pass at
+    # de-serialization time
     name: Mapped[str]
     symbol: Mapped[str]
     moduleId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -388,7 +441,11 @@ class Station(Base):
     system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
     system: Mapped[Optional["System"]] = relationship(back_populates="stations")
 
-    # TODO: a body might support many surface ports...
+    # a body might support many surface ports; model this as a
+    # bi-directional, nullable, many-to-one relationship
+    # (stations:body)
+    body_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("body.id64"))
+    body: Mapped[Optional["Body"]] = relationship(back_populates="stations")
 
     def __repr__(self):
         return f"<Station({self.name} in {(self.system or 'pending')!r})>"
@@ -425,7 +482,7 @@ class System(Base):
     powers: Mapped[List["PowerPlay"]] = relationship(back_populates="system")
     powerState: Mapped[str | None]
     date: Mapped[datetime]
-    # bodies
+    bodies: Mapped[List["Body"]] = relationship(back_populates="system")
     stations: Mapped[List["Station"]] = relationship(back_populates="system")
 
     def __repr__(self):
@@ -801,6 +858,17 @@ class StationSchema(SQLAlchemyAutoSchema):
         return new_data
 
 
+class BodySchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Body
+        unknown = EXCLUDE  # FIXME
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    stations = Nested(StationSchema, many=True, required=False)
+
+
 class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
@@ -813,7 +881,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     factions = Nested(StateSchema, many=True, required=False)
     powers = Nested(PowerPlaySchema, many=True, required=False)
-    # bodies
+    bodies = Nested(BodySchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
     # TODO: translate between 'Anarchy'/'None' and None
