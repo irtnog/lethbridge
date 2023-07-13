@@ -51,7 +51,12 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
 
         # compare values; some keys require special handling
         for k in dump_data:
-            if k == "powers":
+            if k == "factions":
+                d_fac = sorted(dump_data[k], key=lambda fac: fac["name"])
+                l_fac = sorted(load_data[k], key=lambda fac: fac["name"])
+                assert d_fac == l_fac
+
+            elif k == "powers":
                 assert set(dump_data[k]) == set(load_data[k])
 
             elif k == "bodies":

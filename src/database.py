@@ -877,9 +877,13 @@ class SystemSchema(SQLAlchemyAutoSchema):
         include_fk = True
         include_relationships = True
         load_instance = True
+        ordered = True  # see note below
+
+    # NOTE: Order is significant!  Process factions first!  Sometimes,
+    # a station's faction data is wrong.
+    factions = Nested(StateSchema, many=True, required=False)
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
-    factions = Nested(StateSchema, many=True, required=False)
     powers = Nested(PowerPlaySchema, many=True, required=False)
     bodies = Nested(BodySchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
