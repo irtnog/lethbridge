@@ -873,7 +873,6 @@ class SystemSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = System
         exclude = ["controllingFaction_id"]
-        unknown = EXCLUDE  # FIXME
         include_fk = True
         include_relationships = True
         load_instance = True
