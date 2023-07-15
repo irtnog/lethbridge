@@ -255,7 +255,7 @@ class StationEconomy(Base):
     def __repr__(self):
         return (
             f"<StationEconomy({self.name!r}: {self.weight}, "
-            + f"station_id={self.station_id})>"
+            + f"station_id={self.station_id or 'pending'})>"
         )
 
     def __eq__(self, other: StationEconomy) -> bool:
