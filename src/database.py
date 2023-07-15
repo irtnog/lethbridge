@@ -294,7 +294,9 @@ class MarketOrder(Base):
     supply: Mapped[int]
     buyPrice: Mapped[int]
     sellPrice: Mapped[int]
-    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+    market_id: Mapped[int] = mapped_column(
+        ForeignKey("market.station_id"), primary_key=True
+    )
 
     def __repr__(self):
         return (
@@ -302,7 +304,7 @@ class MarketOrder(Base):
             + f"{self.demand if self.demand else self.supply} "
             + f"{self.symbol} for "
             + f"{self.buyPrice if self.sellPrice else self.sellPrice} CR, "
-            + f"station_id={self.station_id})>"
+            + f"market_id={self.market_id or 'pending'})>"
         )
 
     def __eq__(self, other: MarketOrder) -> bool:
@@ -313,7 +315,7 @@ class MarketOrder(Base):
             and self.supply == other.supply
             and self.buyPrice == other.buyPrice
             and self.sellPrice == other.sellPrice
-            and self.station_id == other.station_id
+            and self.market_id == other.market_id
         )
 
 
@@ -324,15 +326,28 @@ class ProhibitedCommodity(Base):
     __tablename__ = "prohibited_commodity"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+    market_id: Mapped[int] = mapped_column(
+        ForeignKey("market.station_id"), primary_key=True
+    )
 
     def __repr__(self):
-        return (
-            f"<ProhibitedCommodity({self.name!r}, " + f"station_id={self.station_id})>"
-        )
+        return f"<ProhibitedCommodity({self.name!r}, " + f"market_id={self.market_id})>"
 
     def __eq__(self, other: ProhibitedCommodity) -> bool:
-        return self.name == other.name and self.station_id == other.station_id
+        return self.name == other.name and self.market_id == other.market_id
+
+
+class Market(Base):
+    """A station's market, including market orders, prohibited
+    commodities, and the last time the data was updated."""
+
+    __tablename__ = "market"
+
+    commodities: Mapped[List["MarketOrder"]] = relationship()
+    prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
+    updateTime: Mapped[datetime]
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
 
 class ShipyardStock(Base):
@@ -424,9 +439,7 @@ class Station(Base):
     largeLandingPads: Mapped[int | None]  # landingPads
     mediumLandingPads: Mapped[int | None]
     smallLandingPads: Mapped[int | None]
-    marketOrders: Mapped[List["MarketOrder"]] = relationship()  # market
-    prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
-    marketUpdateTime: Mapped[datetime | None]
+    market: Mapped[Optional["Market"]] = relationship()
     shipyardShips: Mapped[List["ShipyardStock"]] = relationship()
     shipyardUpdateTime: Mapped[datetime | None]
     outfittingModules: Mapped[List["OutfittingStock"]] = relationship()
@@ -445,7 +458,17 @@ class Station(Base):
     body: Mapped[Optional["Body"]] = relationship(back_populates="stations")
 
     def __repr__(self):
-        return f"<Station({self.name} in {(self.system or 'pending')!r})>"
+        return (
+            f"<Station({self.name} "
+            + (
+                f"in {self.system!r}"
+                if self.system
+                else f"on {self.body!r}"
+                if self.body
+                else "- location pending"
+            )
+            + ")>"
+        )
 
     def __eq__(self, other: Station) -> bool:
         return self.id == other.id
@@ -648,7 +671,7 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
 class MarketOrderSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = MarketOrder
-        exclude = ["station_id"]
+        exclude = ["market_id"]
         unknown = EXCLUDE
         include_fk = True
         include_relationships = True
@@ -658,7 +681,7 @@ class MarketOrderSchema(SQLAlchemyAutoSchema):
 class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = ProhibitedCommodity
-        exclude = ["station_id"]
+        exclude = ["market_id"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -673,7 +696,20 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         """Given incoming data that follows the Spansh galaxy data
         dump format, convert it into the representation expected by
         this schema."""
+        # TODO: translate to the commodity's symbolic name
         return {"name": in_data}
+
+
+class MarketSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Market
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    commodities = Nested(MarketOrderSchema, many=True, required=False)
+    prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
 
 
 class ShipyardStockSchema(SQLAlchemyAutoSchema):
@@ -721,8 +757,7 @@ class StationSchema(SQLAlchemyAutoSchema):
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     economies = Nested(StationEconomySchema, many=True, required=False)
     services = Nested(StationServiceSchema, many=True, required=False)
-    marketOrders = Nested(MarketOrderSchema, many=True, required=False)
-    prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
+    market = Nested(MarketSchema, required=False)
     shipyardShips = Nested(ShipyardStockSchema, many=True, required=False)
     outfittingModules = Nested(OutfittingStockSchema, many=True, required=False)
 
@@ -771,20 +806,6 @@ class StationSchema(SQLAlchemyAutoSchema):
         if landingPads:
             out_data["landingPads"] = landingPads
 
-        # wrap market
-        if "marketUpdateTime" in out_data:
-            out_data["market"] = {
-                # FIXME: Can a market that doesn't buy or sell
-                # anything have a list of prohibited commodities?
-                "commodities": out_data.pop("marketOrders", []),
-                # The reverse is definitely true, e.g., fleet carrier
-                # markets like WZL-B9Z in S171 43 in the sample data.
-                "prohibitedCommodities": out_data.pop("prohibitedCommodities", []),
-                # FIXME: assumes markets always have updateTime
-                # attributes
-                "updateTime": out_data.pop("marketUpdateTime"),
-            }
-
         # wrap shipyard
         if "shipyardUpdateTime" in out_data:
             out_data["shipyard"] = {
@@ -830,15 +851,6 @@ class StationSchema(SQLAlchemyAutoSchema):
             new_data["largeLandingPads"] = landingPads.get("large")
             new_data["mediumLandingPads"] = landingPads.get("medium")
             new_data["smallLandingPads"] = landingPads.get("small")
-
-        # flatten market
-        if "market" in new_data:
-            new_data["marketOrders"] = new_data.get("market").get("commodities")
-            new_data["prohibitedCommodities"] = new_data.get("market").get(
-                "prohibitedCommodities"
-            )
-            new_data["marketUpdateTime"] = new_data.get("market").get("updateTime")
-            new_data.pop("market")
 
         # flatten shipyard
         if "shipyard" in new_data:
