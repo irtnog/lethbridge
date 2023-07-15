@@ -288,10 +288,8 @@ class MarketOrder(Base):
 
     __tablename__ = "market_order"
 
-    name: Mapped[str] = mapped_column(primary_key=True)
     symbol: Mapped[str] = mapped_column(primary_key=True)
     category: Mapped[str] = mapped_column(primary_key=True)
-    commodityId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     demand: Mapped[int]
     supply: Mapped[int]
     buyPrice: Mapped[int]
@@ -302,14 +300,15 @@ class MarketOrder(Base):
         return (
             f"<MarketOrder({'Buy' if self.demand else 'Sell'} "
             + f"{self.demand if self.demand else self.supply} "
-            + f"{self.name} for "
+            + f"{self.symbol} for "
             + f"{self.buyPrice if self.sellPrice else self.sellPrice} CR, "
             + f"station_id={self.station_id})>"
         )
 
     def __eq__(self, other: MarketOrder) -> bool:
         return (
-            self.commodityId == other.commodityId
+            self.commodityId == other.symbol
+            and self.category == other.category
             and self.demand == other.demand
             and self.supply == other.supply
             and self.buyPrice == other.buyPrice
@@ -324,8 +323,6 @@ class ProhibitedCommodity(Base):
 
     __tablename__ = "prohibited_commodity"
 
-    # TODO: link somehow to a future Commodity class? don't forget to
-    # modify the serialization schema if you do
     name: Mapped[str] = mapped_column(primary_key=True)
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
@@ -652,6 +649,7 @@ class MarketOrderSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = MarketOrder
         exclude = ["station_id"]
+        unknown = EXCLUDE
         include_fk = True
         include_relationships = True
         load_instance = True
