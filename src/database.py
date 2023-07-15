@@ -237,6 +237,9 @@ class Body(Base):
     system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
     system: Mapped[Optional["System"]] = relationship(back_populates="bodies")
 
+    def __repr__(self):
+        return f"<Body(id64={self.id64!r}, {self.name!r})>"
+
 
 class StationEconomy(Base):
     """Stations can have multiple active market economies, which
