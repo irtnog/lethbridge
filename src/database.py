@@ -285,12 +285,9 @@ class MarketOrder(Base):
 
     __tablename__ = "market_order"
 
-    # TODO: break name..commodityId out into separate class? but that
-    # would require a SystemSchema-level de-duplication pass at
-    # de-serialization time
-    name: Mapped[str]
-    symbol: Mapped[str]
-    category: Mapped[str]
+    name: Mapped[str] = mapped_column(primary_key=True)
+    symbol: Mapped[str] = mapped_column(primary_key=True)
+    category: Mapped[str] = mapped_column(primary_key=True)
     commodityId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     demand: Mapped[int]
     supply: Mapped[int]
