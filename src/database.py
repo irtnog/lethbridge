@@ -390,12 +390,14 @@ class OutfittingStock(Base):
     rating: Mapped[str]
     category: Mapped[str]
     ship: Mapped[str | None]
-    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+    outfitting_id: Mapped[int] = mapped_column(
+        ForeignKey("outfitting.station_id"), primary_key=True
+    )
 
     def __repr__(self):
         return (
             f"<Module({self.rating}{self.class_} {self.name}, "
-            + f"station_id={self.station_id})>"
+            + f"outfitting_id={self.outfitting_id or 'pending'})>"
         )
 
     def __eq__(self, other: OutfittingStock) -> bool:
@@ -409,6 +411,17 @@ class OutfittingStock(Base):
             and self.ship == other.ship
             and self.station_id == other.station_id
         )
+
+
+class Outfitting(Base):
+    """A station's outfitting service."""
+
+    __tablename__ = "outfitting"
+
+    modules: Mapped[List["OutfittingStock"]] = relationship()
+    updateTime: Mapped[datetime]
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
 
 class Station(Base):
@@ -442,8 +455,7 @@ class Station(Base):
     market: Mapped[Optional["Market"]] = relationship()
     shipyardShips: Mapped[List["ShipyardStock"]] = relationship()
     shipyardUpdateTime: Mapped[datetime | None]
-    outfittingModules: Mapped[List["OutfittingStock"]] = relationship()
-    outfittingUpdateTime: Mapped[datetime | None]
+    outfitting: Mapped[Optional["Outfitting"]] = relationship()
 
     # a system may contain many space stations; model this as a
     # bi-directional, nullable, many-to-one relationship
@@ -724,7 +736,7 @@ class ShipyardStockSchema(SQLAlchemyAutoSchema):
 class OutfittingStockSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = OutfittingStock
-        exclude = ["station_id"]
+        exclude = ["outfitting_id"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -745,6 +757,17 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
         return new_data
 
 
+class OutfittingSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Outfitting
+        exclude = ["station_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    modules = Nested(OutfittingStockSchema, many=True, required=False)
+
+
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
@@ -759,7 +782,7 @@ class StationSchema(SQLAlchemyAutoSchema):
     services = Nested(StationServiceSchema, many=True, required=False)
     market = Nested(MarketSchema, required=False)
     shipyardShips = Nested(ShipyardStockSchema, many=True, required=False)
-    outfittingModules = Nested(OutfittingStockSchema, many=True, required=False)
+    outfitting = Nested(OutfittingSchema, required=False)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -813,13 +836,6 @@ class StationSchema(SQLAlchemyAutoSchema):
                 "updateTime": out_data.pop("shipyardUpdateTime"),
             }
 
-        # wrap outfitting
-        if "outfittingUpdateTime" in out_data:
-            out_data["outfitting"] = {
-                "modules": out_data.pop("outfittingModules"),
-                "updateTime": out_data.pop("outfittingUpdateTime"),
-            }
-
         return out_data
 
     @pre_load
@@ -856,14 +872,6 @@ class StationSchema(SQLAlchemyAutoSchema):
         if "shipyard" in new_data:
             new_data["shipyardShips"] = new_data.get("shipyard").get("ships")
             new_data["shipyardUpdateTime"] = new_data.get("shipyard").get("updateTime")
-
-        # flatten outfitting
-        if "outfitting" in new_data:
-            new_data["outfittingModules"] = new_data.get("outfitting").get("modules")
-            new_data["outfittingUpdateTime"] = new_data.get("outfitting").get(
-                "updateTime"
-            )
-            new_data.pop("outfitting")
 
         return new_data
 
