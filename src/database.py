@@ -484,7 +484,7 @@ class Station(Base):
         )
 
     def __eq__(self, other: Station) -> bool:
-        return self.id == other.id
+        return self.id == other.id and self.updateTime == self.updateTime
 
 
 class System(Base):
