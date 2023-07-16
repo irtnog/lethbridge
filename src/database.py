@@ -110,13 +110,13 @@ class Faction(Base):
     allegiance: Mapped[str | None]
     government: Mapped[str | None]
 
-    controlledSystems: Mapped[List["System"]] = relationship(
-        back_populates="controllingFaction"
-    )
     controlledStations: Mapped[List["Station"]] = relationship(
         back_populates="controllingFaction"
     )
 
+    controlledSystems: Mapped[List["System"]] = relationship(
+        back_populates="controllingFaction"
+    )
     systems: Mapped[List["FactionState"]] = relationship(back_populates="faction")
 
     def __repr__(self):
