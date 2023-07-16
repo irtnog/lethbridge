@@ -209,6 +209,9 @@ class Body(Base):
     def __repr__(self):
         return f"<Body(id64={self.id64!r}, {self.name!r})>"
 
+    def __eq__(self, other: Body) -> bool:
+        return self.id64 == other.id64 and self.updateTime == other.updateTime
+
 
 class StationEconomy(Base):
     """Stations can have multiple active market economies, which
