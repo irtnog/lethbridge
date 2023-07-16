@@ -97,8 +97,8 @@ class FactionState(Base):
 
 
 class Faction(Base):
-    """A minor faction, player or otherwise---as opposed to a Power,
-    superpower, or species.
+    """A minor faction, player or otherwise---as opposed to a major
+    power, superpower, or species.
 
     Note that fleet carriers, being stations, are controlled by a
     virtual faction named FleetCarrier.  This faction has neither
