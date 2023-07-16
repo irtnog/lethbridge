@@ -478,15 +478,9 @@ class Station(Base):
 
     def __repr__(self):
         return (
-            f"<Station({self.name} "
-            + (
-                f"in {self.system!r}"
-                if self.system
-                else f"on {self.body!r}"
-                if self.body
-                else "- location pending"
-            )
-            + ")>"
+            f"<Station({self.name!r}, "
+            + f"system_id64={self.system_id64}, "
+            + f"body_id64={self.body_id64})>"
         )
 
     def __eq__(self, other: Station) -> bool:
