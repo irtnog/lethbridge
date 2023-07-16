@@ -18,6 +18,7 @@
 from __future__ import annotations
 from . import DATABASE_ERROR
 from . import SUCCESS
+from collections import ChainMap
 from datetime import datetime
 from marshmallow import EXCLUDE
 from marshmallow import post_dump
@@ -157,6 +158,30 @@ class PowerPlay(Base):
         )
 
 
+class AtmosphereComposition(Base):
+    """Gasses held by gravity in a layer around a planet."""
+
+    __tablename__ = "atmosphere_composition"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    percentage: Mapped[float]
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<AtmosphereComposition({self.percentage:.2%} "
+            + f"{self.name}, body_id64={self.body_id64})>"
+        )
+
+    def __eq__(self, other: AtmosphereComposition) -> bool:
+        return (
+            self.name == other.name
+            and self.percentage == other.percentage
+            and self.body_id64 == other.body_id64
+        )
+
+
 class Body(Base):
     """Astronomical objects within a system, including stars and planets."""
 
@@ -182,7 +207,7 @@ class Body(Base):
     surfaceTemperature: Mapped[float | None]
     surfacePressure: Mapped[float | None]
     atmosphereType: Mapped[str | None]
-    # atmosphereComposition: Mapped[List["AtmosphereComposition"]]...
+    atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
     # solidComposition: Mapped[List["SolidComposition"]]...
     terraformingState: Mapped[str | None]
     rotationalPeriod: Mapped[float | None]
@@ -861,6 +886,20 @@ class StationSchema(SQLAlchemyAutoSchema):
         return new_data
 
 
+class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = AtmosphereComposition
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {out_data["name"]: out_data["percentage"]}
+
+
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
@@ -869,7 +908,38 @@ class BodySchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    atmosphereComposition = Nested(
+        AtmosphereCompositionSchema, many=True, required=False
+    )
     stations = Nested(StationSchema, many=True, required=False)
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+
+        # rewrap atmosphereComposition
+        if "atmosphereComposition" in out_data:
+            out_data["atmosphereComposition"] = dict(
+                ChainMap(*out_data["atmosphereComposition"])
+            )
+
+        return out_data
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+
+        # rewrap atmosphereComposition
+        if "atmosphereComposition" in in_data:
+            in_data = in_data.copy()
+            in_data["atmosphereComposition"] = [
+                {"name": k, "percentage": v}
+                for k, v in in_data["atmosphereComposition"].items()
+            ]
+
+        return in_data
 
 
 class SystemSchema(SQLAlchemyAutoSchema):
