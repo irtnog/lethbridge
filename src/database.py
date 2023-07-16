@@ -168,9 +168,10 @@ class PowerPlay(Base):
 
 
 class Power(Base):
-    """Individuals and organization who wield greater influence over
-    the galactic polity than minor factions but less than a
-    superpower."""
+    """Major political powers are individuals and organization who
+    wield greater influence over the galactic polity than minor
+    factions but less than a superpower, modeled as a many-to-many
+    relationship."""
 
     __tablename__ = "power"
 
