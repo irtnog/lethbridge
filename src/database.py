@@ -51,44 +51,41 @@ class Base(DeclarativeBase):
     pass
 
 
-class State(Base):
+class FactionState(Base):
     """A faction's influence over and status within a given system.
 
-    This models a faction's state in the background simulation (BGS)
-    as a bi-directional association table in the SQLAlchemy ORM since
-    BGS state must include data beyond the system/faction many-to-many
+    This models a faction's state in the background simulation as a
+    bi-directional association table in the SQLAlchemy ORM since this
+    state includes data beyond the system/faction many-to-many
     relationship."""
 
-    __tablename__ = "bgs_state"
+    __tablename__ = "faction_state"
 
-    # foreign keys linking the two tables
-    faction_name: Mapped[str] = mapped_column(
-        ForeignKey("faction.name"),
-        primary_key=True,
-    )
-    system_id64: Mapped[int] = mapped_column(
-        ForeignKey("system.id64"),
-        primary_key=True,
-    )
-
-    # extra data
     # TODO: happiness? not in Spansh dumps
     influence: Mapped[float]
     state: Mapped[str]
 
-    # link this association to the corresponding ORM object via the
-    # named attribute (and vice versa in the named ORM classes)
+    # link this association table to the corresponding ORM objects via
+    # the named attribute (and vice versa in the named ORM classes)
+    faction_name: Mapped[str] = mapped_column(
+        ForeignKey("faction.name"),
+        primary_key=True,
+    )
     faction: Mapped["Faction"] = relationship(back_populates="systems")
+    system_id64: Mapped[int] = mapped_column(
+        ForeignKey("system.id64"),
+        primary_key=True,
+    )
     system: Mapped["System"] = relationship(back_populates="factions")
 
     def __repr__(self):
         return (
-            f"<BGS State({self.faction!r} in "
-            + f"{(self.system or 'pending')!r}: "
-            + f"{self.state}, influence={self.influence})>"
+            f"<FactionState({self.influence}/{self.state}, "
+            + f"faction_name={self.faction_name}, "
+            + f"system_id64={self.system_id64})>"
         )
 
-    def __eq__(self, other: State) -> bool:
+    def __eq__(self, other: FactionState) -> bool:
         # don't check back-populated columns since that would lead to
         # an infinite loop
         return (
@@ -120,7 +117,7 @@ class Faction(Base):
         back_populates="controllingFaction"
     )
 
-    systems: Mapped[List["State"]] = relationship(back_populates="faction")
+    systems: Mapped[List["FactionState"]] = relationship(back_populates="faction")
 
     def __repr__(self):
         return f"<Faction({self.name!r})>"
@@ -519,7 +516,7 @@ class System(Base):
     controllingFaction: Mapped[Optional["Faction"]] = relationship(
         back_populates="controlledSystems"
     )
-    factions: Mapped[List["State"]] = relationship(back_populates="system")
+    factions: Mapped[List["FactionState"]] = relationship(back_populates="system")
     powers: Mapped[List["PowerPlay"]] = relationship(back_populates="system")
     powerState: Mapped[str | None]
     date: Mapped[datetime]
@@ -581,9 +578,9 @@ class FactionSchema(SQLAlchemyAutoSchema):
             return self.context["factions"][in_data.name]
 
 
-class StateSchema(SQLAlchemyAutoSchema):
+class FactionStateSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = State
+        model = FactionState
         exclude = ["faction_name", "system_id64", "system"]
         include_fk = True
         include_relationships = True
@@ -596,7 +593,7 @@ class StateSchema(SQLAlchemyAutoSchema):
         """Mimick the Spansh galaxy data dump format as best we can."""
         new_data = out_data.copy()
 
-        # unwrap the faction data
+        # flatten the faction data
         faction = new_data.pop("faction")
         new_data.update(faction)
 
@@ -607,11 +604,15 @@ class StateSchema(SQLAlchemyAutoSchema):
         """Given incoming data that follows the Spansh galaxy data
         dump format, convert it into the representation expected by
         this schema."""
-        return {
+
+        # wrap the faction data
+        new_data = {
             "faction": in_data,
             "state": in_data["state"],
             "influence": in_data["influence"],
         }
+
+        return new_data
 
 
 class PowerSchema(SQLAlchemyAutoSchema):
@@ -906,7 +907,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     # NOTE: Order is significant!  Process factions first!  Sometimes,
     # a station's faction data is wrong.
-    factions = Nested(StateSchema, many=True, required=False)
+    factions = Nested(FactionStateSchema, many=True, required=False)
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     powers = Nested(PowerPlaySchema, many=True, required=False)
