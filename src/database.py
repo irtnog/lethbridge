@@ -456,8 +456,8 @@ class Station(Base):
     distanceToArrival: Mapped[float | None]
     primaryEconomy: Mapped[str | None]
     economies: Mapped[List["StationEconomy"]] = relationship()
-    allegiance: Mapped[str | None]  # matches controllingFaction?
-    government: Mapped[str | None]  # matches controllingFaction?
+    allegiance: Mapped[str | None]
+    government: Mapped[str | None]
     services: Mapped[List["StationService"]] = relationship()
     type: Mapped[str | None]
     latitude: Mapped[float | None]
