@@ -355,13 +355,12 @@ class ShipyardStock(Base):
 
     __tablename__ = "shipyard_stock"
 
-    # TODO: break name..shipId out into separate class? but that would
-    # require a SystemSchema-level de-duplication pass at
-    # de-serialization time
     name: Mapped[str]
     symbol: Mapped[str]
     shipId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+    shipyard_id: Mapped[int] = mapped_column(
+        ForeignKey("shipyard.station_id"), primary_key=True
+    )
 
     def __repr__(self):
         return f"<Ship({self.name}, station_id={self.station_id})>"
@@ -371,8 +370,19 @@ class ShipyardStock(Base):
             self.name == other.name
             and self.symbol == other.symbol
             and self.shipId == other.shipId
-            and self.station_id == other.station_id
+            and self.shipyard_id == other.shipyard_id
         )
+
+
+class Shipyard(Base):
+    """A station's shipyard service."""
+
+    __tablename__ = "shipyard"
+
+    ships: Mapped[List["ShipyardStock"]] = relationship()
+    updateTime: Mapped[datetime]
+
+    station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
 
 class OutfittingStock(Base):
@@ -453,8 +463,7 @@ class Station(Base):
     mediumLandingPads: Mapped[int | None]
     smallLandingPads: Mapped[int | None]
     market: Mapped[Optional["Market"]] = relationship()
-    shipyardShips: Mapped[List["ShipyardStock"]] = relationship()
-    shipyardUpdateTime: Mapped[datetime | None]
+    shipyard: Mapped[Optional["Shipyard"]] = relationship()
     outfitting: Mapped[Optional["Outfitting"]] = relationship()
 
     # a system may contain many space stations; model this as a
@@ -727,10 +736,21 @@ class MarketSchema(SQLAlchemyAutoSchema):
 class ShipyardStockSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = ShipyardStock
+        exclude = ["shipyard_id"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
+class ShipyardSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Shipyard
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
         load_instance = True
+
+    ships = Nested(ShipyardStockSchema, many=True, required=False)
 
 
 class OutfittingStockSchema(SQLAlchemyAutoSchema):
@@ -781,7 +801,7 @@ class StationSchema(SQLAlchemyAutoSchema):
     economies = Nested(StationEconomySchema, many=True, required=False)
     services = Nested(StationServiceSchema, many=True, required=False)
     market = Nested(MarketSchema, required=False)
-    shipyardShips = Nested(ShipyardStockSchema, many=True, required=False)
+    shipyard = Nested(ShipyardSchema, required=False)
     outfitting = Nested(OutfittingSchema, required=False)
 
     @post_dump
@@ -829,13 +849,6 @@ class StationSchema(SQLAlchemyAutoSchema):
         if landingPads:
             out_data["landingPads"] = landingPads
 
-        # wrap shipyard
-        if "shipyardUpdateTime" in out_data:
-            out_data["shipyard"] = {
-                "ships": out_data.pop("shipyardShips"),
-                "updateTime": out_data.pop("shipyardUpdateTime"),
-            }
-
         return out_data
 
     @pre_load
@@ -867,11 +880,6 @@ class StationSchema(SQLAlchemyAutoSchema):
             new_data["largeLandingPads"] = landingPads.get("large")
             new_data["mediumLandingPads"] = landingPads.get("medium")
             new_data["smallLandingPads"] = landingPads.get("small")
-
-        # flatten shipyard
-        if "shipyard" in new_data:
-            new_data["shipyardShips"] = new_data.get("shipyard").get("ships")
-            new_data["shipyardUpdateTime"] = new_data.get("shipyard").get("updateTime")
 
         return new_data
 
