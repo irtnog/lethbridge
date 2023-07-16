@@ -127,65 +127,34 @@ class Faction(Base):
 
 
 class PowerPlay(Base):
-    """A Power's influence over a given system.
+    """Major political powers are individuals and organization who
+    wield greater influence over the galactic polity than minor
+    factions but less than a superpower, modeled as a many-to-many
+    relationship.
 
-    This models a Power's state in the background simulation (BGS) as
-    a bi-directional association table in the SQLAlchemy ORM since
-    that state might include data beyond the system/Power many-to-many
-    relationship."""
+    This models a Power's influence over a given system in the
+    background simulation (BGS) as a one-to-many relationship."""
 
     __tablename__ = "powerplay"
 
-    # foreign keys linking the two tables
-    power_name: Mapped[str] = mapped_column(
-        ForeignKey("power.name"),
-        primary_key=True,
-    )
+    power: Mapped[str] = mapped_column(primary_key=True)
+    # TODO: additional data?  Find out how PowerPlay data gets
+    # collected.  Is it available via the game journal, or do players
+    # scrape it manually from the game UI?  (It's probably the
+    # latter.)
     system_id64: Mapped[int] = mapped_column(
         ForeignKey("system.id64"),
         primary_key=True,
     )
 
-    # TODO: extra data?  Find out how PowerPlay data gets collected.
-    # Is it available via the game journal, or do players scrape it
-    # manually from the game UI?  (It's probably the latter.)
-
-    # link this association to the corresponding ORM object via the
-    # named attribute (and vice versa in the named ORM classes)
-    power: Mapped["Power"] = relationship(back_populates="systems")
-    system: Mapped["System"] = relationship(back_populates="powers")
-
     def __repr__(self):
-        return f"<PowerPlay({self.power!r} in " + f"{(self.system or 'pending')!r})>"
+        return f"<PowerPlay({self.power}, system_id64={self.system_id64}))>"
 
     def __eq__(self, other: PowerPlay) -> bool:
-        # don't check back-populated columns since that would lead to
-        # an infinite loop
         return (
             self.power_name == other.power_name
             and self.system_id64 == other.system_id64
         )
-
-
-class Power(Base):
-    """Major political powers are individuals and organization who
-    wield greater influence over the galactic polity than minor
-    factions but less than a superpower, modeled as a many-to-many
-    relationship."""
-
-    __tablename__ = "power"
-
-    name: Mapped[str] = mapped_column(primary_key=True)
-
-    systems: Mapped[List["PowerPlay"]] = relationship(back_populates="power")
-
-    def __repr__(self):
-        return f"<Power({self.name!r})>"
-
-    def __eq__(self, other: Power) -> bool:
-        # don't check back-populated columns since that would lead to
-        # an infinite loop
-        return self.name == other.name
 
 
 class Body(Base):
@@ -512,7 +481,7 @@ class System(Base):
         back_populates="controlledSystems"
     )
     factions: Mapped[List["FactionState"]] = relationship(back_populates="system")
-    powers: Mapped[List["PowerPlay"]] = relationship(back_populates="system")
+    powers: Mapped[List["PowerPlay"]] = relationship()
     powerState: Mapped[str | None]
     date: Mapped[datetime]
     bodies: Mapped[List["Body"]] = relationship(back_populates="system")
@@ -610,37 +579,13 @@ class FactionStateSchema(SQLAlchemyAutoSchema):
         return new_data
 
 
-class PowerSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Power
-        exclude = ["systems"]
-        unknown = EXCLUDE
-        include_fk = True
-        include_relationships = True
-        load_instance = True
-
-    @post_dump
-    def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-        return out_data.get("name")
-
-    @pre_load
-    def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-        return {"name": in_data}
-
-
 class PowerPlaySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = PowerPlay
-        exclude = ["power_name", "system_id64", "system"]
+        exclude = ["system_id64"]
         include_fk = True
         include_relationships = True
         load_instance = True
-
-    power = Nested(PowerSchema)
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
