@@ -158,6 +158,8 @@ class PowerPlay(Base):
 
 
 class Body(Base):
+    """Astronomical objects within a system, including stars and planets."""
+
     __tablename__ = "body"
 
     id64: Mapped[int] = mapped_column(BigInteger, primary_key=True)
