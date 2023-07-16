@@ -321,6 +321,17 @@ class Market(Base):
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
+    def __repr__(self):
+        return f"<Market(station_id={self.station_id})>"
+
+    def __eq__(self, other: Market) -> bool:
+        return (
+            self.station_id == other.station_id
+            and self.updateTime == other.updateTime
+            and self.commodities == other.commodities
+            and self.prohibitedCommodities == other.prohibitedCommodities
+        )
+
 
 class ShipyardStock(Base):
     """Hulls for sale by a station's shipyard service."""
@@ -355,6 +366,16 @@ class Shipyard(Base):
     updateTime: Mapped[datetime]
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return f"<Shipyard(station_id={self.station_id})>"
+
+    def __eq__(self, other: Shipyard) -> bool:
+        return (
+            self.station_id == other.station_id
+            and self.updateTime == other.updateTime
+            and self.ships == other.ships
+        )
 
 
 class OutfittingStock(Base):
@@ -404,6 +425,16 @@ class Outfitting(Base):
     updateTime: Mapped[datetime]
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
+
+    def __repr__(self):
+        return f"<Outfitting(station_id={self.station_id})>"
+
+    def __eq__(self, other: Outfitting) -> bool:
+        return (
+            self.station_id == other.station_id
+            and self.updateTime == other.updateTime
+            and self.modules == other.modules
+        )
 
 
 class Station(Base):
