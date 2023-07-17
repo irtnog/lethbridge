@@ -182,6 +182,37 @@ class AtmosphereComposition(Base):
         )
 
 
+class SolidComposition(Base):
+    """Gross material classification of a planet's
+    non-gaseous/non-liquid matter."""
+
+    __tablename__ = "solid_composition"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    percentage: Mapped[float]
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<SolidComposition({self.percentage:.2%} "
+            + f"{self.name}, body_id64={self.body_id64})>"
+        )
+
+    def __eq__(self, other: SolidComposition) -> bool:
+        return (
+            self.name == other.name
+            and self.percentage == other.percentage
+            and self.body_id64 == other.body_id64
+        )
+
+
+# class SignalsDetected(Base):...
+
+
+# class Signals(Base):...
+
+
 class Body(Base):
     """Astronomical objects within a system, including stars and planets."""
 
@@ -208,7 +239,7 @@ class Body(Base):
     surfacePressure: Mapped[float | None]
     atmosphereType: Mapped[str | None]
     atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
-    # solidComposition: Mapped[List["SolidComposition"]]...
+    solidComposition: Mapped[List["SolidComposition"]] = relationship()
     terraformingState: Mapped[str | None]
     rotationalPeriod: Mapped[float | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
@@ -900,6 +931,20 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
         return {out_data["name"]: out_data["percentage"]}
 
 
+class SolidCompositionSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = SolidComposition
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {out_data["name"]: out_data["percentage"]}
+
+
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
@@ -911,6 +956,7 @@ class BodySchema(SQLAlchemyAutoSchema):
     atmosphereComposition = Nested(
         AtmosphereCompositionSchema, many=True, required=False
     )
+    solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
     @post_dump
@@ -923,6 +969,10 @@ class BodySchema(SQLAlchemyAutoSchema):
                 ChainMap(*out_data["atmosphereComposition"])
             )
 
+        # rewrap solidComposition
+        if "solidComposition" in out_data:
+            out_data["solidComposition"] = dict(ChainMap(*out_data["solidComposition"]))
+
         return out_data
 
     @pre_load
@@ -930,13 +980,20 @@ class BodySchema(SQLAlchemyAutoSchema):
         """Given incoming data that follows the Spansh galaxy data
         dump format, convert it into the representation expected by
         this schema."""
+        in_data = in_data.copy()
 
         # rewrap atmosphereComposition
         if "atmosphereComposition" in in_data:
-            in_data = in_data.copy()
             in_data["atmosphereComposition"] = [
                 {"name": k, "percentage": v}
                 for k, v in in_data["atmosphereComposition"].items()
+            ]
+
+        # rewrap solidComposition
+        if "solidComposition" in in_data:
+            in_data["solidComposition"] = [
+                {"name": k, "percentage": v}
+                for k, v in in_data["solidComposition"].items()
             ]
 
         return in_data
