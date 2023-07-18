@@ -207,10 +207,85 @@ class SolidComposition(Base):
         )
 
 
-# class SignalsDetected(Base):...
+class DetectedSignal(Base):
+    """How many of the named class of signals were detected on a
+    body."""
+
+    __tablename__ = "detected_signal"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    quantity: Mapped[int]
+
+    signals_id64: Mapped[int] = mapped_column(
+        ForeignKey("signals.body_id64"), primary_key=True
+    )
+
+    def __repr__(self):
+        return (
+            f"<DetectedSignal({self.name!r}, "
+            + f"quantity={self.quantity}, "
+            + f"signals_id64={self.signals_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: DetectedSignal) -> bool:
+        return (
+            self.name == other.name
+            and self.quantity == other.quantity
+            and self.signals_id64 == other.signals_id64
+        )
 
 
-# class Signals(Base):...
+class DetectedGenus(Base):
+    """A genus of flora or fungi detected on a body."""
+
+    __tablename__ = "detected_genus"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+
+    signals_id64: Mapped[int] = mapped_column(
+        ForeignKey("signals.body_id64"), primary_key=True
+    )
+
+    def __repr__(self):
+        return (
+            f"<DetectedGenus({self.name!r}, "
+            + f"signals_id64={self.signals_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: DetectedGenus) -> bool:
+        return self.name == other.name and self.signals_id64 == other.signals_id64
+
+
+class Signals(Base):
+    """What signals (and how many) were detected on a body."""
+
+    __tablename__ = "signals"
+
+    signals: Mapped[List["DetectedSignal"]] = relationship()
+    genuses: Mapped[List["DetectedGenus"]] = relationship()
+    updateTime: Mapped[datetime]
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<Signals({len(self.signals)} signals, "
+            + f"{len(self.genuses)} genuses,"
+            + f"body_id64={self.body_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: Signals) -> bool:
+        return (
+            self.signals == other.signals
+            and self.updateTime == other.updateTime
+            and self.body_id64 == other.body_id64
+        )
+
+
+# parents
+
+
+# timestamps
 
 
 class Body(Base):
@@ -241,6 +316,7 @@ class Body(Base):
     atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
     solidComposition: Mapped[List["SolidComposition"]] = relationship()
     terraformingState: Mapped[str | None]
+    signals: Mapped[Optional["Signals"]] = relationship()
     rotationalPeriod: Mapped[float | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
     axialTilt: Mapped[float | None]
@@ -945,6 +1021,74 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
         return {out_data["name"]: out_data["percentage"]}
 
 
+class DetectedSignalSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = DetectedSignal
+        exclude = ["signals_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {out_data["name"]: out_data["quantity"]}
+
+
+class DetectedGenusSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = DetectedGenus
+        exclude = ["signals_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return out_data["name"]
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {"name": in_data}
+
+
+class SignalsSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Signals
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    signals = Nested(DetectedSignalSchema, many=True, required=False)
+    genuses = Nested(DetectedGenusSchema, many=True, required=False)
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+
+        # rewrap signals
+        out_data["signals"] = dict(ChainMap(*out_data["signals"]))
+
+        return out_data
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        in_data = in_data.copy()
+
+        # rewrap signals
+        in_data["signals"] = [
+            {"name": k, "quantity": v} for k, v in in_data["signals"].items()
+        ]
+
+        return in_data
+
+
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
@@ -957,6 +1101,7 @@ class BodySchema(SQLAlchemyAutoSchema):
         AtmosphereCompositionSchema, many=True, required=False
     )
     solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
+    signals = Nested(SignalsSchema, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
     @post_dump
