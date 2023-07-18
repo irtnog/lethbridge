@@ -26,7 +26,6 @@ from marshmallow import post_load
 from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
-from psycopg2cffi import compat
 from sqlalchemy import BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
@@ -40,9 +39,6 @@ import logging
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
-
-# invoke psycopg2cffi compatibility hook
-compat.register()
 
 
 class Base(DeclarativeBase):

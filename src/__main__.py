@@ -17,10 +17,14 @@
 
 from . import __app_name__
 from . import cli
+from psycopg2cffi import compat
 import logging
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
+
+# invoke psycopg2cffi compatibility hook
+compat.register()
 
 
 def main():

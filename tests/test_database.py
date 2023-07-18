@@ -20,14 +20,10 @@ from lethbridge.database import Base
 from lethbridge.database import Faction
 from lethbridge.database import System
 from lethbridge.database import SystemSchema
-from psycopg2cffi import compat
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
-
-# invoke psycopg2cffi compatibility hook
-compat.register()
 
 
 def test_systemschema(mock_db_uri, mock_galaxy_dump):
