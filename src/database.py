@@ -285,7 +285,29 @@ class Signals(Base):
 # parents
 
 
-# timestamps
+class BodyTimestamp(Base):
+    """The dates and times of various body scans."""
+
+    __tablename__ = "body_timestamp"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    value: Mapped[datetime]
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<BodyTimestamp({self.name!r} at "
+            + f"value={self.value}, "
+            + f"body_id64={self.body_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: BodyTimestamp) -> bool:
+        return (
+            self.name == other.name
+            and self.value == other.value
+            and self.body_id64 == other.body_id64
+        )
 
 
 class Body(Base):
@@ -328,7 +350,7 @@ class Body(Base):
     argOfPeriapsis: Mapped[float | None]
     meanAnomaly: Mapped[float | None]
     ascendingNode: Mapped[float | None]
-    # timestamps: Mapped[List["BodyTimestamp"]]...
+    timestamps: Mapped[List["BodyTimestamp"]] = relationship()
     stations: Mapped[List["Station"]] = relationship(back_populates="body")
     updateTime: Mapped[datetime]
 
@@ -1089,6 +1111,27 @@ class SignalsSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
+class BodyTimestampSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = BodyTimestamp
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {out_data["name"]: out_data["value"]}
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data[0], "value": in_data[1]}
+
+
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
@@ -1102,6 +1145,7 @@ class BodySchema(SQLAlchemyAutoSchema):
     )
     solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
     signals = Nested(SignalsSchema, required=False)
+    timestamps = Nested(BodyTimestampSchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
     @post_dump
@@ -1117,6 +1161,10 @@ class BodySchema(SQLAlchemyAutoSchema):
         # rewrap solidComposition
         if "solidComposition" in out_data:
             out_data["solidComposition"] = dict(ChainMap(*out_data["solidComposition"]))
+
+        # rewrap timestamps
+        if "timestamps" in out_data:
+            out_data["timestamps"] = dict(ChainMap(*out_data["timestamps"]))
 
         return out_data
 
@@ -1140,6 +1188,10 @@ class BodySchema(SQLAlchemyAutoSchema):
                 {"name": k, "percentage": v}
                 for k, v in in_data["solidComposition"].items()
             ]
+
+        # rewrap timestamps
+        if "timestamps" in in_data:
+            in_data["timestamps"] = list(in_data["timestamps"].items())
 
         return in_data
 
