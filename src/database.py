@@ -1210,9 +1210,6 @@ class SystemSchema(SQLAlchemyAutoSchema):
     bodies = Nested(BodySchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
-    # TODO: translate between 'Anarchy'/'None' and None
-    # TODO: powerState key denotes Bubble system?
-
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
