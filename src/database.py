@@ -1024,6 +1024,13 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
         """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["percentage"]}
 
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data[0], "percentage": in_data[1]}
+
 
 class SolidCompositionSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -1038,6 +1045,13 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
         """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["percentage"]}
 
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        return {"name": in_data[0], "percentage": in_data[1]}
+
 
 class DetectedSignalSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -1051,6 +1065,11 @@ class DetectedSignalSchema(SQLAlchemyAutoSchema):
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["quantity"]}
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {"name": in_data[0], "quantity": in_data[1]}
 
 
 class DetectedGenusSchema(SQLAlchemyAutoSchema):
@@ -1100,9 +1119,7 @@ class SignalsSchema(SQLAlchemyAutoSchema):
         in_data = in_data.copy()
 
         # rewrap signals
-        in_data["signals"] = [
-            {"name": k, "quantity": v} for k, v in in_data["signals"].items()
-        ]
+        in_data["signals"] = list(in_data["signals"].items())
 
         return in_data
 
@@ -1148,6 +1165,12 @@ class BodySchema(SQLAlchemyAutoSchema):
     def post_process_output(self, out_data, **kwargs):
         """Mimick the Spansh galaxy data dump format as best we can."""
 
+        # remove empty keys to save space
+        required_columns = ["id64", "bodyId", "name", "type", "updateTime"]
+        for k in set(out_data.keys()) - set(required_columns):
+            if out_data.get(k) is None or out_data.get(k) == []:
+                out_data.pop(k)
+
         # rewrap atmosphereComposition
         if "atmosphereComposition" in out_data:
             out_data["atmosphereComposition"] = dict(
@@ -1173,17 +1196,13 @@ class BodySchema(SQLAlchemyAutoSchema):
 
         # rewrap atmosphereComposition
         if "atmosphereComposition" in in_data:
-            in_data["atmosphereComposition"] = [
-                {"name": k, "percentage": v}
-                for k, v in in_data["atmosphereComposition"].items()
-            ]
+            in_data["atmosphereComposition"] = list(
+                in_data["atmosphereComposition"].items()
+            )
 
         # rewrap solidComposition
         if "solidComposition" in in_data:
-            in_data["solidComposition"] = [
-                {"name": k, "percentage": v}
-                for k, v in in_data["solidComposition"].items()
-            ]
+            in_data["solidComposition"] = list(in_data["solidComposition"].items())
 
         # rewrap timestamps
         if "timestamps" in in_data:
