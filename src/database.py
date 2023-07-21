@@ -278,7 +278,28 @@ class Signals(Base):
         )
 
 
-# parents
+class Parent(Base):
+    """Objects around which a body may orbit."""
+
+    __tablename__ = "parent"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    bodyId: Mapped[int] = mapped_column(primary_key=True)
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<Parent({self.kind}: {self.bodyId}, "
+            + f"body_id64={self.body_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: Parent) -> bool:
+        return (
+            self.name == other.name
+            and self.bodyId == other.bodyId
+            and self.body_id64 == other.body_id64
+        )
 
 
 class BodyTimestamp(Base):
@@ -338,7 +359,7 @@ class Body(Base):
     rotationalPeriod: Mapped[float | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
     axialTilt: Mapped[float | None]
-    # parents
+    parents: Mapped[List["Parent"]] = relationship()
     orbitalPeriod: Mapped[float | None]
     semiMajorAxis: Mapped[float | None]
     orbitalEccentricity: Mapped[float | None]
@@ -1124,6 +1145,28 @@ class SignalsSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
+class ParentSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Parent
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        """Mimick the Spansh galaxy data dump format as best we can."""
+        return {out_data["name"]: out_data["bodyId"]}
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        """Given incoming data that follows the Spansh galaxy data
+        dump format, convert it into the representation expected by
+        this schema."""
+        [(name, bodyId)] = in_data.items()
+        return {"name": name, "bodyId": bodyId}
+
+
 class BodyTimestampSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = BodyTimestamp
@@ -1158,6 +1201,7 @@ class BodySchema(SQLAlchemyAutoSchema):
     )
     solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
     signals = Nested(SignalsSchema, required=False)
+    parents = Nested(ParentSchema, many=True, required=False)
     timestamps = Nested(BodyTimestampSchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
