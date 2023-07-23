@@ -437,12 +437,14 @@ class Body(Base):
     radius: Mapped[float | None]
     surfaceTemperature: Mapped[float | None]
     surfacePressure: Mapped[float | None]
+    volcanismType: Mapped[str | None]
     atmosphereType: Mapped[str | None]
     atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
     solidComposition: Mapped[List["SolidComposition"]] = relationship()
     terraformingState: Mapped[str | None]
     materials: Mapped[List["Material"]] = relationship()
     signals: Mapped[Optional["Signals"]] = relationship()
+    reserveLevel: Mapped[str | None]
     rotationalPeriod: Mapped[float | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
     axialTilt: Mapped[float | None]
@@ -1029,7 +1031,6 @@ class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
         exclude = ["controllingFaction_id", "system_id64", "system"]
-        unknown = EXCLUDE  # FIXME
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -1317,7 +1318,6 @@ class BodyTimestampSchema(SQLAlchemyAutoSchema):
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
-        unknown = EXCLUDE  # FIXME
         include_fk = True
         include_relationships = True
         load_instance = True
