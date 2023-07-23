@@ -64,16 +64,12 @@ class FactionSchema(SQLAlchemyAutoSchema):
 
     @post_load
     def post_process_input(self, in_data, **kwargs):
-        """Memoize this object using the Marshmallow context.  This
-        removes duplicate Faction objects that violate the class's
-        uniquness constraint.  (The ORM cannot detect this on its
-        own.)"""
-        # make sure we're being called after the Faction object was
-        # created
-        if not isinstance(in_data, Faction):
+        """Memoize this object using the Marshmallow context (if so
+        configured).  This removes duplicate Faction objects that
+        violate the class's uniquness constraint, which ORM cannot
+        detect on its own."""
+        if not isinstance(in_data, Faction) or "factions" not in self.context:
             return in_data
-
-        # de-duplicate factions
         if in_data.name not in self.context["factions"]:
             self.context["factions"][in_data.name] = in_data
             return in_data
