@@ -128,6 +128,14 @@ class StationEconomySchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        return {out_data["name"]: out_data["weight"]}
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        return {"name": in_data[0], "weight": in_data[1]}
+
 
 class StationServiceSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -278,10 +286,7 @@ class StationSchema(SQLAlchemyAutoSchema):
 
         # rewrap economies
         if "economies" in out_data:
-            out_data["economies"] = {
-                economy.get("name"): economy.get("weight")
-                for economy in out_data["economies"]
-            }
+            out_data["economies"] = dict(ChainMap(*out_data["economies"]))
 
         # wrap landingPads
         landingPads = {}
@@ -312,10 +317,7 @@ class StationSchema(SQLAlchemyAutoSchema):
 
         # rewrap economies
         if "economies" in in_data:
-            in_data["economies"] = [
-                {"name": economy, "weight": weight}
-                for economy, weight in in_data["economies"].items()
-            ]
+            in_data["economies"] = list(in_data["economies"].items())
 
         # flatten landingPads
         landingPads = in_data.pop("landingPads", {})
