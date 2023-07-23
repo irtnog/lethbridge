@@ -245,12 +245,9 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-        new_data = in_data.copy()
-        new_data["class_"] = new_data.pop("class")
-        return new_data
+        in_data = in_data.copy()
+        in_data["class_"] = in_data.pop("class")
+        return in_data
 
 
 class OutfittingSchema(SQLAlchemyAutoSchema):
