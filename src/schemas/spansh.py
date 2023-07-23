@@ -649,15 +649,12 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-
         # wrap coords
-        coords = {
+        out_data["coords"] = {
             "x": out_data.pop("x"),
             "y": out_data.pop("y"),
             "z": out_data.pop("z"),
         }
-        out_data["coords"] = coords
 
         # remove empty keys to save space
         required_columns = ["id64", "name", "coords", "date", "bodies", "stations"]
@@ -669,16 +666,11 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-        new_data = in_data.copy()
-
         # flatten coords
-        coords = new_data.pop("coords")
-        new_data.update(coords)
-
-        return new_data
+        in_data = in_data.copy()
+        coords = in_data.pop("coords")
+        in_data.update(coords)
+        return in_data
 
     @pre_load
     def init_context(self, in_data, **kwargs):
