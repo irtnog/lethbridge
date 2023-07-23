@@ -203,6 +203,31 @@ class SolidComposition(Base):
         )
 
 
+class Material(Base):
+    """The relative abundance of a given raw material on a solid
+    body."""
+
+    __tablename__ = "material"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    percentage: Mapped[float]
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+
+    def __repr__(self):
+        return (
+            f"<Material({self.name!r}: {self.percentage:.6}, "
+            + f"body_id64={self.body_id64 or 'pending'})>"
+        )
+
+    def __eq__(self, other: Material) -> bool:
+        return (
+            self.name == other.name
+            and self.percentage == other.percentage
+            and self.body_id64 == other.body_id64
+        )
+
+
 class DetectedSignal(Base):
     """How many of the named class of signals were detected on a
     body."""
@@ -416,6 +441,7 @@ class Body(Base):
     atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
     solidComposition: Mapped[List["SolidComposition"]] = relationship()
     terraformingState: Mapped[str | None]
+    materials: Mapped[List["Material"]] = relationship()
     signals: Mapped[Optional["Signals"]] = relationship()
     rotationalPeriod: Mapped[float | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
@@ -1137,6 +1163,23 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
+class MaterialSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Material
+        exclude = ["body_id64"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        return {out_data["name"]: out_data["percentage"]}
+
+    @pre_load
+    def pre_process_input(self, in_data, **kwargs):
+        return {"name": in_data[0], "percentage": in_data[1]}
+
+
 class DetectedSignalSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = DetectedSignal
@@ -1283,6 +1326,7 @@ class BodySchema(SQLAlchemyAutoSchema):
         AtmosphereCompositionSchema, many=True, required=False
     )
     solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
+    materials = Nested(MaterialSchema, many=True, required=False)
     signals = Nested(SignalsSchema, required=False)
     parents = Nested(ParentSchema, many=True, required=False)
     belts = Nested(BeltSchema, many=True, required=False)
@@ -1310,6 +1354,10 @@ class BodySchema(SQLAlchemyAutoSchema):
         if "solidComposition" in out_data:
             out_data["solidComposition"] = dict(ChainMap(*out_data["solidComposition"]))
 
+        # rewrap materials
+        if "materials" in out_data:
+            out_data["materials"] = dict(ChainMap(*out_data["materials"]))
+
         # rewrap timestamps
         if "timestamps" in out_data:
             out_data["timestamps"] = dict(ChainMap(*out_data["timestamps"]))
@@ -1332,6 +1380,10 @@ class BodySchema(SQLAlchemyAutoSchema):
         # rewrap solidComposition
         if "solidComposition" in in_data:
             in_data["solidComposition"] = list(in_data["solidComposition"].items())
+
+        # rewrap materials
+        if "materials" in in_data:
+            in_data["materials"] = list(in_data["materials"].items())
 
         # rewrap timestamps
         if "timestamps" in in_data:
