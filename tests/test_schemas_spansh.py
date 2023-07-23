@@ -19,7 +19,7 @@ from dateutil.parser import parse
 from lethbridge.database import Base
 from lethbridge.database import Faction
 from lethbridge.database import System
-from lethbridge.database import SystemSchema
+from lethbridge.schemas.spansh import SystemSchema
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import select
@@ -58,6 +58,22 @@ def test_systemschema(mock_db_uri, mock_galaxy_dump):
             elif k == "bodies":
                 # dump_data should have the same number of bodies
                 assert len(dump_data[k]) == len(load_data[k])
+
+                # # compare each body
+                # for d_bd, l_bd in zip(
+                #     sorted(dump_data[k], key=lambda bd: bd["bodyId"]),
+                #     sorted(load_data[k], key=lambda bd: bd["bodyId"]),
+                # ):
+                #     # each dumped body should have a subset of the
+                #     # corresponding loaded body's top-level keys (at
+                #     # least until we finish implementing everything)
+                #     assert set(d_bd) <= set(l_bd)
+
+                #     # dumped bodies should have the same number of
+                #     # surface ports and settlements (if any)
+                #     if "stations" in l_bd:
+                #         assert "stations" in d_bd
+                #         assert len(d_bd["stations"]) == len(l_bd["stations"])
 
             elif k == "stations":
                 # dump_data should have the same number of spaceports
