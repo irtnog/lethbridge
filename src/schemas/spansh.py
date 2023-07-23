@@ -684,6 +684,6 @@ class SystemSchema(SQLAlchemyAutoSchema):
     def init_context(self, in_data, **kwargs):
         """Initialize the de-serialization context if the caller
         didn't."""
-        if not self.context:
+        if "factions" not in self.context:
             self.context["factions"] = {}
         return in_data
