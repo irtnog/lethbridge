@@ -212,22 +212,20 @@ class DetectedSignal(Base):
     name: Mapped[str] = mapped_column(primary_key=True)
     quantity: Mapped[int]
 
-    signals_id64: Mapped[int] = mapped_column(
-        ForeignKey("signals.body_id64"), primary_key=True
-    )
+    signals_id: Mapped[int] = mapped_column(ForeignKey("signals.id"), primary_key=True)
 
     def __repr__(self):
         return (
             f"<DetectedSignal({self.name!r}, "
             + f"quantity={self.quantity}, "
-            + f"signals_id64={self.signals_id64 or 'pending'})>"
+            + f"signals_id={self.signals_id or 'pending'})>"
         )
 
     def __eq__(self, other: DetectedSignal) -> bool:
         return (
             self.name == other.name
             and self.quantity == other.quantity
-            and self.signals_id64 == other.signals_id64
+            and self.signals_id == other.signals_id
         )
 
 
@@ -238,30 +236,31 @@ class DetectedGenus(Base):
 
     name: Mapped[str] = mapped_column(primary_key=True)
 
-    signals_id64: Mapped[int] = mapped_column(
-        ForeignKey("signals.body_id64"), primary_key=True
-    )
+    signals_id: Mapped[int] = mapped_column(ForeignKey("signals.id"), primary_key=True)
 
     def __repr__(self):
         return (
             f"<DetectedGenus({self.name!r}, "
-            + f"signals_id64={self.signals_id64 or 'pending'})>"
+            + f"signals_id={self.signals_id or 'pending'})>"
         )
 
     def __eq__(self, other: DetectedGenus) -> bool:
-        return self.name == other.name and self.signals_id64 == other.signals_id64
+        return self.name == other.name and self.signals_id == other.signals_id
 
 
 class Signals(Base):
-    """What signals (and how many) were detected on a body."""
+    """What signals (and how many) were detected on a body or a ring."""
 
     __tablename__ = "signals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     signals: Mapped[List["DetectedSignal"]] = relationship()
     genuses: Mapped[List["DetectedGenus"]] = relationship()
     updateTime: Mapped[datetime]
 
-    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
+    body_id64: Mapped[int | None] = mapped_column(ForeignKey("body.id64"))
+    ring_name: Mapped[str | None] = mapped_column(ForeignKey("ring.name"))
 
     def __repr__(self):
         return (
@@ -298,6 +297,68 @@ class Parent(Base):
         return (
             self.name == other.name
             and self.bodyId == other.bodyId
+            and self.body_id64 == other.body_id64
+        )
+
+
+# rings: name/type/mass/innerRadius/outerRadius/signals
+class Belt(Base):
+    """Diffuse icy, metallic, or rocky debris in a relatively large
+    orbit around one or more stars."""
+
+    __tablename__ = "belt"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    type: Mapped[str]
+    mass: Mapped[int] = mapped_column(BigInteger)
+    innerRadius: Mapped[int] = mapped_column(BigInteger)
+    outerRadius: Mapped[int] = mapped_column(BigInteger)
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"))
+    body: Mapped[Optional["Body"]] = relationship(back_populates="belts")
+
+    def __repr__(self):
+        return f"<Belt({self.name!r})>"
+
+    def __eq__(self, other: Belt) -> bool:
+        return (
+            self.name == other.name
+            and self.type == other.type
+            and self.mass == other.mass
+            and self.innerRadius == other.innerRadius
+            and self.outerRadius == other.outerRadius
+            and self.body_id64 == other.body_id64
+        )
+
+
+class Ring(Base):
+    """Icy, metallic, or rocky debris in close orbit around a body and
+    dense enough to be visible from tens to hundreds of lightseconds
+    away."""
+
+    __tablename__ = "ring"
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+    type: Mapped[str]
+    mass: Mapped[int] = mapped_column(BigInteger)
+    innerRadius: Mapped[int] = mapped_column(BigInteger)
+    outerRadius: Mapped[int] = mapped_column(BigInteger)
+    signals: Mapped[Optional["Signals"]] = relationship()
+
+    body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"))
+    body: Mapped[Optional["Body"]] = relationship(back_populates="rings")
+
+    def __repr__(self):
+        return f"<Belt({self.name!r})>"
+
+    def __eq__(self, other: Belt) -> bool:
+        return (
+            self.name == other.name
+            and self.type == other.type
+            and self.mass == other.mass
+            and self.innerRadius == other.innerRadius
+            and self.outerRadius == other.outerRadius
+            and self.signals == other.signals
             and self.body_id64 == other.body_id64
         )
 
@@ -367,6 +428,8 @@ class Body(Base):
     argOfPeriapsis: Mapped[float | None]
     meanAnomaly: Mapped[float | None]
     ascendingNode: Mapped[float | None]
+    belts: Mapped[List["Belt"]] = relationship(back_populates="body")
+    rings: Mapped[List["Ring"]] = relationship(back_populates="body")
     timestamps: Mapped[List["BodyTimestamp"]] = relationship()
     stations: Mapped[List["Station"]] = relationship(back_populates="body")
     updateTime: Mapped[datetime]
@@ -1077,7 +1140,7 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
 class DetectedSignalSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = DetectedSignal
-        exclude = ["signals_id64"]
+        exclude = ["signals_id"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -1096,7 +1159,7 @@ class DetectedSignalSchema(SQLAlchemyAutoSchema):
 class DetectedGenusSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = DetectedGenus
-        exclude = ["signals_id64"]
+        exclude = ["signals_id"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -1115,7 +1178,7 @@ class DetectedGenusSchema(SQLAlchemyAutoSchema):
 class SignalsSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Signals
-        exclude = ["body_id64"]
+        exclude = ["id", "body_id64", "ring_name"]
         include_fk = True
         include_relationships = True
         load_instance = True
@@ -1167,6 +1230,26 @@ class ParentSchema(SQLAlchemyAutoSchema):
         return {"name": name, "bodyId": bodyId}
 
 
+class BeltSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Belt
+        exclude = ["body_id64", "body"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+
+class RingSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Ring
+        exclude = ["body_id64", "body"]
+        include_fk = True
+        include_relationships = True
+        load_instance = True
+
+    signals = Nested(SignalsSchema, required=False)
+
+
 class BodyTimestampSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = BodyTimestamp
@@ -1202,6 +1285,8 @@ class BodySchema(SQLAlchemyAutoSchema):
     solidComposition = Nested(SolidCompositionSchema, many=True, required=False)
     signals = Nested(SignalsSchema, required=False)
     parents = Nested(ParentSchema, many=True, required=False)
+    belts = Nested(BeltSchema, many=True, required=False)
+    rings = Nested(RingSchema, many=True, required=False)
     timestamps = Nested(BodyTimestampSchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
