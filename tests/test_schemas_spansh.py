@@ -26,13 +26,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 
-def test_systemschema(mock_db_uri, mock_galaxy_dump):
+def test_systemschema(mock_db_uri, mock_galaxy_data):
     # initialize the database
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
 
-    for load_data in mock_galaxy_dump:
+    for load_data in mock_galaxy_data:
         with Session.begin() as session:
             new_system = SystemSchema().load(load_data, session=session)
             session.add(new_system)
