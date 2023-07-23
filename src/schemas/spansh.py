@@ -328,35 +328,32 @@ class StationSchema(SQLAlchemyAutoSchema):
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-        new_data = in_data.copy()
+        in_data = in_data.copy()
 
-        # wrap faction data but do not remove the station-level
-        # allegiance and government attributes
-        if "controllingFaction" in new_data:
-            new_data["controllingFaction"] = {
-                "name": new_data.get("controllingFaction"),
-                "allegiance": new_data.get("allegiance"),
-                "government": new_data.get("government"),
+        # wrap faction data but preserve station-level allegiance and
+        # government
+        if "controllingFaction" in in_data:
+            in_data["controllingFaction"] = {
+                "name": in_data.get("controllingFaction"),
+                "allegiance": in_data.get("allegiance"),
+                "government": in_data.get("government"),
             }
 
         # rewrap economies
-        if "economies" in new_data:
-            new_data["economies"] = [
+        if "economies" in in_data:
+            in_data["economies"] = [
                 {"name": economy, "weight": weight}
-                for economy, weight in new_data["economies"].items()
+                for economy, weight in in_data["economies"].items()
             ]
 
         # flatten landingPads
-        landingPads = new_data.pop("landingPads", {})
+        landingPads = in_data.pop("landingPads", {})
         if landingPads:
-            new_data["largeLandingPads"] = landingPads.get("large")
-            new_data["mediumLandingPads"] = landingPads.get("medium")
-            new_data["smallLandingPads"] = landingPads.get("small")
+            in_data["largeLandingPads"] = landingPads.get("large")
+            in_data["mediumLandingPads"] = landingPads.get("medium")
+            in_data["smallLandingPads"] = landingPads.get("small")
 
-        return new_data
+        return in_data
 
 
 class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
