@@ -573,59 +573,36 @@ class BodySchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-
         # remove empty keys to save space
         required_columns = ["id64", "bodyId", "name", "type", "updateTime"]
         for k in set(out_data.keys()) - set(required_columns):
             if out_data.get(k) is None or out_data.get(k) == []:
                 out_data.pop(k)
 
-        # rewrap atmosphereComposition
-        if "atmosphereComposition" in out_data:
-            out_data["atmosphereComposition"] = dict(
-                ChainMap(*out_data["atmosphereComposition"])
-            )
-
-        # rewrap solidComposition
-        if "solidComposition" in out_data:
-            out_data["solidComposition"] = dict(ChainMap(*out_data["solidComposition"]))
-
-        # rewrap materials
-        if "materials" in out_data:
-            out_data["materials"] = dict(ChainMap(*out_data["materials"]))
-
-        # rewrap timestamps
-        if "timestamps" in out_data:
-            out_data["timestamps"] = dict(ChainMap(*out_data["timestamps"]))
+        # convert lists of key/value pairs into dictionaries
+        for attribute in [
+            "atmosphereComposition",
+            "solidComposition",
+            "materials",
+            "timestamps",
+        ]:
+            if attribute in out_data:
+                out_data[attribute] = dict(ChainMap(*out_data[attribute]))
 
         return out_data
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-        in_data = in_data.copy()
-
-        # rewrap atmosphereComposition
-        if "atmosphereComposition" in in_data:
-            in_data["atmosphereComposition"] = list(
-                in_data["atmosphereComposition"].items()
-            )
-
-        # rewrap solidComposition
-        if "solidComposition" in in_data:
-            in_data["solidComposition"] = list(in_data["solidComposition"].items())
-
-        # rewrap materials
-        if "materials" in in_data:
-            in_data["materials"] = list(in_data["materials"].items())
-
-        # rewrap timestamps
-        if "timestamps" in in_data:
-            in_data["timestamps"] = list(in_data["timestamps"].items())
-
+        # convert dictionaries into lists of key-value pairs
+        in_data = in_data.copy()  # FIXME: avoid if unnecessary?
+        for attribute in [
+            "atmosphereComposition",
+            "solidComposition",
+            "materials",
+            "timestamps",
+        ]:
+            if attribute in in_data:
+                in_data[attribute] = list(in_data[attribute].items())
         return in_data
 
 
