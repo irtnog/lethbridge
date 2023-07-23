@@ -89,29 +89,18 @@ class FactionStateSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-        new_data = out_data.copy()
-
-        # flatten the faction data
-        faction = new_data.pop("faction")
-        new_data.update(faction)
-
-        return new_data
+        out_data = out_data.copy()
+        faction = out_data.pop("faction")
+        out_data.update(faction)
+        return out_data
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
-
-        # wrap the faction data
-        new_data = {
+        return {
             "faction": in_data,
             "state": in_data["state"],
             "influence": in_data["influence"],
         }
-
-        return new_data
 
 
 class PowerPlaySchema(SQLAlchemyAutoSchema):
