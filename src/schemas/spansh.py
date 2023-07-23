@@ -113,14 +113,10 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return out_data.get("power")
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         return {"power": in_data}
 
 
@@ -143,14 +139,10 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return out_data.get("name")
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         return {"name": in_data}
 
 
@@ -174,14 +166,10 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return out_data.get("name")
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         # TODO: translate to the commodity's symbolic name
         return {"name": in_data}
 
@@ -228,7 +216,6 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         out_data["class"] = out_data.pop("class_")
         return out_data
 
@@ -267,8 +254,6 @@ class StationSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-
         # convert 0.0 to 0
         float_columns = [
             "distanceToArrival",
@@ -352,14 +337,10 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["percentage"]}
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
@@ -373,14 +354,10 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["percentage"]}
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
@@ -411,12 +388,10 @@ class DetectedSignalSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["quantity"]}
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {"name": in_data[0], "quantity": in_data[1]}
 
 
@@ -430,12 +405,10 @@ class DetectedGenusSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return out_data["name"]
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {"name": in_data}
 
 
@@ -452,23 +425,13 @@ class SignalsSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
-
-        # rewrap signals
         out_data["signals"] = dict(ChainMap(*out_data["signals"]))
-
         return out_data
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         in_data = in_data.copy()
-
-        # rewrap signals
         in_data["signals"] = list(in_data["signals"].items())
-
         return in_data
 
 
@@ -482,14 +445,10 @@ class ParentSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["bodyId"]}
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         [(name, bodyId)] = in_data.items()
         return {"name": name, "bodyId": bodyId}
 
@@ -524,14 +483,10 @@ class BodyTimestampSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        """Mimick the Spansh galaxy data dump format as best we can."""
         return {out_data["name"]: out_data["value"]}
 
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
-        """Given incoming data that follows the Spansh galaxy data
-        dump format, convert it into the representation expected by
-        this schema."""
         return {"name": in_data[0], "value": in_data[1]}
 
 
