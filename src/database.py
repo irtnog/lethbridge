@@ -536,7 +536,7 @@ class MarketOrder(Base):
 
     def __eq__(self, other: MarketOrder) -> bool:
         return (
-            self.commodityId == other.symbol
+            self.symbol == other.symbol
             and self.category == other.category
             and self.demand == other.demand
             and self.supply == other.supply
