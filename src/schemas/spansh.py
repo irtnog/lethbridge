@@ -225,6 +225,8 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         out_data["class"] = out_data.pop("class_")
+        if not out_data.get("ship"):
+            out_data.pop("ship")
         return out_data
 
     @pre_load
