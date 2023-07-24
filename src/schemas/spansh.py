@@ -445,6 +445,11 @@ class SignalsSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
+        if not out_data["genuses"]:
+            # FIXME: not clear when an empty list of genuses should be
+            # included or not, so exclude them; cf. 36 Ophiuchi C 9 a
+            # and C 10 a in the test data
+            out_data.pop("genuses")
         out_data["signals"] = dict(ChainMap(*out_data["signals"]))
         return out_data
 
