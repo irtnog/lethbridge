@@ -497,6 +497,12 @@ class RingSchema(SQLAlchemyAutoSchema):
 
     signals = Nested(SignalsSchema, required=False)
 
+    @post_dump
+    def post_process_output(self, out_data, **kwargs):
+        if not out_data["signals"]:
+            out_data.pop("signals")
+        return out_data
+
 
 class BodyTimestampSchema(SQLAlchemyAutoSchema):
     class Meta:
