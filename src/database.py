@@ -107,6 +107,7 @@ class Faction(Base):
     controlledSystems: Mapped[List["System"]] = relationship(
         back_populates="controllingFaction"
     )
+
     systems: Mapped[List["FactionState"]] = relationship(back_populates="faction")
 
     def __repr__(self):
@@ -132,6 +133,7 @@ class PowerPlay(Base):
     # collected.  Is it available via the game journal, or do players
     # scrape it manually from the game UI?  (It's probably the
     # latter.)
+
     system_id64: Mapped[int] = mapped_column(
         ForeignKey("system.id64"),
         primary_key=True,
@@ -477,6 +479,7 @@ class StationEconomy(Base):
 
     name: Mapped[str] = mapped_column(primary_key=True)
     weight: Mapped[int]
+
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
     def __repr__(self):
@@ -500,6 +503,7 @@ class StationService(Base):
     __tablename__ = "station_service"
 
     name: Mapped[str] = mapped_column(primary_key=True)
+
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
     def __repr__(self):
@@ -521,6 +525,7 @@ class MarketOrder(Base):
     supply: Mapped[int]
     buyPrice: Mapped[int]
     sellPrice: Mapped[int]
+
     market_id: Mapped[int] = mapped_column(
         ForeignKey("market.station_id"), primary_key=True
     )
@@ -553,6 +558,7 @@ class ProhibitedCommodity(Base):
     __tablename__ = "prohibited_commodity"
 
     name: Mapped[str] = mapped_column(primary_key=True)
+
     market_id: Mapped[int] = mapped_column(
         ForeignKey("market.station_id"), primary_key=True
     )
@@ -596,6 +602,7 @@ class ShipyardStock(Base):
     name: Mapped[str]
     symbol: Mapped[str]
     shipId: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+
     shipyard_id: Mapped[int] = mapped_column(
         ForeignKey("shipyard.station_id"), primary_key=True
     )
@@ -648,6 +655,7 @@ class OutfittingStock(Base):
     rating: Mapped[str]
     category: Mapped[str]
     ship: Mapped[str | None]
+
     outfitting_id: Mapped[int] = mapped_column(
         ForeignKey("outfitting.station_id"), primary_key=True
     )
