@@ -732,17 +732,17 @@ class Station(Base):
     shipyard: Mapped[Optional["Shipyard"]] = relationship()
     outfitting: Mapped[Optional["Outfitting"]] = relationship()
 
-    # a system may contain many space stations; model this as a
-    # bi-directional, nullable, many-to-one relationship
-    # (stations:system)
-    system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
-    system: Mapped[Optional["System"]] = relationship(back_populates="stations")
-
     # a body might support many surface ports; model this as a
     # bi-directional, nullable, many-to-one relationship
     # (stations:body)
     body_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("body.id64"))
     body: Mapped[Optional["Body"]] = relationship(back_populates="stations")
+
+    # a system may contain many space stations; model this as a
+    # bi-directional, nullable, many-to-one relationship
+    # (stations:system)
+    system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
+    system: Mapped[Optional["System"]] = relationship(back_populates="stations")
 
     def __repr__(self):
         return (
