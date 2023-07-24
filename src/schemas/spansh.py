@@ -517,7 +517,7 @@ class BodySchema(SQLAlchemyAutoSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         # remove empty keys to save space
-        required_columns = ["id64", "bodyId", "name", "type", "updateTime"]
+        required_columns = ["id64", "bodyId", "name", "type", "stations", "updateTime"]
         for k in set(out_data.keys()) - set(required_columns):
             if out_data.get(k) is None or out_data.get(k) == []:
                 out_data.pop(k)
