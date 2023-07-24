@@ -497,6 +497,7 @@ class BodyTimestampSchema(SQLAlchemyAutoSchema):
 class BodySchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Body
+        exclude = ["system_id64", "system"]
         include_fk = True
         include_relationships = True
         load_instance = True
