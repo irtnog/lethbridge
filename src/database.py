@@ -800,7 +800,7 @@ class System(Base):
             and self.powers == other.powers
             and self.powerState == other.powerState
             and self.date == other.date
-            # bodies
+            and self.bodies == other.bodies
             and self.stations == other.stations
         )
 
