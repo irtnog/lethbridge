@@ -252,7 +252,13 @@ class OutfittingSchema(SQLAlchemyAutoSchema):
 class StationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Station
-        exclude = ["controllingFaction_id", "system_id64", "system"]
+        exclude = [
+            "controllingFaction_id",
+            "body_id64",
+            "body",
+            "system_id64",
+            "system",
+        ]
         include_fk = True
         include_relationships = True
         load_instance = True
