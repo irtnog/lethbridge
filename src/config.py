@@ -29,7 +29,11 @@ logger = logging.getLogger(__name__)
 # defaults
 CONFIG_DIR_PATH = Path(typer.get_app_dir(__app_name__))
 CONFIG_FILE_PATH = CONFIG_DIR_PATH / "config.ini"
+INIT_FILE_PATH = CONFIG_DIR_PATH / "init.py"
 DEFAULT_CONFIG = ConfigParser()
+DEFAULT_CONFIG["cli"] = {
+    "init_file": INIT_FILE_PATH,
+}
 DEFAULT_CONFIG["database"] = {
     "uri": "sqlite:///galaxy.sqlite",
 }

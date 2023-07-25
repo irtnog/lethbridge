@@ -47,6 +47,13 @@ def mock_empty_config(tmp_path_factory):
     return cfg_file_path
 
 
+@fixture(scope="session")
+def mock_init_file(tmp_path_factory):
+    init_file_path = tmp_path_factory.mktemp("etc") / "init.py"
+    init_file_path.write_text('print("Hello, world!")')
+    return init_file_path
+
+
 def test_version():
     result = runner.invoke(cli.app, ["--version"])
     assert result.exit_code == 0
@@ -124,3 +131,14 @@ def test_cli_configure_set_noop(mock_empty_config):
     result = runner.invoke(cli.app, set_cmd)
     assert result.exit_code == SUCCESS
     assert "" == mock_empty_config.read_text()
+
+
+def test_cli_init_file(mock_init_file):
+    cmd = [
+        "-i",
+        mock_init_file,
+        "configure",
+        "--help",
+    ]
+    result = runner.invoke(cli.app, cmd)
+    assert "Hello, world!" in result.stdout

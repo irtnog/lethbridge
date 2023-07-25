@@ -98,6 +98,14 @@ def main(
             help="Override the default configuration file.",
         ),
     ] = CONFIG_FILE_PATH,
+    init_file: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--init",
+            "-i",
+            help="Override the default initialization file.",
+        ),
+    ] = None,
     debug: Annotated[
         Optional[bool],
         typer.Option(
@@ -164,4 +172,9 @@ def main(
     # of the UI via Typer's/Click's context object
     ctx.obj["config_file"] = config_file
     ctx.obj["app_cfg"] = app_cfg
+
+    # run the initialization file
+    if not init_file:
+        init_file = app_cfg["cli"]["init_file"]
+    exec(compile(open(init_file, "rb").read(), init_file, "exec"))
     return
