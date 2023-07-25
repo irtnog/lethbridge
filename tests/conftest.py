@@ -29,8 +29,8 @@ import simplejson as json
 # https://docs.pytest.org/en/stable/how-to/fixtures.html#using-marks-with-parametrized-fixtures
 @fixture(
     params=[
-        "postgresql",
-        param("sqlite", marks=mark.smoke),
+        param("postgresql", marks=mark.smoke),
+        "sqlite",
     ],
 )
 def mock_db_uri(postgresql, tmp_path_factory, request):
