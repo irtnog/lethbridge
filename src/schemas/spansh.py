@@ -48,6 +48,7 @@ from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
 import logging
+import simplejson
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
@@ -60,6 +61,7 @@ class FactionSchema(SQLAlchemyAutoSchema):
         unknown = EXCLUDE
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_load
@@ -83,6 +85,7 @@ class FactionStateSchema(SQLAlchemyAutoSchema):
         exclude = ["faction_name", "system_id64", "system"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     faction = Nested(FactionSchema)
@@ -109,6 +112,7 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
         exclude = ["system_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -126,6 +130,7 @@ class StationEconomySchema(SQLAlchemyAutoSchema):
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -143,6 +148,7 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -161,6 +167,7 @@ class MarketOrderSchema(SQLAlchemyAutoSchema):
         unknown = EXCLUDE
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
 
@@ -170,6 +177,7 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         exclude = ["market_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -188,6 +196,7 @@ class MarketSchema(SQLAlchemyAutoSchema):
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     commodities = Nested(MarketOrderSchema, many=True, required=False)
@@ -200,6 +209,7 @@ class ShipyardStockSchema(SQLAlchemyAutoSchema):
         exclude = ["shipyard_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
 
@@ -209,6 +219,7 @@ class ShipyardSchema(SQLAlchemyAutoSchema):
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     ships = Nested(ShipyardStockSchema, many=True, required=False)
@@ -220,6 +231,7 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
         exclude = ["outfitting_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -242,6 +254,7 @@ class OutfittingSchema(SQLAlchemyAutoSchema):
         exclude = ["station_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     modules = Nested(OutfittingStockSchema, many=True, required=False)
@@ -259,6 +272,7 @@ class StationSchema(SQLAlchemyAutoSchema):
         ]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
@@ -335,6 +349,7 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -352,6 +367,7 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -369,6 +385,7 @@ class MaterialSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -386,6 +403,7 @@ class DetectedSignalSchema(SQLAlchemyAutoSchema):
         exclude = ["signals_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -403,6 +421,7 @@ class DetectedGenusSchema(SQLAlchemyAutoSchema):
         exclude = ["signals_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -420,6 +439,7 @@ class SignalsSchema(SQLAlchemyAutoSchema):
         exclude = ["id", "body_id64", "ring_name"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     signals = Nested(DetectedSignalSchema, many=True, required=False)
@@ -448,6 +468,7 @@ class ParentSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -466,6 +487,7 @@ class BeltSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64", "body"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
 
@@ -475,6 +497,7 @@ class RingSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64", "body"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     signals = Nested(SignalsSchema, required=False)
@@ -492,6 +515,7 @@ class BodyTimestampSchema(SQLAlchemyAutoSchema):
         exclude = ["body_id64"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     @post_dump
@@ -509,6 +533,7 @@ class BodySchema(SQLAlchemyAutoSchema):
         exclude = ["system_id64", "system"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
 
     atmosphereComposition = Nested(
@@ -564,6 +589,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
         exclude = ["controllingFaction_id"]
         include_fk = True
         include_relationships = True
+        json_module = simplejson
         load_instance = True
         ordered = True  # see note below
 
