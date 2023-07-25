@@ -49,5 +49,5 @@ def mock_db_uri(postgresql, tmp_path_factory, request):
 
 @fixture(scope="module")
 def mock_galaxy_data():
-    data_file = Path(__file__).parent / "galaxy.json"
+    data_file = Path(__file__).parent / "mock-galaxy-data.json"
     yield json.loads(data_file.read_text(), use_decimal=True)
