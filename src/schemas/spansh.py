@@ -92,8 +92,6 @@ class FactionStateSchema(SQLAlchemyAutoSchema):
         out_data = out_data.copy()
         faction = out_data.pop("faction")
         out_data.update(faction)
-        if out_data["influence"] == 0.0:
-            out_data["influence"] = 0
         return out_data
 
     @pre_load
@@ -272,16 +270,6 @@ class StationSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        # convert 0.0 to 0
-        float_columns = [
-            "distanceToArrival",
-            "latitude",
-            "longitude",
-        ]
-        for k in float_columns:
-            if out_data.get(k) == 0.0:
-                out_data[k] = 0
-
         # remove empty keys to save space
         required_columns = ["name", "id", "updateTime"]
         for k in set(out_data.keys()) - set(required_columns):
@@ -351,8 +339,6 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        if out_data["percentage"] == 0.0:
-            out_data["percentage"] = 0
         return {out_data["name"]: out_data["percentage"]}
 
     @pre_load
@@ -370,8 +356,6 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        if out_data["percentage"] == 0.0:
-            out_data["percentage"] = 0
         return {out_data["name"]: out_data["percentage"]}
 
     @pre_load
@@ -389,8 +373,6 @@ class MaterialSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        if out_data["percentage"] == 0.0:
-            out_data["percentage"] = 0
         return {out_data["name"]: out_data["percentage"]}
 
     @pre_load
@@ -543,31 +525,6 @@ class BodySchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        # convert 0.0 to 0
-        float_columns = [
-            "distanceToArrival",
-            "absoluteMagnitude",
-            "solarMasses",
-            "solarRadius",
-            "gravity",
-            "earthMasses",
-            "radius",
-            "surfaceTemperature",
-            "surfacePressure",
-            "rotationalPeriod",
-            "axialTilt",
-            "orbitalPeriod",
-            "semiMajorAxis",
-            "orbitalEccentricity",
-            "orbitalInclination",
-            "argOfPeriapsis",
-            "meanAnomaly",
-            "ascendingNode",
-        ]
-        for k in float_columns:
-            if out_data.get(k) == 0.0:
-                out_data[k] = 0
-
         # remove empty keys to save space
         required_columns = ["id64", "bodyId", "name", "type", "stations", "updateTime"]
         for k in set(out_data.keys()) - set(required_columns):
@@ -620,16 +577,6 @@ class SystemSchema(SQLAlchemyAutoSchema):
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
-        # convert 0.0 to 0
-        float_columns = [
-            "x",
-            "y",
-            "z",
-        ]
-        for k in float_columns:
-            if out_data.get(k) == 0.0:
-                out_data[k] = 0
-
         # wrap coords
         out_data["coords"] = {
             "x": out_data.pop("x"),

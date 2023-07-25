@@ -19,6 +19,7 @@ from __future__ import annotations
 from . import DATABASE_ERROR
 from . import SUCCESS
 from datetime import datetime
+from decimal import Decimal
 from sqlalchemy import BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
@@ -52,7 +53,7 @@ class FactionState(Base):
     __tablename__ = "faction_state"
 
     # TODO: happiness? not in Spansh dumps
-    influence: Mapped[float]
+    influence: Mapped[Decimal]
     state: Mapped[str]
 
     # link this association table to the corresponding ORM objects via
@@ -155,7 +156,7 @@ class AtmosphereComposition(Base):
     __tablename__ = "atmosphere_composition"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    percentage: Mapped[float]
+    percentage: Mapped[Decimal]
 
     body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
 
@@ -180,7 +181,7 @@ class SolidComposition(Base):
     __tablename__ = "solid_composition"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    percentage: Mapped[float]
+    percentage: Mapped[Decimal]
 
     body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
 
@@ -205,7 +206,7 @@ class Material(Base):
     __tablename__ = "material"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    percentage: Mapped[float]
+    percentage: Mapped[Decimal]
 
     body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
 
@@ -418,20 +419,20 @@ class Body(Base):
     name: Mapped[str]
     type: Mapped[str]
     subType: Mapped[str | None]
-    distanceToArrival: Mapped[float | None]
+    distanceToArrival: Mapped[Decimal | None]
     mainStar: Mapped[bool | None]
     age: Mapped[int | None]
     spectralClass: Mapped[str | None]
     luminosity: Mapped[str | None]
-    absoluteMagnitude: Mapped[float | None]
-    solarMasses: Mapped[float | None]
-    solarRadius: Mapped[float | None]
+    absoluteMagnitude: Mapped[Decimal | None]
+    solarMasses: Mapped[Decimal | None]
+    solarRadius: Mapped[Decimal | None]
     isLandable: Mapped[bool | None]
-    gravity: Mapped[float | None]
-    earthMasses: Mapped[float | None]
-    radius: Mapped[float | None]
-    surfaceTemperature: Mapped[float | None]
-    surfacePressure: Mapped[float | None]
+    gravity: Mapped[Decimal | None]
+    earthMasses: Mapped[Decimal | None]
+    radius: Mapped[Decimal | None]
+    surfaceTemperature: Mapped[Decimal | None]
+    surfacePressure: Mapped[Decimal | None]
     volcanismType: Mapped[str | None]
     atmosphereType: Mapped[str | None]
     atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
@@ -440,17 +441,17 @@ class Body(Base):
     materials: Mapped[List["Material"]] = relationship()
     signals: Mapped[Optional["Signals"]] = relationship()
     reserveLevel: Mapped[str | None]
-    rotationalPeriod: Mapped[float | None]
+    rotationalPeriod: Mapped[Decimal | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
-    axialTilt: Mapped[float | None]
+    axialTilt: Mapped[Decimal | None]
     parents: Mapped[List["Parent"]] = relationship()
-    orbitalPeriod: Mapped[float | None]
-    semiMajorAxis: Mapped[float | None]
-    orbitalEccentricity: Mapped[float | None]
-    orbitalInclination: Mapped[float | None]
-    argOfPeriapsis: Mapped[float | None]
-    meanAnomaly: Mapped[float | None]
-    ascendingNode: Mapped[float | None]
+    orbitalPeriod: Mapped[Decimal | None]
+    semiMajorAxis: Mapped[Decimal | None]
+    orbitalEccentricity: Mapped[Decimal | None]
+    orbitalInclination: Mapped[Decimal | None]
+    argOfPeriapsis: Mapped[Decimal | None]
+    meanAnomaly: Mapped[Decimal | None]
+    ascendingNode: Mapped[Decimal | None]
     belts: Mapped[List["Belt"]] = relationship(back_populates="body")
     rings: Mapped[List["Ring"]] = relationship(back_populates="body")
     timestamps: Mapped[List["BodyTimestamp"]] = relationship()
@@ -716,15 +717,15 @@ class Station(Base):
         back_populates="controlledStations"
     )
     controllingFactionState: Mapped[str | None]
-    distanceToArrival: Mapped[float | None]
+    distanceToArrival: Mapped[Decimal | None]
     primaryEconomy: Mapped[str | None]
     economies: Mapped[List["StationEconomy"]] = relationship()
     allegiance: Mapped[str | None]
     government: Mapped[str | None]
     services: Mapped[List["StationService"]] = relationship()
     type: Mapped[str | None]
-    latitude: Mapped[float | None]
-    longitude: Mapped[float | None]
+    latitude: Mapped[Decimal | None]
+    longitude: Mapped[Decimal | None]
     largeLandingPads: Mapped[int | None]  # landingPads
     mediumLandingPads: Mapped[int | None]
     smallLandingPads: Mapped[int | None]
@@ -763,9 +764,9 @@ class System(Base):
 
     id64: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str]  # not unique, e.g., AH Cancri
-    x: Mapped[float]  # coords
-    y: Mapped[float]
-    z: Mapped[float]
+    x: Mapped[Decimal]  # coords
+    y: Mapped[Decimal]
+    z: Mapped[Decimal]
     allegiance: Mapped[str | None]
     government: Mapped[str | None]
     primaryEconomy: Mapped[str | None]
