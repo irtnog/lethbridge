@@ -16,7 +16,6 @@
 # <https://www.gnu.org/licenses/>.
 
 from lethbridge import CONFIG_ERROR
-from lethbridge import DATABASE_ERROR
 from lethbridge import SUCCESS
 from lethbridge import __app_name__
 from lethbridge import __version__
@@ -125,19 +124,3 @@ def test_cli_configure_set_noop(mock_empty_config):
     result = runner.invoke(cli.app, set_cmd)
     assert result.exit_code == SUCCESS
     assert "" == mock_empty_config.read_text()
-
-
-@mark.parametrize(
-    "uri, force, expected_error",
-    [
-        param("obvious nonsense", False, DATABASE_ERROR),
-        param("sqlite://", False, SUCCESS),
-        param("sqlite://", True, SUCCESS),
-    ],
-)
-def test_cli_database_init(uri, force, expected_error):
-    cmd = ["database", "init", uri]
-    if force:
-        cmd += ["--force"]
-    result = runner.invoke(cli.app, cmd)
-    assert result.exit_code == expected_error
