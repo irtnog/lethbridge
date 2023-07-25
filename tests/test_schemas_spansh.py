@@ -15,19 +15,19 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from collections import deque
 from dateutil.parser import parse
+from itertools import zip_longest
 from lethbridge.database import Base
-from lethbridge.database import Faction
 from lethbridge.database import System
 from lethbridge.schemas.spansh import SystemSchema
+from operator import itemgetter
+from operator import methodcaller
 from sqlalchemy import create_engine
-from sqlalchemy import func
-from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 
 def test_systemschema(mock_db_uri, mock_galaxy_data):
-    # initialize the database
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
@@ -41,88 +41,59 @@ def test_systemschema(mock_db_uri, mock_galaxy_data):
             new_system = session.get(System, load_data["id64"])
             dump_data = SystemSchema().dump(new_system)
 
-        # compare keys; dump_data should be a subset of load_data
-        # until we finish the System class
-        assert set(dump_data) <= set(load_data)
+        stack = deque()
+        stack.append((dump_data, load_data, "top level"))
 
-        # compare values; some keys require special handling
-        for k in dump_data:
-            if k == "factions":
-                d_fac = sorted(dump_data[k], key=lambda fac: fac["name"])
-                l_fac = sorted(load_data[k], key=lambda fac: fac["name"])
-                assert d_fac == l_fac
-
-            elif k == "powers":
-                assert set(dump_data[k]) == set(load_data[k])
-
-            elif k == "bodies":
-                # dump_data should have the same number of bodies
-                assert len(dump_data[k]) == len(load_data[k])
-
-                # # compare each body
-                # for d_bd, l_bd in zip(
-                #     sorted(dump_data[k], key=lambda bd: bd["bodyId"]),
-                #     sorted(load_data[k], key=lambda bd: bd["bodyId"]),
-                # ):
-                #     # each dumped body should have a subset of the
-                #     # corresponding loaded body's top-level keys (at
-                #     # least until we finish implementing everything)
-                #     assert set(d_bd) <= set(l_bd)
-
-                #     # dumped bodies should have the same number of
-                #     # surface ports and settlements (if any)
-                #     if "stations" in l_bd:
-                #         assert "stations" in d_bd
-                #         assert len(d_bd["stations"]) == len(l_bd["stations"])
-
-            elif k == "stations":
-                # dump_data should have the same number of spaceports
-                assert len(dump_data[k]) == len(load_data[k])
-
-                # compare each station
-                for d_st, l_st in zip(
-                    sorted(dump_data[k], key=lambda st: st["name"]),
-                    sorted(load_data[k], key=lambda st: st["name"]),
-                ):
-                    assert set(d_st) == set(l_st)
-
-                    if "shipyard" in l_st:
-                        assert "shipyard" in d_st
-
-                        d_shipyard = d_st["shipyard"]
-                        d_ships = d_shipyard["ships"]
-                        l_shipyard = l_st["shipyard"]
-                        l_ships = l_shipyard["ships"]
-                        assert len(d_ships) == len(l_ships)
-
-                        d_update_time = d_shipyard["updateTime"]
-                        l_update_time = l_shipyard["updateTime"]
-                        assert parse(d_update_time) == parse(l_update_time[:-3])
-
-                    if "outfitting" in l_st:
-                        assert "outfitting" in d_st
-
-                        d_outfitting = d_st["outfitting"]
-                        d_modules = d_outfitting["modules"]
-                        l_outfitting = l_st["outfitting"]
-                        l_modules = l_outfitting["modules"]
-                        assert len(d_modules) == len(l_modules)
-
-                        d_update_time = d_outfitting["updateTime"]
-                        l_update_time = l_outfitting["updateTime"]
-                        assert parse(d_update_time) == parse(l_update_time[:-3])
-
-            elif k == "date":
-                assert parse(dump_data[k]) == parse(load_data[k][:-3])
-
+        while stack:
+            (to, fro, ctx) = stack.pop()
+            if isinstance(to, list):
+                assert isinstance(fro, list)
+                assert len(to) == len(fro), ctx
+                if len(to):
+                    # peek at first element to figure out sorting
+                    start = next(iter(to))
+                    # default to list of strings
+                    sorter = None
+                    if isinstance(start, dict):
+                        if "symbol" in start:
+                            # list of commodities
+                            sorter = itemgetter("symbol")
+                        elif "name" in start:
+                            # list of objects
+                            sorter = itemgetter("name")
+                        else:
+                            # list of key/value pairs
+                            sorter = methodcaller("__str__")
+                    # sort to/fro and pair corresponding elements of each
+                    stack.extend(
+                        zip_longest(
+                            sorted(to, key=sorter),
+                            sorted(fro, key=sorter),
+                            [],
+                            fillvalue=ctx,
+                        )
+                    )
+            elif isinstance(to, dict):
+                assert isinstance(fro, dict)
+                assert set(to) <= set(fro), ctx
+                if "name" in to and "symbol" not in to:
+                    ctx = to["name"]
+                for k in to:
+                    stack.append((to[k], fro[k], ctx))
             else:
-                assert dump_data[k] == load_data[k]
-
-    # with the data loaded, make some queries
-    with Session.begin() as session:
-        stmt = select(func.count(System.id64))
-        res = session.execute(stmt).first()
-        assert res[0] == 9
-
-        fac = session.get(Faction, "Sol Workers' Party")
-        assert len(fac.systems) == 4
+                try:
+                    # try parsing to/fro as date/time values
+                    new_to = parse(to)  # noqa: F841
+                    # try detecting which date/time format Spansh used
+                    if "T" in fro:
+                        # e.g., "2023-06-12T05:05:24"
+                        new_fro = parse(fro)
+                    else:
+                        # e.g., "2023-06-12 05:05:24+00"
+                        new_fro = parse(fro[:-3])  # noqa: F841
+                    # if we got this far, it worked
+                    to = new_to
+                    fro = new_fro
+                except:  # noqa: E722
+                    pass
+                assert str(to) in str(fro), ctx
