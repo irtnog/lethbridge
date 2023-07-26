@@ -27,7 +27,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
-def test_systemschema(mock_db_uri, mock_galaxy_data):
+def test_spansh_systemschema(mock_db_uri, mock_galaxy_data):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
