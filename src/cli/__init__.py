@@ -176,5 +176,10 @@ def main(
     # run the initialization file
     if not init_file:
         init_file = app_cfg["cli"]["init_file"]
-    exec(compile(open(init_file, "rb").read(), init_file, "exec"))
+    try:
+        exec(compile(open(init_file, "rb").read(), init_file, "exec"))
+    except FileNotFoundError as e:
+        logger.debug(e)
+    except Exception as e:
+        logger.warning(e)
     return

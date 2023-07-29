@@ -31,6 +31,8 @@ runner = CliRunner()
 
 INITIAL_CONFIG = "[database]\nuri = some+test://database\n\n"
 MODIFIED_CONFIG = "[database]\nuri = another://uri\n\n"
+INIT_CODE = 'print("Initialization worked.")\n'
+BAD_CODE = "foobar()\n"
 
 
 @fixture(scope="session")
@@ -48,9 +50,29 @@ def mock_empty_config(tmp_path_factory):
 
 
 @fixture(scope="session")
+def mock_empty_init(tmp_path_factory):
+    init_file_path = tmp_path_factory.mktemp("etc") / "empty-init.py"
+    init_file_path.touch()
+    return init_file_path
+
+
+@fixture(scope="session")
 def mock_init_file(tmp_path_factory):
     init_file_path = tmp_path_factory.mktemp("etc") / "init.py"
-    init_file_path.write_text('print("Hello, world!")')
+    init_file_path.write_text(INIT_CODE)
+    return init_file_path
+
+
+@fixture(scope="session")
+def mock_bad_init(tmp_path_factory):
+    init_file_path = tmp_path_factory.mktemp("etc") / "bad-init.py"
+    init_file_path.write_text(BAD_CODE)
+    return init_file_path
+
+
+@fixture(scope="session")
+def mock_missing_init(tmp_path_factory):
+    init_file_path = tmp_path_factory.mktemp("etc") / "missing-init.py"
     return init_file_path
 
 
@@ -76,9 +98,9 @@ def test_cli_autoloader():
     ],
 )
 def test_cli_configure_get(
-    mock_config_file, section, option, expected_error, expected_output
+    mock_config_file, mock_empty_init, section, option, expected_error, expected_output
 ):
-    get_cmd = ["-f", mock_config_file, "configure", "get"]
+    get_cmd = ["-f", mock_config_file, "-i", mock_empty_init, "configure", "get"]
     if section is not None:
         get_cmd += [section]
         if option is not None:
@@ -102,9 +124,16 @@ def test_cli_configure_get(
     ],
 )
 def test_cli_configure_set(
-    mock_config_file, section, option, value, reset, expected_error, expected_config
+    mock_config_file,
+    mock_empty_init,
+    section,
+    option,
+    value,
+    reset,
+    expected_error,
+    expected_config,
 ):
-    set_cmd = ["-f", mock_config_file, "configure", "set"]
+    set_cmd = ["-f", mock_config_file, "-i", mock_empty_init, "configure", "set"]
     if section is not None:
         set_cmd += [section]
         if option is not None:
@@ -118,10 +147,12 @@ def test_cli_configure_set(
     assert expected_config == mock_config_file.read_text()
 
 
-def test_cli_configure_set_noop(mock_empty_config):
+def test_cli_configure_set_noop(mock_empty_config, mock_empty_init):
     set_cmd = [
         "-f",
         mock_empty_config,
+        "-i",
+        mock_empty_init,
         "configure",
         "set",
         "database",
@@ -133,12 +164,26 @@ def test_cli_configure_set_noop(mock_empty_config):
     assert "" == mock_empty_config.read_text()
 
 
-def test_cli_init_file(mock_init_file):
+@mark.parametrize(
+    "init_file_fixture, expected_error, expected_output",
+    [
+        param("mock_init_file", SUCCESS, "Initialization worked."),
+        param("mock_bad_init", SUCCESS, ""),
+        param("mock_missing_init", SUCCESS, ""),
+    ],
+)
+def test_cli_init_file(
+    mock_empty_config, init_file_fixture, expected_error, expected_output, request
+):
+    init_file = request.getfixturevalue(init_file_fixture)
     cmd = [
+        "-f",
+        mock_empty_config,
         "-i",
-        mock_init_file,
+        init_file,
         "configure",
         "--help",
     ]
     result = runner.invoke(cli.app, cmd)
-    assert "Hello, world!" in result.stdout
+    assert result.exit_code == expected_error
+    assert expected_output in result.stdout
