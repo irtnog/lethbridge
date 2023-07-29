@@ -83,14 +83,14 @@ def test_spansh_systemschema(mock_db_uri, mock_galaxy_data):
             else:
                 try:
                     # try parsing to/fro as date/time values
-                    new_to = parse(to)  # noqa: F841
+                    new_to = parse(to)
                     # try detecting which date/time format Spansh used
                     if "T" in fro:
                         # e.g., "2023-06-12T05:05:24"
                         new_fro = parse(fro)
                     else:
                         # e.g., "2023-06-12 05:05:24+00"
-                        new_fro = parse(fro[:-3])  # noqa: F841
+                        new_fro = parse(fro[:-3])
                     # if we got this far, it worked
                     to = new_to
                     fro = new_fro
