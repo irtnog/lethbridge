@@ -15,21 +15,30 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM python as builder
+FROM python:3.10 as builder
 RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends postgresql; \
     groupadd -g 1000 lethbridge; \
-    useradd -m -g 1000 -u 1000 lethbridge;
-USER lethbridge:lethbridge
+    useradd -m -g 1000 -u 1000 lethbridge; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends postgresql
 ENV PATH=/home/lethbridge/.local/bin:$PATH
 COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
 WORKDIR /home/lethbridge/src
+USER lethbridge:lethbridge
 RUN set -eux; \
-    pip install --user .; \
-    python -m pytest --cov=lethbridge
+    pip install --user .[psycopg2cffi]; \
+    python -m venv --system-site-packages .venv
+COPY --chown=lethbridge:lethbridge <<EOF /home/lethbridge/.local/lib/python3.10/site-packages/psycopg2.py
+from psycopg2cffi import compat
+compat.register()
+EOF
+ENV VIRTUAL_ENV=/home/lethbridge/src/.venv
+ENV PATH=$VIRUAL_ENV/bin:$PATH
+RUN set -eux; \
+    pip install --user .[test]; \
+    pytest --cov=lethbridge --report-log=/home/lethbridge/.local/pytest.out
 
-FROM python
+FROM python:3.10
 RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge
@@ -37,5 +46,6 @@ ENV PATH=/home/lethbridge/.local/bin:$PATH
 COPY --from=builder /home/lethbridge/.local /home/lethbridge/.local
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+WORKDIR /home/lethbridge
 USER lethbridge:lethbridge
 CMD ["lethbridge"]
