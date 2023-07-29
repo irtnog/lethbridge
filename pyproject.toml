@@ -19,7 +19,6 @@ classifiers = [
 ]
 dependencies = [
     "colorama",
-    "ijson",
     "marshmallow-sqlalchemy",
     "psycopg2cffi",
     "pytest",
