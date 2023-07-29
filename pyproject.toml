@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lethbridge"
 version = "0.1.1"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 1 - Planning",
     "Environment :: Console",
