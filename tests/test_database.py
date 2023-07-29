@@ -30,6 +30,7 @@ from lethbridge.database import PowerPlay
 from lethbridge.database import Ring
 from lethbridge.database import Signals
 from lethbridge.database import System
+from lethbridge.database import ThargoidWar
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pytest import mark
@@ -91,6 +92,15 @@ def test_relationships(mock_db_uri):
             ],
             powers=[PowerPlay(power="Zemina Torval")],
             powerState="Controlled",
+            thargoidWar=ThargoidWar(
+                currentState="Thargoid Controlled",
+                successState="Thargoid Recovery",
+                failureState="Thargoid Controlled",
+                progress=0.5,
+                daysRemaining=2,
+                portsRemaining=3,
+                successReached=False,
+            ),
             date=datetime(1970, 1, 1, 0, 0, 1),
             bodies=[
                 Body(

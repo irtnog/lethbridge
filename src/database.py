@@ -150,6 +150,44 @@ class PowerPlay(Base):
         )
 
 
+class ThargoidWar(Base):
+    """The state of the Second Thargoid War in an affected system,
+    modeled as a one-to-one relationship."""
+
+    __tablename__ = "thargoid_war"
+
+    currentState: Mapped[str]
+    successState: Mapped[str]
+    failureState: Mapped[str]
+    progress: Mapped[Decimal]
+    daysRemaining: Mapped[int]
+    portsRemaining: Mapped[int]
+    successReached: Mapped[bool]
+
+    system_id64: Mapped[int] = mapped_column(
+        ForeignKey("system.id64"),
+        primary_key=True,
+    )
+
+    def __repr__(self):
+        return (
+            f"<ThargoidWar(system_id64={self.system_id64 or 'pending'}, "
+            + f"{self.currentState})>"
+        )
+
+    def __eq__(self, other: ThargoidWar) -> bool:
+        return (
+            self.currentState == other.currentState
+            and self.successState == other.successState
+            and self.failureState == other.failureState
+            and self.progress == other.progress
+            and self.daysRemaining == other.daysRemaining
+            and self.portsRemaining == other.portsRemaining
+            and self.successReached == other.successReached
+            and self.system_id64 == other.system_id64
+        )
+
+
 class AtmosphereComposition(Base):
     """Gasses held by gravity in a layer around a planet."""
 
@@ -783,6 +821,7 @@ class System(Base):
     factions: Mapped[List["FactionState"]] = relationship(back_populates="system")
     powers: Mapped[List["PowerPlay"]] = relationship()
     powerState: Mapped[str | None]
+    thargoidWar: Mapped[Optional["ThargoidWar"]] = relationship()
     date: Mapped[datetime]
     bodies: Mapped[List["Body"]] = relationship(back_populates="system")
     stations: Mapped[List["Station"]] = relationship(back_populates="system")

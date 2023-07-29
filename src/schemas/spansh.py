@@ -40,6 +40,7 @@ from ..database import Station
 from ..database import StationEconomy
 from ..database import StationService
 from ..database import System
+from ..database import ThargoidWar
 from collections import ChainMap
 from marshmallow import EXCLUDE
 from marshmallow import post_dump
@@ -122,6 +123,16 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
     @pre_load
     def pre_process_input(self, in_data, **kwargs):
         return {"power": in_data}
+
+
+class ThargoidWarSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = ThargoidWar
+        exclude = ["system_id64"]
+        include_fk = True
+        include_relationships = True
+        render_module = simplejson
+        load_instance = True
 
 
 class StationEconomySchema(SQLAlchemyAutoSchema):
@@ -598,6 +609,7 @@ class SystemSchema(SQLAlchemyAutoSchema):
     factions = Nested(FactionStateSchema, many=True, required=False)
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     powers = Nested(PowerPlaySchema, many=True, required=False)
+    thargoidWar = Nested(ThargoidWarSchema, required=False)
     bodies = Nested(BodySchema, many=True, required=False)
     stations = Nested(StationSchema, many=True, required=False)
 
