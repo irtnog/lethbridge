@@ -22,6 +22,7 @@ RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge;
 USER lethbridge:lethbridge
+ENV PATH=/home/lethbridge/.local/bin:$PATH
 COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
 WORKDIR /home/lethbridge/src
 RUN set -eux; \
@@ -32,6 +33,7 @@ FROM python
 RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge
+ENV PATH=/home/lethbridge/.local/bin:$PATH
 COPY --from=builder /home/lethbridge/.local /home/lethbridge/.local
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
