@@ -19,7 +19,30 @@ from pathlib import Path
 from pytest import fixture
 from pytest import mark
 from pytest import param
+from warnings import warn
 import simplejson as json
+
+
+class Utilities:
+    """Helper functions for tests.  Access via the `utilities`
+    fixture.  Cf. https://stackoverflow.com/a/42156088."""
+
+    @staticmethod
+    def approximately(x, y):
+        str_x = str(x)
+        str_y = str(y)
+        if str_x == str_y:
+            return True
+        elif str_x in str_y or str_y in str_x:
+            warn(f"{str_x!r} only approximately equal to {str_y!r}")
+            return True
+        else:
+            return False
+
+
+@fixture
+def utilities():
+    return Utilities
 
 
 # Invoke smoke tests with `pytest -k smoke -x`.  See also

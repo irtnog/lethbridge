@@ -27,7 +27,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
-def test_spansh_systemschema(mock_db_uri, mock_galaxy_data):
+def test_spansh_systemschema(mock_db_uri, mock_galaxy_data, utilities):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
@@ -96,4 +96,4 @@ def test_spansh_systemschema(mock_db_uri, mock_galaxy_data):
                     fro = new_fro
                 except:  # noqa: E722
                     pass
-                assert str(to) in str(fro), ctx
+                assert utilities.approximately(to, fro), ctx

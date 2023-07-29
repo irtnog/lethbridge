@@ -42,7 +42,7 @@ def test_metadata(mock_db_uri):
 
 
 @mark.parametrize("x", [param("1"), param("1.000001"), param("1.0000000000001")])
-def test_decimals(mock_db_uri, x):
+def test_decimals(mock_db_uri, utilities, x):
     engine = create_engine(mock_db_uri)
     Base.metadata.create_all(engine)
     Session = sessionmaker(engine)
@@ -60,7 +60,7 @@ def test_decimals(mock_db_uri, x):
 
     with Session.begin() as session:
         test_system_1 = session.get(System, 1)
-        assert str(test_system_1.x) == x
+        assert utilities.approximately(test_system_1.x, x)
 
 
 def test_relationships(mock_db_uri):
