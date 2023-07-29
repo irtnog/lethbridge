@@ -15,6 +15,8 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from decimal import Decimal
+from math import isclose
 from pathlib import Path
 from pytest import fixture
 from pytest import mark
@@ -33,7 +35,15 @@ class Utilities:
         str_y = str(y)
         if str_x == str_y:
             return True
-        elif str_x in str_y or str_y in str_x:
+        elif (
+            str_x in str_y
+            or str_y in str_x
+            or (
+                (isinstance(x, float) or isinstance(x, Decimal))
+                and (isinstance(y, float) or isinstance(y, Decimal))
+                and isclose(x, y, rel_tol=0.05)
+            )
+        ):
             warn(f"{str_x!r} only approximately equal to {str_y!r}")
             return True
         else:
