@@ -19,6 +19,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
+    "alembic[tz]",
     "colorama",
     "marshmallow-sqlalchemy",
     "shellingham",

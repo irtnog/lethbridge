@@ -15,10 +15,10 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from .. import ERRORS
-from ..database import init_database
 from typing import Annotated
 from typing import Optional
+import alembic.command
+import alembic.config
 import typer
 
 # create the CLI
@@ -27,28 +27,136 @@ help = "Manage the database back end."
 
 
 @app.command()
-def init(
+def current(ctx: typer.Context) -> None:
+    """Display the current database revision."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.current(alembic_cfg, True)
+
+
+@app.command()
+def downgrade(
     ctx: typer.Context,
-    uri: Annotated[
-        Optional[str],
+    revision: Annotated[
+        str,
         typer.Argument(
-            help="Connect to the specified database instead of the configured default.  Refer to <https://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls> for the format.",
+            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+        ),
+    ],
+    sql: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--sql",
+            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
         ),
     ] = None,
-    force: Annotated[
-        bool,
-        typer.Option(
-            "--force",
-            help="Force database re-initialization.",
-        ),
-    ] = False,
 ) -> None:
-    """Initialze the database, creating tables, views, etc."""
+    """Revert to a previous version of the database schema."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.downgrade(alembic_cfg, revision, sql=sql)
+
+
+@app.command()
+def history(
+    ctx: typer.Context,
+    rev_range: Annotated[
+        Optional[str],
+        typer.Argument(
+            help="Starting and ending database schema revisions, separated by a colon, e.g., `1975ea:ae1027`.  Symbols like `head`, `heads`, `base`, or `current` may be used, as can negative relative ranges for the starting revision and positive relative ranges for the ending revision.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html#viewing-history-ranges>.",
+        ),
+    ] = None,
+    indicate_current: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--show-current",
+            help="Indicate the database's current schema revision.",
+        ),
+    ] = None,
+) -> None:
+    """List database schema revisions (changeset scripts) in
+    chronological order."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.history(alembic_cfg, rev_range, True, indicate_current)
+
+
+@app.command()
+def show(
+    ctx: typer.Context,
+    revision: Annotated[
+        str,
+        typer.Argument(
+            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+        ),
+    ],
+) -> None:
+    """Show the indicated version of the database schema."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.show(alembic_cfg, revision)
+
+
+@app.command()
+def stamp(
+    ctx: typer.Context,
+    revision: Annotated[
+        str,
+        typer.Argument(
+            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+        ),
+    ],
+    sql: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--sql",
+            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
+        ),
+    ] = None,
+    purge: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--purge",
+            help="Delete all entries in the version table before stamping.",
+        ),
+    ] = None,
+) -> None:
+    """Mark the database as being at the given schema version, but do
+    not run any migrations."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.stamp(alembic_cfg, revision, sql=sql, purge=purge)
+
+
+@app.command()
+def upgrade(
+    ctx: typer.Context,
+    revision: Annotated[
+        str,
+        typer.Argument(
+            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+        ),
+    ],
+    sql: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--sql",
+            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
+        ),
+    ] = None,
+) -> None:
+    """Upgrade to the specified version of the database schema."""
+    alembic_cfg = ctx.obj["alembic_cfg"]
+    alembic.command.upgrade(alembic_cfg, revision, sql=sql)
+
+
+@app.callback()
+def main(ctx: typer.Context) -> None:
     app_cfg = ctx.obj["app_cfg"]
-    if not uri:
-        uri = app_cfg["database"]["uri"]
-    init_database_error = init_database(uri, force)
-    if init_database_error:
-        typer.secho(ERRORS[init_database_error], fg=typer.colors.RED)
-        raise typer.Exit(init_database_error)
-    typer.secho("Initialization succeeded.", fg=typer.colors.GREEN)
+    db_uri = app_cfg["database"]["uri"]
+
+    # must match alembic.ini's database list, otherwise Alembic won't
+    # find the migrations for this database
+    db_type = "postgresql" if db_uri.startswith("postgres") else "sqlite"
+
+    # create the run-time Alembic configuration
+    alembic_cfg = alembic.config.Config()
+    alembic_cfg.set_main_option("script_location", "lethbridge:migrations")
+    alembic_cfg.set_main_option("databases", db_type)
+    alembic_cfg.set_section_option(db_type, "sqlalchemy.url", db_uri)
+    ctx.obj["alembic_cfg"] = alembic_cfg

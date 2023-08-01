@@ -851,19 +851,3 @@ class System(Base):
             and self.bodies == other.bodies
             and self.stations == other.stations
         )
-
-
-def init_database(uri: str, force: bool = False) -> int:
-    """Create tables, etc., in the database."""
-    try:
-        logger.debug("Creating engine.")
-        engine = create_engine(uri)
-        if force:
-            logger.debug("Dropping existing tables, etc.")
-            Base.metadata.drop_all(engine)
-        logger.debug("Creating tables, etc.")
-        Base.metadata.create_all(engine)
-    except Exception as e:
-        logger.info(e)
-        return DATABASE_ERROR
-    return SUCCESS

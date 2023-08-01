@@ -88,11 +88,37 @@ In Git commit messages, follow the [Angular Commit Message Conventions](https://
 
 ### Development Environment
 
+```
+pip install -e .[dev]
+```
+
 https://setuptools.pypa.io/en/latest/userguide/development_mode.html
 
 https://stackoverflow.com/questions/69711606/how-to-install-a-package-using-pip-in-editable-mode-with-pyproject-toml
 
 https://pre-commit.com/
+
+### Database Migrations Using Alembic
+
+[Alembic](https://alembic.sqlalchemy.org/) is installed as part of the development environment documented above.
+
+This project started with Alembic's multidb template.  The primary difference between that and the generic template is that multidb will run the migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).  Adjust `databases` in [Alembic's configuration](alembic.ini) as necessary, with a `sqlalchemy.url` for each engine name, but **DO NOT** commit usernames or passwords as part of recorded changes to that file.
+
+**Alembic commands MUST be run from the project root directory, i.e., the same directory as _alembic.ini_.**
+
+To develop new database migrations:
+
+1. Perform an editable installation of Lethbridge as documented in ["Development Environment"](#development-environment) above.
+
+2. Deploy the test databases, e.g., PostgreSQL in a container.
+
+3. Check the Alembic configuration by running `alembic current` from the project root directory.
+
+4. Generate a new revision based on the current model by running `alembic revision --autogenerate -m "<summary>"`.  Revision summaries MUST follow the same conventions as Git commit message summaries, and one SHOULD use the same summary for both.
+
+5. Reset the test databases by running `alembic downgrade base`.
+
+6. Migrate the test databases to the latest model by running `alembic upgrade head`.
 
 ### Test Environment
 
