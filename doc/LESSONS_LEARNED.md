@@ -23,3 +23,13 @@ Marshmallow et al seem to handle this without difficulty, but note this answer t
 ## Preserving JSON floating point precision
 
 Python's [`float`](https://docs.python.org/3/library/functions.html#float) data type cannot store source data unaltered.  Fortunately, the [`decimal`](https://docs.python.org/3/library/decimal.html) module along with SQLAlchemy's [`Numeric`](https://docs.sqlalchemy.org/en/20/core/type_basics.html#sqlalchemy.types.Numeric) type seem to do the right thing on PostgreSQL if the unit tests are to be believed.  Why those same tests fail on SQLite requires further investigation.
+
+## Backing Up Docker Volumes
+
+https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes
+
+The `--volumes-from` flag copies all the volume mounts from the named container to the one you're about to run, so the backup command for the Docker Compose project looks like this:
+
+```
+docker run -it --rm --volumes-from lethbridge-db-1 -v /home/xenophonf/src/lethbridge/out:/backup ubuntu tar cvzf /backup/backup.tgz /var/lib/postgresql/data
+```
