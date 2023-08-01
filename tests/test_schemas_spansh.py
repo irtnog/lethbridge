@@ -18,26 +18,19 @@
 from collections import deque
 from dateutil.parser import parse
 from itertools import zip_longest
-from lethbridge.database import Base
 from lethbridge.database import System
 from lethbridge.schemas.spansh import SystemSchema
 from operator import itemgetter
 from operator import methodcaller
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 
-def test_spansh_systemschema(mock_db_uri, mock_galaxy_data, utilities):
-    engine = create_engine(mock_db_uri)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(engine)
-
+def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
     for load_data in mock_galaxy_data:
-        with Session.begin() as session:
+        with mock_session.begin() as session:
             new_system = SystemSchema().load(load_data, session=session)
             session.add(new_system)
 
-        with Session.begin() as session:
+        with mock_session.begin() as session:
             new_system = session.get(System, load_data["id64"])
             dump_data = SystemSchema().dump(new_system)
 

@@ -18,7 +18,6 @@
 from datetime import datetime
 from decimal import Decimal
 from lethbridge.database import AtmosphereComposition
-from lethbridge.database import Base
 from lethbridge.database import Belt
 from lethbridge.database import Body
 from lethbridge.database import BodyTimestamp
@@ -31,24 +30,20 @@ from lethbridge.database import Ring
 from lethbridge.database import Signals
 from lethbridge.database import System
 from lethbridge.database import ThargoidWar
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from pytest import mark
 from pytest import param
 
 
-def test_metadata(mock_db_uri):
-    engine = create_engine(mock_db_uri)
-    Base.metadata.create_all(engine)
-
-
-@mark.parametrize("x", [param("1"), param("1.000001"), param("1.0000000000001")])
-def test_decimals(mock_db_uri, utilities, x):
-    engine = create_engine(mock_db_uri)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(engine)
-
-    with Session.begin() as session:
+@mark.parametrize(
+    "x",
+    [
+        param("1"),
+        param("1.000001"),
+        param("1.0000000000001"),
+    ],
+)
+def test_decimals(mock_session, utilities, x):
+    with mock_session.begin() as session:
         test_system_1 = System(
             id64=1,
             name="Test System 1",
@@ -59,17 +54,13 @@ def test_decimals(mock_db_uri, utilities, x):
         )
         session.add(test_system_1)
 
-    with Session.begin() as session:
+    with mock_session.begin() as session:
         test_system_1 = session.get(System, 1)
         assert utilities.approximately(test_system_1.x, x)
 
 
-def test_relationships(mock_db_uri):
-    engine = create_engine(mock_db_uri)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(engine)
-
-    with Session.begin() as session:
+def test_relationships(mock_session):
+    with mock_session.begin() as session:
         test_faction_1 = Faction(
             name="Test Faction 1",
             allegiance="Independent",

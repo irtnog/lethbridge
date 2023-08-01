@@ -16,11 +16,15 @@
 # <https://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+from lethbridge.database import Base
 from math import isclose
 from pathlib import Path
 from pytest import fixture
 from pytest import mark
 from pytest import param
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from warnings import warn
 import simplejson as json
 
@@ -66,18 +70,25 @@ def utilities():
         "sqlite",
     ],
 )
-def mock_db_uri(postgresql, tmp_path_factory, request):
-    if request.param == "postgresql":
-        yield (
-            f"postgresql+psycopg2://{postgresql.info.user}"
-            + f":@{postgresql.info.host}"
-            + f":{postgresql.info.port}"
-            + f"/{postgresql.info.dbname}"
-            + "?options=-c timezone=utc"
-        )
-    elif request.param == "sqlite":
-        db_path = tmp_path_factory.mktemp("db") / "galaxy.sqlite"
-        yield f"sqlite:///{db_path}"
+def mock_db_uri(postgresql, tmp_path, request):
+    match request.param:
+        case "postgresql":
+            yield (
+                f"postgresql+psycopg2://{postgresql.info.user}"
+                + f":@{postgresql.info.host}"
+                + f":{postgresql.info.port}"
+                + f"/{postgresql.info.dbname}"
+                + "?options=-c timezone=utc"
+            )
+        case "sqlite":
+            yield f"sqlite:///{tmp_path / 'db.sqlite3'}"
+
+
+@fixture
+def mock_session(mock_db_uri):
+    engine = create_engine(mock_db_uri, poolclass=NullPool)
+    Base.metadata.create_all(engine)
+    yield sessionmaker(engine)
 
 
 @fixture(scope="module")
