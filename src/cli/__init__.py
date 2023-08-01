@@ -143,7 +143,7 @@ def main(
     ctx.obj = {}  # user-defined shared state
 
     # configure logging
-    app_logger = logging.getLogger(__app_name__)
+    app_logger = logging.getLogger("root")
     app_logger.setLevel(
         logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING
     )
