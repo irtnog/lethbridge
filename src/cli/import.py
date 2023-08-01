@@ -16,9 +16,18 @@
 # <https://www.gnu.org/licenses/>.
 
 from .. import ERRORS
+from ..schemas.spansh import SystemSchema
+from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from typing import Annotated
 from typing import Optional
+import logging
+import simplejson as json
 import typer
+
+# configure module-level logging
+logger = logging.getLogger(__name__)
 
 # create the CLI
 app = typer.Typer()
@@ -32,10 +41,11 @@ def status() -> None:
 
 @app.command()
 def spansh(
+    ctx: typer.Context,
     dataset: Annotated[
         str,
         typer.Argument(
-            help="Which dataset to import, e.g., galaxy_7days.  For the list of available datasets, refer to <https://www.spansh.co.uk/dumps>."
+            help="Which dataset to import, e.g., galaxy_7days.  For the list of available datasets, refer to <https://www.spansh.co.uk/dumps>.  If this is a valid filename or URL, the dataset will be loaded from that location, instead."
         ),
     ],
     foreground: Annotated[
@@ -48,7 +58,51 @@ def spansh(
     ] = None,
 ) -> None:
     """Import galaxy or system data from a Spansh data dump."""
-    pass
+    if not foreground:
+        typer.secho("FIXME: Background import not implemented", fg=typer.colors.RED)
+        raise typer.Exit(-1)
+    app_cfg = ctx.obj["app_cfg"]
+
+    # get a handle on the dataset
+    datafile = None
+    try:
+        # can we parse this as a filename?
+        datafile = Path(dataset)
+    except:  # noqa: E722
+        # it's ok if we can't
+        pass
+    if datafile and datafile.exists():
+        ds = datafile.open()
+    elif dataset.startswith(("file:", "http:", "https:")):
+        typer.secho("FIXME: Import from URLs not implemented", fg=typer.colors.RED)
+        raise typer.Exit(-1)
+    else:
+        typer.secho("FIXME: Import from Spansh not implemented", fg=typer.colors.RED)
+        raise typer.Exit(-1)
+
+    engine = create_engine(app_cfg["database"]["uri"])
+    Session = sessionmaker(engine)
+    next(ds)  # first line is an opening bracket
+    for load_data in ds:
+        if load_data[0] == "]":
+            break
+        if load_data.endswith("\n"):
+            load_data = load_data[:-1]
+        if load_data.endswith(","):
+            load_data = load_data[:-1]
+        logger.debug(load_data[:50] + "..." if len(load_data) > 50 else load_data)
+        try:
+            with Session.begin() as session:
+                # FIXME: add session support to Schema.loads() in
+                # marshmallow-sqlalchemy
+                new_system = SystemSchema().load(
+                    json.loads(load_data, use_decimal=True), session=session
+                )
+                typer.secho(f"Importing {new_system!r}")
+                session.add(new_system)
+        except Exception as e:
+            logger.error(e)
+    typer.secho("Import complete.", fg=typer.colors.GREEN)
 
 
 @app.command()
