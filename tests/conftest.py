@@ -91,7 +91,7 @@ def mock_session(mock_db_uri):
     yield sessionmaker(engine)
 
 
-@fixture(scope="module")
+@fixture(scope="session")
 def mock_galaxy_data():
     data_file = Path(__file__).parent / "mock-galaxy-data.json"
     yield json.loads(data_file.read_text(), use_decimal=True)
