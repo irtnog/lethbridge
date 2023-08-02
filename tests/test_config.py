@@ -31,13 +31,6 @@ def mock_inaccessible_file(tmp_path):
     return "/inaccessible/config.ini"
 
 
-@fixture
-def mock_config_file(tmp_path):
-    config_file = tmp_path / "config.ini"
-    config_file.touch()
-    return config_file
-
-
 @mark.parametrize(
     "config_file_fixture, expected_error",
     [

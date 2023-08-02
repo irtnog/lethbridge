@@ -59,6 +59,13 @@ def utilities():
     return Utilities
 
 
+@fixture
+def mock_config_file(tmp_path):
+    config_file = tmp_path / "config.ini"
+    config_file.touch()
+    return config_file
+
+
 # Invoke smoke tests with `pytest -k smoke -x`.  See also
 # https://docs.pytest.org/en/stable/mark.html,
 # https://stackoverflow.com/a/52369721,
