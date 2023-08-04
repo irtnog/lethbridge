@@ -66,6 +66,13 @@ def mock_config_file(tmp_path):
     return config_file
 
 
+@fixture
+def mock_init_file(tmp_path):
+    init_file = tmp_path / "init.py"
+    init_file.touch()
+    return init_file
+
+
 # Invoke smoke tests with `pytest -k smoke -x`.  See also
 # https://docs.pytest.org/en/stable/mark.html,
 # https://stackoverflow.com/a/52369721,
@@ -89,6 +96,19 @@ def mock_db_uri(postgresql, tmp_path, request):
             )
         case "sqlite":
             yield f"sqlite:///{tmp_path / 'db.sqlite3'}"
+
+
+@fixture
+def mock_cmd_prefix(mock_config_file, mock_init_file, mock_db_uri):
+    mock_config_file.write_text(
+        f"""[cli]
+init_file = {mock_init_file}
+
+[database]
+uri = {mock_db_uri}
+"""
+    )
+    return ["-f", mock_config_file]
 
 
 @fixture
