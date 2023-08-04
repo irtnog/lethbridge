@@ -23,6 +23,7 @@ from ..config import DEFAULT_CONFIG
 from ..config import load_config
 from configparser import ConfigParser
 from io import StringIO
+from logging.config import dictConfig
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -143,17 +144,40 @@ def main(
     ctx.obj = {}  # user-defined shared state
 
     # configure logging
-    app_logger = logging.getLogger("root")
-    app_logger.setLevel(
-        logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING
+    dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                },
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                },
+            },
+            "loggers": {
+                "alembic": {
+                    "level": "DEBUG",
+                    "propagate": 1,
+                },
+                "lethbridge": {
+                    "level": "DEBUG",
+                    "propagate": 1,
+                },
+                "sqlalchemy.engine": {
+                    "level": "DEBUG",
+                    "propagate": 1,
+                },
+            },
+            "root": {
+                "level": "DEBUG" if debug else "INFO" if verbose else "WARNING",
+                "handlers": ["console"] if not quiet else [],
+            },
+        }
     )
-    if not quiet:
-        cerr = logging.StreamHandler()
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        cerr.setFormatter(formatter)
-        app_logger.addHandler(cerr)
 
     # copy the default configuration
     config_string = StringIO()
