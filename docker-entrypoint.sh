@@ -26,6 +26,8 @@ file_env() {
 
 function docker_setup_env() {
     file_env 'LETHBRIDGE_DB_URI'
+    lethbridge -d configure database uri "${LETHBRIDGE_DB_URI}"
+    lethbridge -d database upgrade head
 }
 
 # is this file is being run or sourced from another script
