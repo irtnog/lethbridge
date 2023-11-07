@@ -15,7 +15,10 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-FROM python:3.10 as builder
+# Default to this version of Python.  Override via a build argument.
+ARG PYTHON_VERSION=3.10
+
+FROM python:${PYTHON_VERSION} as builder
 RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge; \
@@ -28,7 +31,7 @@ USER lethbridge:lethbridge
 RUN set -eux; \
     pip install --user .[psycopg2cffi]; \
     python -m venv --system-site-packages .venv
-COPY --chown=lethbridge:lethbridge <<EOF /home/lethbridge/.local/lib/python3.10/site-packages/psycopg2.py
+COPY --chown=lethbridge:lethbridge <<EOF /home/lethbridge/.local/lib/python${PYTHON_VERSION}/site-packages/psycopg2.py
 from psycopg2cffi import compat
 compat.register()
 EOF
@@ -38,7 +41,7 @@ RUN set -eux; \
     pip install --user .[test]; \
     pytest --cov=lethbridge --report-log=/home/lethbridge/.local/pytest.out
 
-FROM python:3.10
+FROM python:${PYTHON_VERSION}
 RUN set -eux; \
     groupadd -g 1000 lethbridge; \
     useradd -m -g 1000 -u 1000 lethbridge
