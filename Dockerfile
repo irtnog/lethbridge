@@ -28,9 +28,7 @@ ENV PATH=/home/lethbridge/.local/bin:$PATH
 COPY --chown=lethbridge:lethbridge . /home/lethbridge/src
 WORKDIR /home/lethbridge/src
 USER lethbridge:lethbridge
-RUN set -eux; \
-    pip install --user .[psycopg2cffi]; \
-    python -m venv --system-site-packages .venv
+RUN pip install --user .[psycopg2cffi]
 COPY --chown=lethbridge:lethbridge <<EOF /home/lethbridge/.local/lib/python${PYTHON_VERSION}/site-packages/psycopg2.py
 from psycopg2cffi import compat
 compat.register()
@@ -38,6 +36,7 @@ EOF
 ENV VIRTUAL_ENV=/home/lethbridge/src/.venv
 ENV PATH=$VIRUAL_ENV/bin:$PATH
 RUN set -eux; \
+    python -m venv --system-site-packages .venv; \
     pip install --user .[test]; \
     pytest --cov=lethbridge --report-log=/home/lethbridge/.local/pytest.out
 
