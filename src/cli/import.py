@@ -45,7 +45,10 @@ def spansh(
     dataset: Annotated[
         str,
         typer.Argument(
-            help="Which dataset to import, e.g., galaxy_7days.  For the list of available datasets, refer to <https://www.spansh.co.uk/dumps>.  If this is a valid filename or URL, the dataset will be loaded from that location, instead."
+            help="Which dataset to import, e.g., galaxy_7days.  For the list of "
+            + "available datasets, refer to <https://www.spansh.co.uk/dumps>.  If this "
+            + "is a valid filename or URL, the dataset will be loaded from that "
+            + "location, instead."
         ),
     ],
     foreground: Annotated[
@@ -53,7 +56,8 @@ def spansh(
         typer.Option(
             "--foreground",
             "--fg",
-            help="Perform the import now, interactively, instead of queuing to run in the background.",
+            help="Perform the import now, interactively, instead of queuing to run in "
+            + "the background.",
         ),
     ] = None,
 ) -> None:
@@ -113,7 +117,8 @@ def canonn(
         typer.Option(
             "--foreground",
             "--fg",
-            help="Perform the import now, interactively, instead of queuing to run in the background.",
+            help="Perform the import now, interactively, instead of queuing to run in "
+            + "the background.",
         ),
     ] = None,
 ) -> None:
@@ -129,9 +134,12 @@ def edtools(
         typer.Option(
             "--foreground",
             "--fg",
-            help="Perform the import now, interactively, instead of queuing to run in the background.",
+            help="Perform the import now, interactively, instead of queuing to run in "
+            + "the background.",
         ),
     ] = None,
 ) -> None:
-    """Import the specified dataset from the Elite:Dangerous tools collection.  For the list of available datasets, refer to <https://edtools.cc/list.php>."""
+    """Import the specified dataset from the Elite:Dangerous tools
+    collection.  For the list of available datasets, refer to
+    <https://edtools.cc/list.php>."""
     pass

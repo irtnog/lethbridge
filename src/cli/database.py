@@ -39,14 +39,17 @@ def downgrade(
     revision: Annotated[
         str,
         typer.Argument(
-            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+            help="The database schema revision identifier.  For more information, "
+            + "refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
         ),
     ],
     sql: Annotated[
         Optional[bool],
         typer.Option(
             "--sql",
-            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
+            help="Do not modify the database.  Instead, output the SQL statements "
+            + "that would have been executed.  For more information, refer to "
+            + "<https://alembic.sqlalchemy.org/en/latest/offline.html>.",
         ),
     ] = None,
 ) -> None:
@@ -61,7 +64,12 @@ def history(
     rev_range: Annotated[
         Optional[str],
         typer.Argument(
-            help="Starting and ending database schema revisions, separated by a colon, e.g., `1975ea:ae1027`.  Symbols like `head`, `heads`, `base`, or `current` may be used, as can negative relative ranges for the starting revision and positive relative ranges for the ending revision.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html#viewing-history-ranges>.",
+            help="Starting and ending database schema revisions, separated by a colon, "
+            + "e.g., `1975ea:ae1027`.  Symbols like `head`, `heads`, `base`, or "
+            + "`current` may be used, as can negative relative ranges for the starting "
+            + "revision and positive relative ranges for the ending revision.  For "
+            + "more information, refer to "
+            + "<https://alembic.sqlalchemy.org/en/latest/tutorial.html#viewing-history-ranges>.",  # noqa: E501
         ),
     ] = None,
     indicate_current: Annotated[
@@ -84,7 +92,8 @@ def show(
     revision: Annotated[
         str,
         typer.Argument(
-            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+            help="The database schema revision identifier.  For more information, "
+            + "refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
         ),
     ],
 ) -> None:
@@ -99,14 +108,17 @@ def stamp(
     revision: Annotated[
         str,
         typer.Argument(
-            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+            help="The database schema revision identifier.  For more information, "
+            + "refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
         ),
     ],
     sql: Annotated[
         Optional[bool],
         typer.Option(
             "--sql",
-            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
+            help="Do not modify the database.  Instead, output the SQL statements that "
+            + "would have been executed.  For more information, refer to "
+            + "<https://alembic.sqlalchemy.org/en/latest/offline.html>.",
         ),
     ] = None,
     purge: Annotated[
@@ -129,14 +141,17 @@ def upgrade(
     revision: Annotated[
         str,
         typer.Argument(
-            help="The database schema revision identifier.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
+            help="The database schema revision identifier.  For more information, "
+            + "refer to <https://alembic.sqlalchemy.org/en/latest/tutorial.html>.",
         ),
     ],
     sql: Annotated[
         Optional[bool],
         typer.Option(
             "--sql",
-            help="Do not modify the database.  Instead, output the SQL statements that would have been executed.  For more information, refer to <https://alembic.sqlalchemy.org/en/latest/offline.html>.",
+            help="Do not modify the database.  Instead, output the SQL statements that "
+            + "would have been executed.  For more information, refer to "
+            + "<https://alembic.sqlalchemy.org/en/latest/offline.html>.",
         ),
     ] = None,
 ) -> None:
