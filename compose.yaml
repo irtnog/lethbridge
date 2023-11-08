@@ -15,8 +15,6 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-version: "3.7"
-
 volumes:
   pgdata:
 
@@ -33,11 +31,7 @@ services:
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-changeme}"
       POSTGRES_DB: lethbridge
-    ports:
-      - 5432:5432
 
   adminer:
     image: adminer
     <<: *restart_policy
-    ports:
-      - 8080:8080
