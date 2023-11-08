@@ -156,13 +156,13 @@ class ThargoidWar(Base):
 
     __tablename__ = "thargoid_war"
 
-    currentState: Mapped[str]
-    successState: Mapped[str]
-    failureState: Mapped[str]
-    progress: Mapped[Decimal]
-    daysRemaining: Mapped[int]
-    portsRemaining: Mapped[int]
-    successReached: Mapped[bool]
+    currentState: Mapped[str | None]
+    successState: Mapped[str | None]
+    failureState: Mapped[str | None]
+    progress: Mapped[Decimal | None]
+    daysRemaining: Mapped[int | None]
+    portsRemaining: Mapped[int | None]
+    successReached: Mapped[bool | None]
 
     system_id64: Mapped[int] = mapped_column(
         ForeignKey("system.id64"),
