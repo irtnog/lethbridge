@@ -39,9 +39,14 @@ _is_sourced() {
 }
 
 function _main() {
-    # if the first arg looks like a flag, assume it's for Lethbridge
-    if [ "${1:0:1}" = '-' ]; then
-	set -- lethbridge "$@"
+    # if the first arg looks like a flag or a subcommand, assume it's
+    # for Lethbridge
+    COMPREPLY=(
+        $(env COMP_WORDS=lethbridge COMP_CWORD=1 \
+              _LETHBRIDGE_COMPLETE=complete_bash lethbridge)
+    )
+    if ([ "${1:0:1}" = '-' ] || echo "${COMPREPLY[@]}" | fgrep -w "$1" > /dev/null); then
+        set -- lethbridge "$@"
     fi
 
     if [ "$1" = 'lethbridge' ]; then
