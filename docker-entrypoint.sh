@@ -25,8 +25,8 @@ file_env() {
 }
 
 function docker_setup_env() {
-    file_env 'LETHBRIDGE_DB_URI'
-    lethbridge -d configure database uri "${LETHBRIDGE_DB_URI}"
+    file_env 'LETHBRIDGE_DB_URI' sqlite:///galaxy.sqlite
+    lethbridge -d configure set database uri "${LETHBRIDGE_DB_URI}"
     lethbridge -d database upgrade head
 }
 
