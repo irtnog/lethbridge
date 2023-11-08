@@ -155,15 +155,15 @@ def main(
             },
             "loggers": {
                 "alembic": {
-                    "level": "DEBUG",
+                    "level": "DEBUG" if debug else "INFO" if verbose else "WARNING",
                     "propagate": 1,
                 },
                 "lethbridge": {
-                    "level": "DEBUG",
+                    "level": "DEBUG" if debug else "INFO" if verbose else "WARNING",
                     "propagate": 1,
                 },
                 "sqlalchemy.engine": {
-                    "level": "DEBUG",
+                    "level": "DEBUG" if debug else "INFO" if verbose else "WARNING",
                     "propagate": 1,
                 },
             },
