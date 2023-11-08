@@ -38,33 +38,25 @@ logger = logging.getLogger(__name__)
 # create the CLI
 app = typer.Typer()
 
-# build a list of submodules
+# load CLI commands from submodules
 __path__ = pkgutil.extend_path(__path__, __name__)  # noqa: F821
-_submodules = [
-    _modname
-    for _importer, _modname, _ispkg in pkgutil.walk_packages(
-        path=__path__, prefix=__name__ + "."
+[
+    (
+        lambda _cmd, _name, _help: app.add_typer(_cmd, name=_name, help=_help)
+        if isinstance(_cmd, typer.Typer)
+        else None
+    )(
+        getattr(_module, "app", None),
+        _module.__name__.split(".")[-1],
+        getattr(_module, "help", None),
     )
+    for _module in [
+        importlib.import_module(_modname)
+        for _importer, _modname, _ispkg in pkgutil.walk_packages(
+            path=__path__, prefix=__name__ + "."
+        )
+    ]
 ]
-
-# load submodules and add them as CLI subcommands
-for _submodule in _submodules:
-    _mdl = importlib.import_module(_submodule)
-
-    # respect the module's external symbol list if present
-    if "__all__" in _mdl.__dict__:
-        _mdl_names = _mdl.__dict__["__all__"]
-    else:
-        _mdl_names = [_sym for _sym in _mdl.__dict__]
-
-    if "app" in _mdl_names:
-        _subcommand = getattr(_mdl, "app")
-        if "help" in _mdl_names:
-            _help = getattr(_mdl, "help")
-        else:
-            _help = None
-        if isinstance(_subcommand, typer.Typer):
-            app.add_typer(_subcommand, name=_submodule.split(".")[-1], help=_help)
 
 
 @app.command()
