@@ -63,7 +63,7 @@ def mock_cmd_prefix_initialized(mock_cmd_prefix):
     yield mock_cmd_prefix
 
 
-@mark.order("last")
+@mark.order("second_to_last")
 def test_cli_import_spansh(mock_cmd_prefix_initialized, mock_spansh_import):
     result = runner.invoke(
         cli.app,
@@ -102,7 +102,7 @@ def mock_cmd_prefix_imported(mock_cmd_prefix_initialized, mock_spansh_import):
     yield mock_cmd_prefix_initialized
 
 
-@mark.order("last")
+@mark.order("second_to_last")
 def test_cli_import_spansh_update(mock_cmd_prefix_imported, mock_spansh_update):
     # cache the last update time of the first test system
     app_cfg = ConfigParser()

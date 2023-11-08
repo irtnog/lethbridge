@@ -27,12 +27,14 @@ from typer.testing import CliRunner
 runner = CliRunner()
 
 
+@mark.order("second_to_last")
 def test_version():
     result = runner.invoke(cli.app, ["--version"])
     assert result.exit_code == 0
     assert f"{__app_name__} {__version__}" in result.stdout
 
 
+@mark.order("second_to_last")
 def test_cli_autoloader():
     assert "configure" in cli.__dict__
     assert isinstance(cli.configure.app, Typer)
@@ -41,6 +43,7 @@ def test_cli_autoloader():
 INIT_OUTPUT = "The init file sends its regards."
 
 
+@mark.order("second_to_last")
 @mark.parametrize(
     "contents, expected_error, expected_output",
     [

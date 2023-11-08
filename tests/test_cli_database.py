@@ -27,7 +27,7 @@ from typer.testing import CliRunner
 runner = CliRunner()
 
 
-@mark.order("last")
+@mark.order("second_to_last")
 def test_cli_database_upgrade(mock_cmd_prefix):
     result = runner.invoke(cli.app, mock_cmd_prefix + ["database", "upgrade", "head"])
     assert result.exit_code == 0

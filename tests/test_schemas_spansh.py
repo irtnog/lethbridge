@@ -22,8 +22,10 @@ from lethbridge.database import System
 from lethbridge.schemas.spansh import SystemSchema
 from operator import itemgetter
 from operator import methodcaller
+from pytest import mark
 
 
+@mark.order("last")
 def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
     for load_data in mock_galaxy_data:
         with mock_session.begin() as session:
