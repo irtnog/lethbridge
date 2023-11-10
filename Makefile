@@ -18,6 +18,7 @@
 # Check the system Python version.
 PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
 
+# Install Lethbridge in a virtual environment.
 .venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
@@ -38,6 +39,7 @@ clean:
 	rm -rf .coverage lethbridge.egg-info .pytest_cache .venv*
 	find . -type d -name __pycache__ -print | xargs rm -rf
 
+# Install Lethbridge in a container image.
 builder tester:
 	docker build -t lethbridge:$@ --target $@ .
 
