@@ -24,10 +24,38 @@ file_env() {
     unset "$fileVar"
 }
 
-function docker_setup_env() {
+# check whether the argument is a Lethbridge command
+COMPREPLY=(
+    $(env COMP_WORDS=lethbridge COMP_CWORD=1 \
+          _LETHBRIDGE_COMPLETE=complete_bash lethbridge)
+)
+_is_command() {
+    case "${COMPREPLY[@]}" in
+        *"$1"*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+docker_setup_env() {
     file_env 'LETHBRIDGE_DB_URI' sqlite:///galaxy.sqlite
-    lethbridge -d configure set database uri "${LETHBRIDGE_DB_URI}"
-    lethbridge -d database upgrade head
+
+    # use the same global options as the container command
+    local arg
+    local args=()
+    for arg; do
+        if [ "$arg" = 'lethbridge' ]; then
+            :
+        elif _is_command "$arg"; then
+            break
+        else
+            args+=("$arg")
+        fi
+    done
+
+    lethbridge "${args[@]}" configure set database uri "${LETHBRIDGE_DB_URI}"
+    lethbridge "${args[@]}" database upgrade head
 }
 
 # is this file is being run or sourced from another script
@@ -38,19 +66,28 @@ _is_sourced() {
 	&& [ "${FUNCNAME[1]}" = 'source' ]
 }
 
-function _main() {
-    # if the first arg looks like a flag or a subcommand, assume it's
-    # for Lethbridge
-    COMPREPLY=(
-        $(env COMP_WORDS=lethbridge COMP_CWORD=1 \
-              _LETHBRIDGE_COMPLETE=complete_bash lethbridge)
-    )
-    if ([ "${1:0:1}" = '-' ] || echo "${COMPREPLY[@]}" | fgrep -w "$1" > /dev/null); then
+# check arguments for an option that would cause Lethbridge to stop
+_want_help() {
+    local arg
+    for arg; do
+        case "$arg" in
+            --help|-v|--version)
+                return 0
+                ;;
+        esac
+    done
+    return 1
+}
+
+_main() {
+    # if the first arg looks like a Lethbridge flag or command, assume
+    # it's for Lethbridge
+    if [ "${1:0:1}" = '-' ] || _is_command $1; then
         set -- lethbridge "$@"
     fi
 
-    if [ "$1" = 'lethbridge' ]; then
-        docker_setup_env
+    if [ "$1" = 'lethbridge' ] && ! _want_help "$@"; then
+        docker_setup_env "$@"
 	exec "$@"
     fi
 
