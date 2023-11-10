@@ -15,11 +15,14 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-lethbridge.egg-info: .venv/lib/python3.11/site-packages/psycopg2.py
-	. .venv/bin/activate; pip install -e .[psycopg2cffi,dev,test]
+# Check the system Python version.
+PYV = $(shell python3 -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version_info[:2]));sys.stdout.write(t)")
 
-.venv/lib/python3.11/site-packages/psycopg2.py: .venv
+.venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
+
+lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
+	. .venv/bin/activate; pip install -e .[psycopg2cffi,dev,test]
 
 .venv:
 	python3 -m venv --system-site-packages $@
