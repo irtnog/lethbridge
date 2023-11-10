@@ -16,7 +16,7 @@
 # <https://www.gnu.org/licenses/>.
 
 # Check the system Python version.
-PYV = $(shell python3 -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version_info[:2]));sys.stdout.write(t)")
+PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
 
 .venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
