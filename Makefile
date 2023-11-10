@@ -22,6 +22,7 @@ PYV = $(shell python3 -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
 lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
+	. .venv/bin/activate; pip install -U pip setuptools
 	. .venv/bin/activate; pip install -e .[psycopg2cffi,dev,test]
 
 .venv:
