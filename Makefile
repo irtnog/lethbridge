@@ -38,6 +38,11 @@ clean:
 	rm -rf .coverage lethbridge.egg-info .pytest_cache .venv*
 	find . -type d -name __pycache__ -print | xargs rm -rf
 
+builder tester:
+	docker build -t lethbridge:$@ --target $@ .
+
 container docker:
 	docker build -t lethbridge .
 
+prune:
+	docker system prune --all --volumes --force
