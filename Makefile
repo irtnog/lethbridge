@@ -48,3 +48,7 @@ container docker:
 
 prune:
 	docker system prune --all --volumes --force
+
+# Launch databases for developing Alembic migrations
+postgresql:
+	docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=lethbridge postgres:14
