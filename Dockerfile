@@ -51,7 +51,7 @@ FROM builder as tester
 USER root
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends mariadb-server postgresql
+    apt-get install -y --no-install-recommends postgresql
 USER lethbridge:lethbridge
 ENV VIRTUAL_ENV=/home/lethbridge/.venv
 ENV PATH=$VIRUAL_ENV/bin:$PATH
