@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "lethbridge"
 version = "0.1.2"
 requires-python = ">=3.10"
+# cf. https://pypi.org/classifiers/
 classifiers = [
     "Development Status :: 1 - Planning",
     "Environment :: Console",
