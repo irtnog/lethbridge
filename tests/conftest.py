@@ -131,5 +131,10 @@ def mock_spansh_import():
 
 
 @fixture(scope="session")
-def mock_spansh_update():
-    yield str(Path(__file__).parent / "mock-spansh-update.json")
+def mock_spansh_import_outdated():
+    yield str(Path(__file__).parent / "mock-spansh-import-outdated.json")
+
+
+@fixture(scope="session")
+def mock_spansh_import_updated():
+    yield str(Path(__file__).parent / "mock-spansh-import-updated.json")

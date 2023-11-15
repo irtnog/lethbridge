@@ -24,6 +24,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 from typing import List
 from typing import Optional
 import logging
@@ -848,3 +849,13 @@ class System(Base):
             and self.bodies == other.bodies
             and self.stations == other.stations
         )
+
+    # FIXME: implement constraint using a BEFORE UPDATE trigger, instead?
+    @validates("date")
+    def date_must_advance(self, key, new_date: datetime):
+        if self.date and self.date >= new_date:
+            raise ValueError(
+                f"Update uses outdated data for {self!r}: "
+                + f"current={self.date!r}, new={new_date!r}"
+            )
+        return new_date

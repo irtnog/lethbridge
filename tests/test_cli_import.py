@@ -27,6 +27,7 @@ from lethbridge import cli
 from lethbridge.database import System
 from pytest import fixture
 from pytest import mark
+from pytest import param
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import select
@@ -103,7 +104,16 @@ def mock_cmd_prefix_imported(mock_cmd_prefix_initialized, mock_spansh_import):
 
 
 @mark.order("second_to_last")
-def test_cli_import_spansh_update(mock_cmd_prefix_imported, mock_spansh_update):
+@mark.parametrize(
+    "mock_spansh_update_fixture",
+    [
+        param("mock_spansh_import_outdated"),
+        param("mock_spansh_import_updated"),
+    ],
+)
+def test_cli_import_spansh_update(
+    mock_cmd_prefix_imported, mock_spansh_update_fixture, request
+):
     # cache the last update time of the first test system
     app_cfg = ConfigParser()
     app_cfg.read_file(open(mock_cmd_prefix_imported[-1]))
@@ -114,6 +124,7 @@ def test_cli_import_spansh_update(mock_cmd_prefix_imported, mock_spansh_update):
         test_system_1 = session.get(System, 1)
         old_date = test_system_1.date
 
+    mock_spansh_update = request.getfixturevalue(mock_spansh_update_fixture)
     result = runner.invoke(
         cli.app,
         ["-v"]
@@ -125,4 +136,4 @@ def test_cli_import_spansh_update(mock_cmd_prefix_imported, mock_spansh_update):
     # inspect mock database contents
     with Session.begin() as session:
         test_system_1 = session.get(System, 1)
-        assert old_date < test_system_1.date
+        assert old_date <= test_system_1.date
