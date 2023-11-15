@@ -80,8 +80,8 @@ def mock_init_file(tmp_path):
 # https://docs.pytest.org/en/stable/how-to/fixtures.html#using-marks-with-parametrized-fixtures
 @fixture(
     params=[
-        param("postgresql", marks=mark.smoke),
-        "sqlite",
+        "postgresql",
+        param("sqlite", marks=mark.smoke),
     ],
 )
 def mock_db_uri(postgresql, tmp_path, request):
