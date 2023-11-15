@@ -52,3 +52,23 @@ prune:
 # Launch databases for developing Alembic migrations
 postgresql:
 	docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=lethbridge postgres:14
+
+# Install (or remove) build dependencies on Debian/Ubuntu.  Note that
+# these targets must be invoked by root.  Also note that the
+# purge-deps target can remove packages other that the ones listed
+# here, so keep the confirmation prompts to avoid footguns.
+
+DEBIAN_BUILD_DEPS = build-essential devscripts equivs postgresql
+DEBIAN_INSTALL_TOOL = apt-get -o Debug::pkgProblemResolver=yes -y --no-install-recommends
+
+build-deps: /etc/debian_version
+	$(DEBIAN_INSTALL_TOOL) install $(DEBIAN_BUILD_DEPS)
+	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
+	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi
+
+clean-deps: /etc/debian_version
+	rm *.buildinfo *.changes
+
+purge-deps: /etc/debian_version
+	apt-get purge $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps
+	apt-get autoremove
