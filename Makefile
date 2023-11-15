@@ -15,10 +15,10 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-# Check the system Python version.
+# Install Lethbridge in a virtual environment.  (See also the build-deps target.)
+
 PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
 
-# Install Lethbridge in a virtual environment.
 .venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
@@ -40,6 +40,7 @@ clean:
 	find . -type d -name __pycache__ -print | xargs rm -rf
 
 # Install Lethbridge in a container image.
+
 builder tester:
 	docker build -t lethbridge:$@ --target $@ .
 
@@ -50,6 +51,7 @@ prune:
 	docker system prune --all --volumes --force
 
 # Launch databases for developing Alembic migrations
+
 postgresql:
 	docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=lethbridge postgres:14
 
