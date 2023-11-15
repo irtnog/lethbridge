@@ -59,9 +59,10 @@ lethbridge = "lethbridge.__main__:main"
 lethbridge = "src"
 
 [tool.pytest.ini_options]
-# Invoke smoke tests with `pytest -k smoke`.  See also
-# https://docs.pytest.org/en/stable/mark.html,
+# Invoke smoke tests with `pytest -k smoke` or `pytest -m "smoke and
+# not slow"`.  See also https://docs.pytest.org/en/stable/mark.html,
 # https://stackoverflow.com/a/52369721.
 markers = [
+    "slow",
     "smoke",
 ]
