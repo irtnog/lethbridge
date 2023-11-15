@@ -76,13 +76,7 @@ def test_cli_configure_get(
     ],
 )
 def test_cli_configure_set(
-    mock_config_file,
-    section,
-    option,
-    value,
-    reset,
-    expected_error,
-    expected_config,
+    mock_config_file, section, option, value, reset, expected_error, expected_config
 ):
     set_cmd = ["-f", mock_config_file, "configure", "set"]
     if section is not None:
