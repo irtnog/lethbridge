@@ -81,21 +81,22 @@ def mock_init_file(tmp_path):
 @fixture(
     params=[
         "postgresql",
-        param("sqlite", marks=mark.smoke),
+        param("tmp_path", marks=mark.smoke),
     ],
 )
-def mock_db_uri(postgresql, tmp_path, request):
+def mock_db_uri(request):
+    fixture = request.getfixturevalue(request.param)
     match request.param:
         case "postgresql":
             yield (
-                f"postgresql+psycopg2://{postgresql.info.user}"
-                + f":@{postgresql.info.host}"
-                + f":{postgresql.info.port}"
-                + f"/{postgresql.info.dbname}"
+                f"postgresql+psycopg2://{fixture.info.user}"
+                + f":@{fixture.info.host}"
+                + f":{fixture.info.port}"
+                + f"/{fixture.info.dbname}"
                 + "?options=-c timezone=utc"
             )
-        case "sqlite":
-            yield f"sqlite:///{tmp_path / 'db.sqlite3'}"
+        case "tmp_path":
+            yield f"sqlite:///{fixture / 'db.sqlite3'}"
 
 
 @fixture
