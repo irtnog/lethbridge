@@ -8,7 +8,7 @@ version = "0.1.2"
 requires-python = ">=3.10"
 # cf. https://pypi.org/classifiers/
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 2 - Pre-Alpha",
     "Environment :: Console",
     "Environment :: No Input/Output (Daemon)",
     "Intended Audience :: Developers",
