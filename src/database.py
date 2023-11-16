@@ -37,7 +37,16 @@ class Base(DeclarativeBase):
     """This class tracks ORM class definitions and related metadata
     for the tables created in this module."""
 
-    pass
+    # FIXME: implement this constraint using a BEFORE UPDATE trigger
+    # instead of the @validates decorator?
+    def value_must_increase(self, key, new_value):
+        old_value = getattr(self, key, None)
+        if old_value and old_value >= new_value:
+            raise ValueError(
+                f"Update uses outdated data for {self!r}: "
+                + f"old_value={old_value!r}, new_value={new_value!r}"
+            )
+        return new_value
 
 
 class FactionState(Base):
@@ -850,12 +859,6 @@ class System(Base):
             and self.stations == other.stations
         )
 
-    # FIXME: implement constraint using a BEFORE UPDATE trigger, instead?
     @validates("date")
-    def date_must_advance(self, key, new_date: datetime):
-        if self.date and self.date >= new_date:
-            raise ValueError(
-                f"Update uses outdated data for {self!r}: "
-                + f"current={self.date!r}, new={new_date!r}"
-            )
-        return new_date
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
