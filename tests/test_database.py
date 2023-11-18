@@ -26,6 +26,8 @@ from lethbridge.database import Faction
 from lethbridge.database import FactionState
 from lethbridge.database import Market
 from lethbridge.database import MarketOrder
+from lethbridge.database import Outfitting
+from lethbridge.database import OutfittingStock
 from lethbridge.database import Parent
 from lethbridge.database import PowerPlay
 from lethbridge.database import ProhibitedCommodity
@@ -174,6 +176,7 @@ def test_relationships(mock_session):
                     ],
                     services=[
                         StationService(name="Market"),
+                        StationService(name="Outfitting"),
                     ],
                     market=Market(
                         commodities=[
@@ -189,6 +192,19 @@ def test_relationships(mock_session):
                         prohibitedCommodities=[
                             ProhibitedCommodity(name="Bad Commodity 1"),
                             ProhibitedCommodity(name="Bad Commodity 2"),
+                        ],
+                        updateTime=datetime(1970, 1, 1, 0, 0, 1),
+                    ),
+                    outfitting=Outfitting(
+                        modules=[
+                            OutfittingStock(
+                                name="Test Stock 1",
+                                symbol="test_stock_1",
+                                moduleId=1,
+                                class_=1,
+                                rating="E",
+                                category="Testing",
+                            )
                         ],
                         updateTime=datetime(1970, 1, 1, 0, 0, 1),
                     ),
