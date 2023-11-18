@@ -29,7 +29,10 @@ lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
 .venv:
 	python3 -m venv $@
 
-test: lethbridge.egg-info
+smoke: lethbridge.egg-info
+	. .venv/bin/activate; pytest -m "smoke and not slow"
+
+test tests: lethbridge.egg-info
 	. .venv/bin/activate; pytest
 
 coverage: lethbridge.egg-info
