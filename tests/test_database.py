@@ -15,7 +15,9 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from contextlib import nullcontext as does_not_raise
 from datetime import datetime
+from datetime import timedelta
 from decimal import Decimal
 from lethbridge.database import AtmosphereComposition
 from lethbridge.database import Belt
@@ -40,6 +42,7 @@ from lethbridge.database import System
 from lethbridge.database import ThargoidWar
 from pytest import mark
 from pytest import param
+from pytest import raises
 
 
 @mark.parametrize(
@@ -67,7 +70,34 @@ def test_decimals(mock_session, utilities, x):
         assert utilities.approximately(test_system_1.x, x)
 
 
-def test_relationships(mock_session):
+def thunk_no_op(x):
+    pass
+
+
+def thunk_old_system(x):
+    x.date -= timedelta(days=1)
+
+
+def thunk_old_station(x):
+    x.stations[0].updateTime -= timedelta(days=1)
+
+
+def thunk_old_outfitting(x):
+    x.stations[0].outfitting.updateTime -= timedelta(days=1)
+
+
+@mark.parametrize(
+    "thunk, expectation",
+    [
+        param(thunk_no_op, does_not_raise()),
+        param(thunk_old_system, raises(ValueError, match="Update uses outdated data")),
+        param(thunk_old_station, raises(ValueError, match="Update uses outdated data")),
+        param(
+            thunk_old_outfitting, raises(ValueError, match="Update uses outdated data")
+        ),
+    ],
+)
+def test_relationships(mock_session, thunk, expectation):
     with mock_session.begin() as session:
         test_faction_1 = Faction(
             name="Test Faction 1",
@@ -212,3 +242,9 @@ def test_relationships(mock_session):
             ],
         )
         session.add(test_system_1)
+
+    with expectation:
+        with mock_session.begin() as session:
+            test_system_1 = session.get(System, 1)
+            thunk(test_system_1)
+            session.add(test_system_1)

@@ -342,6 +342,10 @@ class Signals(Base):
             and self.body_id64 == other.body_id64
         )
 
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
+
 
 class Parent(Base):
     """Objects around which a body may orbit."""
@@ -453,6 +457,10 @@ class BodyTimestamp(Base):
             and self.body_id64 == other.body_id64
         )
 
+    @validates("value")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
+
 
 class Body(Base):
     """Astronomical objects within a system, including stars and planets."""
@@ -515,6 +523,10 @@ class Body(Base):
     def __eq__(self, other: Body) -> bool:
         return self.id64 == other.id64 and self.updateTime == other.updateTime
 
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
+
 
 class StationEconomy(Base):
     """Stations can have multiple active market economies, which
@@ -565,8 +577,10 @@ class MarketOrder(Base):
 
     __tablename__ = "market_order"
 
+    # name
     symbol: Mapped[str] = mapped_column(primary_key=True)
     category: Mapped[str] = mapped_column(primary_key=True)
+    # commodityId
     demand: Mapped[int]
     supply: Mapped[int]
     buyPrice: Mapped[int]
@@ -639,6 +653,10 @@ class Market(Base):
             and self.prohibitedCommodities == other.prohibitedCommodities
         )
 
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
+
 
 class ShipyardStock(Base):
     """Hulls for sale by a station's shipyard service."""
@@ -684,6 +702,10 @@ class Shipyard(Base):
             and self.updateTime == other.updateTime
             and self.ships == other.ships
         )
+
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
 
 
 class OutfittingStock(Base):
@@ -745,6 +767,10 @@ class Outfitting(Base):
             and self.modules == other.modules
         )
 
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
+
 
 class Station(Base):
     """A space station, mega ship, fleet carrier, surface port, or
@@ -799,6 +825,10 @@ class Station(Base):
 
     def __eq__(self, other: Station) -> bool:
         return self.id == other.id and self.updateTime == self.updateTime
+
+    @validates("updateTime")
+    def value_must_increase(self, key, new_value):
+        return super().value_must_increase(key, new_value)
 
 
 class System(Base):
