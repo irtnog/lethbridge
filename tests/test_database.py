@@ -43,6 +43,7 @@ from lethbridge.database import ThargoidWar
 from pytest import mark
 from pytest import param
 from pytest import raises
+from re import search
 
 
 @mark.parametrize(
@@ -53,7 +54,7 @@ from pytest import raises
         param("1.0000000000001"),
     ],
 )
-def test_decimals(mock_session, utilities, x):
+def test_decimals(mock_session, utilities, recwarn, x):
     with mock_session.begin() as session:
         test_system_1 = System(
             id64=1,
@@ -68,6 +69,15 @@ def test_decimals(mock_session, utilities, x):
     with mock_session.begin() as session:
         test_system_1 = session.get(System, 1)
         assert utilities.approximately(test_system_1.x, x)
+
+    # warning expected on SQLite only;
+    # cf. https://docs.pytest.org/en/stable/how-to/capture-warnings.html#recwarn
+    assert len(recwarn) <= 1
+    if len(recwarn):
+        assert recwarn[0].message.args[0]
+        w = recwarn.pop(UserWarning)
+        assert issubclass(w.category, UserWarning)
+        assert search("only approximately equal to", str(w.message))
 
 
 def thunk_no_op(x):
