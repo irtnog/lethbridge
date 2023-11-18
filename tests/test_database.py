@@ -24,10 +24,16 @@ from lethbridge.database import BodyTimestamp
 from lethbridge.database import DetectedSignal
 from lethbridge.database import Faction
 from lethbridge.database import FactionState
+from lethbridge.database import Market
+from lethbridge.database import MarketOrder
 from lethbridge.database import Parent
 from lethbridge.database import PowerPlay
+from lethbridge.database import ProhibitedCommodity
 from lethbridge.database import Ring
 from lethbridge.database import Signals
+from lethbridge.database import Station
+from lethbridge.database import StationEconomy
+from lethbridge.database import StationService
 from lethbridge.database import System
 from lethbridge.database import ThargoidWar
 from pytest import mark
@@ -158,6 +164,43 @@ def test_relationships(mock_session):
                     updateTime=datetime(1970, 1, 1, 0, 0, 1),
                 ),
             ],
-            stations=[],
+            stations=[
+                Station(
+                    name="Test Station 1",
+                    id=1,
+                    updateTime=datetime(1970, 1, 1, 0, 0, 1),
+                    controllingFaction=Faction(name="FleetCarrier"),
+                    distanceToArrival=1.0,
+                    primaryEconomy="Private Enterprise",
+                    economies=[
+                        StationEconomy(name="Private Enterprise", weight=100),
+                    ],
+                    government="Private Ownership",
+                    services=[
+                        StationService(name="Market"),
+                    ],
+                    type="Drake-Class Carrier",
+                    largeLandingPads=8,
+                    mediumLandingPads=4,
+                    smallLandingPads=4,
+                    market=Market(
+                        commodities=[
+                            MarketOrder(
+                                symbol="Bertrandite",
+                                category="Minerals",
+                                demand=0,
+                                supply=1628,
+                                buyPrice=17441,
+                                sellPrice=0,
+                            )
+                        ],
+                        prohibitedCommodities=[
+                            ProhibitedCommodity(name="Imperial Slaves"),
+                            ProhibitedCommodity(name="Slaves"),
+                        ],
+                        updateTime=datetime(1970, 1, 1, 0, 0, 1),
+                    ),
+                ),
+            ],
         )
         session.add(test_system_1)
