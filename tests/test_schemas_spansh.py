@@ -26,7 +26,6 @@ from pytest import mark
 
 
 @mark.slow
-@mark.order("last")
 def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
     for load_data in mock_galaxy_data:
         with mock_session.begin() as session:

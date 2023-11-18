@@ -64,7 +64,7 @@ def mock_cmd_prefix_initialized(mock_cmd_prefix):
     yield mock_cmd_prefix
 
 
-@mark.order("second_to_last")
+@mark.order("last")
 def test_cli_import_spansh(mock_cmd_prefix_initialized, mock_spansh_import):
     result = runner.invoke(
         cli.app,
@@ -103,7 +103,7 @@ def mock_cmd_prefix_imported(mock_cmd_prefix_initialized, mock_spansh_import):
     yield mock_cmd_prefix_initialized
 
 
-@mark.order("second_to_last")
+@mark.order("last")
 @mark.parametrize(
     "mock_spansh_update_fixture",
     [

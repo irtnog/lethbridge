@@ -37,7 +37,7 @@ def mock_config_file(tmp_path_factory):
     return cfg_file_path
 
 
-@mark.order("second_to_last")
+@mark.order("last")
 @mark.parametrize(
     "section, option, expected_error, expected_output",
     [
@@ -61,7 +61,7 @@ def test_cli_configure_get(
     assert expected_output in result.stdout
 
 
-@mark.order("second_to_last")
+@mark.order("last")
 @mark.parametrize(
     "section, option, value, reset, expected_error, expected_config",
     [
@@ -92,7 +92,7 @@ def test_cli_configure_set(
     assert expected_config == mock_config_file.read_text()
 
 
-@mark.order("second_to_last")
+@mark.order("last")
 def test_cli_configure_set_noop(tmp_path):
     empty_config_file = tmp_path / "empty.ini"
     empty_config_file.touch()
