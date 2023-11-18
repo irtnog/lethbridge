@@ -169,20 +169,12 @@ def test_relationships(mock_session):
                     name="Test Station 1",
                     id=1,
                     updateTime=datetime(1970, 1, 1, 0, 0, 1),
-                    controllingFaction=Faction(name="FleetCarrier"),
-                    distanceToArrival=1.0,
-                    primaryEconomy="Private Enterprise",
                     economies=[
                         StationEconomy(name="Private Enterprise", weight=100),
                     ],
-                    government="Private Ownership",
                     services=[
                         StationService(name="Market"),
                     ],
-                    type="Drake-Class Carrier",
-                    largeLandingPads=8,
-                    mediumLandingPads=4,
-                    smallLandingPads=4,
                     market=Market(
                         commodities=[
                             MarketOrder(
@@ -195,8 +187,8 @@ def test_relationships(mock_session):
                             )
                         ],
                         prohibitedCommodities=[
-                            ProhibitedCommodity(name="Imperial Slaves"),
-                            ProhibitedCommodity(name="Slaves"),
+                            ProhibitedCommodity(name="Bad Commodity 1"),
+                            ProhibitedCommodity(name="Bad Commodity 2"),
                         ],
                         updateTime=datetime(1970, 1, 1, 0, 0, 1),
                     ),
