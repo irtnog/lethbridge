@@ -23,6 +23,7 @@ from lethbridge.schemas.spansh import SystemSchema
 from operator import itemgetter
 from operator import methodcaller
 from pytest import mark
+import warnings
 
 
 @mark.slow
@@ -91,4 +92,7 @@ def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
                     fro = new_fro
                 except:  # noqa: E722
                     pass
-                assert utilities.approximately(to, fro), ctx
+                with warnings.catch_warnings():
+                    # suppress the warning about an approximate match
+                    warnings.simplefilter("ignore")
+                    assert utilities.approximately(to, fro), ctx
