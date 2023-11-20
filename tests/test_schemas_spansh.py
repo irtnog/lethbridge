@@ -33,6 +33,19 @@ def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
             new_system = SystemSchema().load(load_data, session=session)
             session.add(new_system)
 
+        # Note that the sqlalchemy.exc.SAWarning "Object of
+        # type... not in session, add operation along... will not
+        # proceed" is expected behavior during a relationship cascade
+        # per the following, but I can't figure out how to suppress
+        # just that warning without breaking other things.
+        #
+        # https://docs.sqlalchemy.org/en/20/orm/cascades.html#cascade-save-update,
+        # https://docs.sqlalchemy.org/en/20/orm/cascades.html#cascade-merge,
+        # https://docs.sqlalchemy.org/en/20/orm/session_api.html#sqlalchemy.orm.Session.merge,
+        # https://docs.sqlalchemy.org/en/20/orm/session_state_management.html#unitofwork-merging,
+        # https://github.com/sqlalchemy/sqlalchemy/discussions/8172,
+        # https://github.com/sqlalchemy/sqlalchemy/blob/2458ceee94e7bd6e5bf8d9d7270be8819bbe772c/lib/sqlalchemy/orm/unitofwork.py#L321
+
         with mock_session.begin() as session:
             new_system = session.get(System, load_data["id64"])
             dump_data = SystemSchema().dump(new_system)
