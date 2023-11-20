@@ -48,7 +48,9 @@ def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
 
         with mock_session.begin() as session:
             new_system = session.get(System, load_data["id64"])
+            assert isinstance(new_system, System)
             dump_data = SystemSchema().dump(new_system)
+            assert isinstance(dump_data, dict)
 
         # walk source and output data in parallel, depth first,
         # comparing each pair of source/output nodes along the way
