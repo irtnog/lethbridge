@@ -37,9 +37,10 @@ def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
             new_system = session.get(System, load_data["id64"])
             dump_data = SystemSchema().dump(new_system)
 
+        # walk source and output data in parallel, depth first,
+        # comparing each pair of source/output nodes along the way
         stack = deque()
         stack.append((dump_data, load_data, "top level"))
-
         while stack:
             (to, fro, ctx) = stack.pop()
             if isinstance(to, list):
