@@ -23,15 +23,30 @@ from lethbridge.schemas.spansh import SystemSchema
 from operator import itemgetter
 from operator import methodcaller
 from pytest import mark
+from pytest import param
+from re import search
+from sqlalchemy.exc import SAWarning
 import warnings
 
 
-@mark.slow
-def test_spansh_systemschema(mock_session, mock_galaxy_data, utilities):
-    for load_data in mock_galaxy_data:
-        with mock_session.begin() as session:
-            new_system = SystemSchema().load(load_data, session=session)
-            session.add(new_system)
+@mark.parametrize(
+    "galaxy_data_fixture",
+    [
+        param("mock_galaxy_data_small"),
+        param("mock_galaxy_data", marks=mark.slow),
+    ],
+)
+def test_systemschema_load_and_dump(
+    mock_session, utilities, galaxy_data_fixture, request
+):
+    for load_data in request.getfixturevalue(galaxy_data_fixture):
+        try:
+            with mock_session.begin() as session:
+                new_system = SystemSchema().load(load_data, session=session)
+                session.add(new_system)
+        except Exception as e:
+            # add system name/id64 to error message for diagnostics
+            raise (type(e))(f"Loading {load_data['name']} ({load_data['id64']}): {e}")
 
         # Note that the sqlalchemy.exc.SAWarning "Object of
         # type... not in session, add operation along... will not

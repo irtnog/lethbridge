@@ -126,6 +126,12 @@ def mock_galaxy_data():
 
 
 @fixture(scope="session")
+def mock_galaxy_data_small():
+    data_file = Path(__file__).parent / "mock-galaxy-data-small.json"
+    yield json.loads(data_file.read_text(), use_decimal=True)
+
+
+@fixture(scope="session")
 def mock_spansh_import():
     yield str(Path(__file__).parent / "mock-spansh-import.json")
 
