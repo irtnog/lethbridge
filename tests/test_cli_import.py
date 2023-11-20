@@ -82,7 +82,7 @@ def test_cli_import_spansh(mock_cmd_prefix_initialized, mock_spansh_import):
     Session = sessionmaker(engine)
     with Session.begin() as session:
         stmt = select(func.count()).select_from(System)
-        assert 4 == session.scalars(stmt).first()
+        assert 6 == session.scalars(stmt).first()
 
 
 @fixture
