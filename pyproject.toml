@@ -58,8 +58,6 @@ test = [
 [project.scripts]
 lethbridge = "lethbridge.__main__:main"
 
-[tool.setuptools.package-dir]
-lethbridge = "src"
 
 [tool.pytest.ini_options]
 # Invoke smoke tests with `pytest -k smoke` or `pytest -m "smoke and
@@ -69,3 +67,6 @@ markers = [
     "slow",
     "smoke",
 ]
+
+[tool.setuptools.package-dir]
+lethbridge = "src"
