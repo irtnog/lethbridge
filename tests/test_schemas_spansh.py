@@ -15,18 +15,18 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+import warnings
 from collections import deque
-from dateutil.parser import parse
 from itertools import zip_longest
+from operator import itemgetter, methodcaller
+from re import search
+
+from dateutil.parser import parse
+from pytest import mark, param
+from sqlalchemy.exc import SAWarning
+
 from lethbridge.database import System
 from lethbridge.schemas.spansh import SystemSchema
-from operator import itemgetter
-from operator import methodcaller
-from pytest import mark
-from pytest import param
-from re import search
-from sqlalchemy.exc import SAWarning
-import warnings
 
 
 @mark.parametrize(

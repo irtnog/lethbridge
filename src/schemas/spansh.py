@@ -15,41 +15,42 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from ..database import AtmosphereComposition
-from ..database import Belt
-from ..database import Body
-from ..database import BodyTimestamp
-from ..database import DetectedGenus
-from ..database import DetectedSignal
-from ..database import Faction
-from ..database import FactionState
-from ..database import Market
-from ..database import MarketOrder
-from ..database import Material
-from ..database import Outfitting
-from ..database import OutfittingStock
-from ..database import Parent
-from ..database import PowerPlay
-from ..database import ProhibitedCommodity
-from ..database import Ring
-from ..database import SolidComposition
-from ..database import Shipyard
-from ..database import ShipyardStock
-from ..database import Signals
-from ..database import Station
-from ..database import StationEconomy
-from ..database import StationService
-from ..database import System
-from ..database import ThargoidWar
+import logging
 from collections import ChainMap
-from marshmallow import EXCLUDE
-from marshmallow import post_dump
-from marshmallow import post_load
-from marshmallow import pre_load
+
+import simplejson
+from marshmallow import EXCLUDE, post_dump, post_load, pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.fields import Nested
-import logging
-import simplejson
+
+from ..database import (
+    AtmosphereComposition,
+    Belt,
+    Body,
+    BodyTimestamp,
+    DetectedGenus,
+    DetectedSignal,
+    Faction,
+    FactionState,
+    Market,
+    MarketOrder,
+    Material,
+    Outfitting,
+    OutfittingStock,
+    Parent,
+    PowerPlay,
+    ProhibitedCommodity,
+    Ring,
+    Shipyard,
+    ShipyardStock,
+    Signals,
+    SolidComposition,
+    Station,
+    StationEconomy,
+    StationService,
+    System,
+    ThargoidWar,
+)
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

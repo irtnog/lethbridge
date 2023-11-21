@@ -15,9 +15,9 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from . import __app_name__
-from . import cli
 import logging
+
+from . import __app_name__, cli
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

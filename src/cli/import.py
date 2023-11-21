@@ -15,16 +15,17 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from .. import ERRORS
-from ..schemas.spansh import SystemSchema
-from pathlib import Path
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from typing import Annotated
-from typing import Optional
 import logging
+from pathlib import Path
+from typing import Annotated, Optional
+
 import simplejson as json
 import typer
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from .. import ERRORS
+from ..schemas.spansh import SystemSchema
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

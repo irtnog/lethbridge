@@ -16,18 +16,20 @@
 # <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+
+import logging
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import BigInteger
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import validates
-from typing import List
-from typing import Optional
-import logging
+from typing import List, Optional
+
+from sqlalchemy import BigInteger, ForeignKey
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    validates,
+)
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

@@ -15,15 +15,14 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from .. import CONFIG_ERROR
-from .. import ERRORS
-from ..config import load_config
-from ..config import save_config
-from click.exceptions import MissingParameter
 from configparser import ConfigParser
-from typing import Annotated
-from typing import Optional
+from typing import Annotated, Optional
+
 import typer
+from click.exceptions import MissingParameter
+
+from .. import CONFIG_ERROR, ERRORS
+from ..config import load_config, save_config
 
 # create the CLI
 app = typer.Typer()

@@ -15,14 +15,11 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from lethbridge import __app_name__
-from lethbridge import __version__
-from lethbridge import SUCCESS
-from lethbridge import cli
-from pytest import mark
-from pytest import param
+from pytest import mark, param
 from typer import Typer
 from typer.testing import CliRunner
+
+from lethbridge import SUCCESS, __app_name__, __version__, cli
 
 runner = CliRunner()
 

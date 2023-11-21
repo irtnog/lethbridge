@@ -67,6 +67,8 @@ DEBIAN_BUILD_DEPS = build-essential devscripts equivs postgresql
 DEBIAN_INSTALL_TOOL = apt-get -o Debug::pkgProblemResolver=yes -y --no-install-recommends
 
 build-deps: /etc/debian_version
+	sed -i '/deb-src/s/^# //' /etc/apt/sources.list
+	apt-get update
 	$(DEBIAN_INSTALL_TOOL) install $(DEBIAN_BUILD_DEPS)
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi

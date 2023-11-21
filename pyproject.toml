@@ -37,6 +37,7 @@ dev = [
     "autopep8",
     "black",
     "flake8",
+    "isort",
     "jedi",
     "yapf",
 ]
@@ -58,6 +59,9 @@ test = [
 [project.scripts]
 lethbridge = "lethbridge.__main__:main"
 
+[tool.isort]
+profile = "black"
+skip_gitignore = true
 
 [tool.pytest.ini_options]
 # Invoke smoke tests with `pytest -k smoke` or `pytest -m "smoke and

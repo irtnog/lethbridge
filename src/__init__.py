@@ -16,6 +16,7 @@
 # <https://www.gnu.org/licenses/>.
 
 import logging
+
 import pkg_resources
 
 __app_name__ = __name__

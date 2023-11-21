@@ -1,10 +1,11 @@
-from alembic import context
-from lethbridge.database import Base
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 import logging
 import re
+from logging.config import fileConfig
+
+from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+from lethbridge.database import Base
 
 USE_TWOPHASE = False
 

@@ -15,13 +15,13 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from . import CONFIG_ERROR
-from . import SUCCESS
-from . import __app_name__
+import logging
 from configparser import ConfigParser
 from pathlib import Path
-import logging
+
 import typer
+
+from . import CONFIG_ERROR, SUCCESS, __app_name__
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

@@ -16,17 +16,17 @@
 # <https://www.gnu.org/licenses/>.
 
 from decimal import Decimal
-from lethbridge.database import Base
 from math import isclose
 from pathlib import Path
-from pytest import fixture
-from pytest import mark
-from pytest import param
+from warnings import warn
+
+import simplejson as json
+from pytest import fixture, mark, param
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from warnings import warn
-import simplejson as json
+
+from lethbridge.database import Base
 
 
 class Utilities:

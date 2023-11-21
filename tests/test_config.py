@@ -16,13 +16,11 @@
 # <https://www.gnu.org/licenses/>.
 
 from configparser import ConfigParser
-from lethbridge import CONFIG_ERROR
-from lethbridge import SUCCESS
-from lethbridge.config import load_config
-from lethbridge.config import save_config
-from pytest import fixture
-from pytest import mark
-from pytest import param
+
+from pytest import fixture, mark, param
+
+from lethbridge import CONFIG_ERROR, SUCCESS
+from lethbridge.config import load_config, save_config
 
 
 # FIXME: find a more reliable way to mock this

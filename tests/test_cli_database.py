@@ -15,14 +15,15 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+from configparser import ConfigParser
+
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from configparser import ConfigParser
-from lethbridge import cli
 from pytest import mark
-from sqlalchemy import create_engine
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 from typer.testing import CliRunner
+
+from lethbridge import cli
 
 runner = CliRunner()
 

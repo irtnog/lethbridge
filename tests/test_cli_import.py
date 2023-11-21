@@ -22,23 +22,21 @@
 # 4. Running another import with new/updated data.
 # 5. Performing some more database queries.
 
+import importlib
 from configparser import ConfigParser
-from lethbridge import cli
-from lethbridge.database import System
-from pytest import fixture
-from pytest import mark
-from pytest import param
-from sqlalchemy import create_engine
-from sqlalchemy import func
-from sqlalchemy import select
+
+import alembic.command
+import alembic.config
+from pytest import fixture, mark, param
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from typer import Context
 from typer.core import TyperCommand
 from typer.testing import CliRunner
-import alembic.command
-import alembic.config
-import importlib
+
+from lethbridge import cli
+from lethbridge.database import System
 
 runner = CliRunner()
 

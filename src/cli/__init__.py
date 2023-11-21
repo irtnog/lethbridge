@@ -15,22 +15,19 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from .. import ERRORS
-from .. import __app_name__
-from .. import __version__
-from ..config import CONFIG_FILE_PATH
-from ..config import DEFAULT_CONFIG
-from ..config import load_config
+import importlib
+import logging
+import pkgutil
 from configparser import ConfigParser
 from io import StringIO
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Annotated
-from typing import Optional
-import importlib
-import logging
-import pkgutil
+from typing import Annotated, Optional
+
 import typer
+
+from .. import ERRORS, __app_name__, __version__
+from ..config import CONFIG_FILE_PATH, DEFAULT_CONFIG, load_config
 
 # configure module-level logging
 logger = logging.getLogger(__name__)

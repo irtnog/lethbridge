@@ -16,34 +16,35 @@
 # <https://www.gnu.org/licenses/>.
 
 from contextlib import nullcontext as does_not_raise
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
-from lethbridge.database import AtmosphereComposition
-from lethbridge.database import Belt
-from lethbridge.database import Body
-from lethbridge.database import BodyTimestamp
-from lethbridge.database import DetectedSignal
-from lethbridge.database import Faction
-from lethbridge.database import FactionState
-from lethbridge.database import Market
-from lethbridge.database import MarketOrder
-from lethbridge.database import Outfitting
-from lethbridge.database import OutfittingStock
-from lethbridge.database import Parent
-from lethbridge.database import PowerPlay
-from lethbridge.database import ProhibitedCommodity
-from lethbridge.database import Ring
-from lethbridge.database import Signals
-from lethbridge.database import Station
-from lethbridge.database import StationEconomy
-from lethbridge.database import StationService
-from lethbridge.database import System
-from lethbridge.database import ThargoidWar
-from pytest import mark
-from pytest import param
-from pytest import raises
 from re import search
+
+from pytest import mark, param, raises
+
+from lethbridge.database import (
+    AtmosphereComposition,
+    Belt,
+    Body,
+    BodyTimestamp,
+    DetectedSignal,
+    Faction,
+    FactionState,
+    Market,
+    MarketOrder,
+    Outfitting,
+    OutfittingStock,
+    Parent,
+    PowerPlay,
+    ProhibitedCommodity,
+    Ring,
+    Signals,
+    Station,
+    StationEconomy,
+    StationService,
+    System,
+    ThargoidWar,
+)
 
 
 @mark.parametrize(

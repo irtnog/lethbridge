@@ -15,14 +15,11 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from lethbridge import CONFIG_ERROR
-from lethbridge import SUCCESS
-from lethbridge import cli
-from lethbridge.config import DEFAULT_CONFIG
-from pytest import fixture
-from pytest import mark
-from pytest import param
+from pytest import fixture, mark, param
 from typer.testing import CliRunner
+
+from lethbridge import CONFIG_ERROR, SUCCESS, cli
+from lethbridge.config import DEFAULT_CONFIG
 
 runner = CliRunner()
 
