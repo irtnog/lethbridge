@@ -39,6 +39,7 @@ dev = [
     "flake8",
     "isort",
     "jedi",
+    "pre-commit",
     "yapf",
 ]
 psycopg2 = [
