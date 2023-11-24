@@ -1,6 +1,11 @@
 name: Lint
 
-on: [push, pull_request, workflow_dispatch]
+# Trigger this workflow manually, by pushing commits to any branch, or
+# by filing a pull request.
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
 
 jobs:
   lint:
