@@ -24,7 +24,6 @@ import typer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .. import ERRORS
 from ..schemas.spansh import SystemSchema
 
 # configure module-level logging

@@ -19,11 +19,9 @@ import warnings
 from collections import deque
 from itertools import zip_longest
 from operator import itemgetter, methodcaller
-from re import search
 
 from dateutil.parser import parse
 from pytest import mark, param
-from sqlalchemy.exc import SAWarning
 
 from lethbridge.database import System
 from lethbridge.schemas.spansh import SystemSchema
