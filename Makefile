@@ -19,6 +19,8 @@
 
 PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
 
+dev-infra: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+
 .venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
@@ -29,18 +31,26 @@ lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
 .venv:
 	python3 -m venv $@
 
-smoke: lethbridge.egg-info
+smoke: dev-infra
 	. .venv/bin/activate; pytest -m "smoke and not slow"
 
-test tests: lethbridge.egg-info
+test tests: dev-infra
 	. .venv/bin/activate; pytest
 
-coverage: lethbridge.egg-info
+coverage: dev-infra
 	. .venv/bin/activate; pytest --cov=lethbridge
 
-clean:
-	rm -rf .coverage lethbridge.egg-info .pytest_cache .venv*
-	find . -type d -name __pycache__ -print | xargs rm -rf
+# Install, run, or update pre-commit hooks.
+
+pre-commit: .git/hooks/pre-commit
+
+.git/hooks/pre-commit: .pre-commit-config.yaml dev-infra
+	. .venv/bin/activate; pre-commit install --install-hooks
+
+check checks lint: pre-commit
+	. .venv/bin/activate; pre-commit validate-config
+	. .venv/bin/activate; pre-commit validate-manifest
+	. .venv/bin/activate; pre-commit run --show-diff-on-failure --all-files
 
 # Install Lethbridge in a container image.
 
@@ -73,9 +83,10 @@ build-deps: /etc/debian_version
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi
 
-clean-deps: /etc/debian_version
-	rm *.buildinfo *.changes
-
 purge-deps: /etc/debian_version
 	apt-get purge $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps
 	apt-get autoremove
+
+clean:
+	rm -rf *.buildinfo *.changes .coverage lethbridge.egg-info .pytest_cache .venv*
+	find . -type d -name __pycache__ -print | xargs rm -rf
