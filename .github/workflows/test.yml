@@ -1,0 +1,33 @@
+name: Test
+
+# Trigger this workflow manually or after linting.
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Lint
+    types:
+      - completed
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version}}
+      - run: sudo make build-deps
+      - run: pip install .[psycopg2cffi,test]
+      - run: >-
+          USER_SITE=`python -m site --user-site`;
+          mkdir -p "${USER_SITE}";
+          echo "from psycopg2cffi import compat" > "${USER_SITE}/psycopg2.py";
+          echo "compat.register()" >> "${USER_SITE}/psycopg2.py"
+      - uses: pavelzw/pytest-action@v2

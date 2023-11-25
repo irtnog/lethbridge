@@ -51,6 +51,8 @@ psycopg2cffi = [
 test = [
     "pytest",
     "pytest-cov",
+    "pytest-emoji",
+    "pytest-md",
     "pytest-order",
     "pytest-postgresql",
     "pytest-reportlog",
