@@ -77,16 +77,25 @@ DEBIAN_BUILD_DEPS = build-essential devscripts equivs postgresql
 DEBIAN_INSTALL_TOOL = apt-get -o Debug::pkgProblemResolver=yes -y --no-install-recommends
 
 build-deps: /etc/debian_version
+ifneq ($(shell id -u), 0)
+	@echo You must be root to perform this action.
+	@exit 1
+endif
 	sed -i '/deb-src/s/^# //' /etc/apt/sources.list
 	apt-get update
 	$(DEBIAN_INSTALL_TOOL) install $(DEBIAN_BUILD_DEPS)
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi
+	rm -f *.buildinfo *.changes
 
-purge-deps: /etc/debian_version
-	apt-get purge $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps
+clean-deps: /etc/debian_version
+ifneq ($(shell id -u), 0)
+	@echo You must be root to perform this action.
+	@exit 1
+endif
+	apt-mark auto $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps
 	apt-get autoremove
 
 clean:
-	rm -rf *.buildinfo *.changes .coverage lethbridge.egg-info .pytest_cache .venv*
+	rm -rf build .coverage dist lethbridge.egg-info .pytest_cache .venv*
 	find . -type d -name __pycache__ -print | xargs rm -rf
