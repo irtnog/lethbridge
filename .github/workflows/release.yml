@@ -29,6 +29,10 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v8.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/cache/save@v3
+        with:
+          path: .
+          key: ${{ github.workflow }}-${{ github.ref }}-release
     outputs:
       released: ${{ steps.release.outputs.released }}
 
@@ -37,5 +41,12 @@ jobs:
     needs: release
     if: ${{ needs.release.outputs.released }} == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v3
+        with:
+          path: .
+          key: ${{ github.workflow }}-${{ github.ref }}-release
       - run: pip install build && python -m build
+      - uses: actions/cache/save@v3
+        with:
+          path: .
+          key: ${{ github.workflow }}-${{ github.ref }}-build
