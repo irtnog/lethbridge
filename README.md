@@ -1,116 +1,110 @@
-# lethbridge
+# Lethbridge
 
 [Free/libre/open source](LICENSE) client for the [Elite Dangerous Data Network](https://github.com/EDCD/EDDN) (and more)
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-<details>
+# Quick Start
 
-<summary>The following is <strong>UNDER CONSTRUCTION</strong> and only reflects the intentions of the authors.</summary>
+TODO
 
-## Quickstart
+# Theory of Operation
 
-1. Install [Docker Engine](https://docs.docker.com/engine/).  See below for host storage requirements.
+TODO
 
-2. Download and unpack the [latest release](../../releases/latest) of Lethbridge's Docker Compose project (e.g., `lethbridge-1.0.0-compose.zip`).
+# Resource Planning
 
-3. Review the contents of [.env.example](.env.example).  Save any changes to a file named `.env`.
+TODO
 
-4. Initialize the database and start the [EDDN](https://github.com/EDCD/EDDN) listener in the background with `docker compose start`.
+# Backup/Restore
 
-Container images for the most recent Lethbridge major release get rebuilt weekly.  Download updated images by running `docker compose pull`.  Deploy them with `docker compose up -d`.  To remove cached copies of outdated images, run `docker image prune -f`.  The Lethbridge [CLI](https://en.wikipedia.org/wiki/Command-line_interface) can be accessed using `docker compose exec service`.  For more information, refer to the [Docker Compose documentation](https://docs.docker.com/compose/).
+TODO
 
-Lethbridge can import data from several sources.  Import jobs will run in background threads by default.  For example:
+# Troubleshooting
 
-- To import galaxy map data from Spansh, use `lethbridge import spansh galaxy`.
+TODO
 
-- To import Guardian points of interest from Canonn, use `lethbridge import canonn guardians`.
+# Contributing
 
-- To import Thargoid surface sites from edtools.cc, use `lethbridge import edtools "Active Thargoid Structures"`.
+This project uses the [Git feature branch workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).  Please submit your changes for review as a [GitHub pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests).
 
-For more information, run `lethbridge import --help`.
+## Development Environment
 
-## Theory of Operation
+Lethbridge requires Python 3.10 or newer.  To set up your development environment on Linux, run these commands from the project root directory:
 
-The [Elite Dangerous Data Network (EDDN)](https://github.com/EDCD/EDDN) is...
+- `sudo make build-deps`—installs build dependencies (Debian/Ubuntu only)
 
-Named after famed explorer CMDR Qohen Leth, Lethbridge connects to the EDDN and listens...
+- `make`—creates a virtual environment named `.venv` in the current working directory and performs an editable installation of Lethbridge, including development and testing tools
 
-See ["Supported Databases" in the SQLAlchemy documentation](https://docs.sqlalchemy.org/latest/core/engines.html#supported-databases)...
+- `make pre-commit`—installs pre-commit hooks (requires the virtual environment to be active in your code editor or [Git porcelain](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain))
 
-### Resource Planning
+- `make test`—performs comprehensive functional and integration testing of Lethbridge
 
-The Spansh galaxy data dump requires... of disk space...
+- `make smoke`—runs a shorter, faster subset of the test suite
 
-EDDN generates about... of network traffic...
+- `make docker`—builds a fully tested and release-ready container image
 
-### Backup/Restore
+Additional [make(1)](https://linux.die.net/man/1/make) targets are available.  Review the [Makefile](Makefile) for details.
 
-Continuous archiving and point-in-time recovery (PITR)...
+## Code Style
 
-https://www.postgresql.org/docs/current/backup.html
+The following code styles are in use:
 
-https://duckduckgo.com/?q=docker+postgresql+wal+archiving
+- [Python Black](https://black.readthedocs.io/) and [isort](https://pycqa.github.io/isort/)
 
-https://stackoverflow.com/questions/67442236/setting-up-wal-archiving-by-passing-archive-command-on-the-postgres-command-line
+- [Dockerfile best practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 
-https://www.digitalocean.com/community/tutorials/how-to-set-up-continuous-archiving-and-perform-point-in-time-recovery-with-postgresql-12-on-ubuntu-20-04
+- [the Home Assistant YAML style guide](https://developers.home-assistant.io/docs/documenting/yaml-style-guide/)
 
-https://stackoverflow.com/questions/56117363/postgres-backup-with-wal
+## Commit Messages
 
-https://www.postgresql.org/docs/current/continuous-archiving.html
+This project implements [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) using [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).  Valid commit types are:
 
-https://www.fusionbox.com/blog/detail/postgresql-wal-archiving-with-wal-g-and-s3-complete-walkthrough/644/
+- **build**—changes to the build system or external dependencies
 
-https://hub.docker.com/r/koehn/postgres-wal-g
+- **ci**—changes to the CI configuration files and scripts
 
-https://github.com/abevoelker/docker-postgres
+- **docs**—documentation-only changes
 
-https://hub.docker.com/r/akcjademokracja/postgresql-wal-e/#!
+- **feat**—a new feature
 
-### Troubleshooting
+- **fix**—a bug fix
 
-## Contributing
+- **perf**—a code change that improves performance
 
-All Python code must match the [Black](https://black.readthedocs.io/) code style.  Follow [Dockerfile best practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) and [the Home Assistant YAML style guide](https://developers.home-assistant.io/docs/documenting/yaml-style-guide/) as appropriate.
+- **refactor**—a code change that neither fixes a bug nor adds a feature
 
-In Git commit messages, follow the [Angular Commit Message Conventions](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit).  These scopes are currently active in this project:
+- **test**—new tests or corrections to existing tests
 
-- the top-level Python module name sans the `lethbridge.` prefix and any suffixes, e.g., `database` for `lethbridge.database`, `cli` for `lethbridge.cli.configure`
+A commit's scope should be the second-level Python module name sans the `lethbridge.` prefix or any suffixes with a few exceptions.  Valid commit scopes are:
 
-- `docker`
+- [lethbridge](src/__init__.py) and [main](src/__main__.py)—for the corresponding top-level dunder modules
 
-- `packaging`
+- [cli](src/cli/)—the Lethbridge command line interface, using [Typer](https://typer.tiangolo.com/)
 
-- `changelog`
+- [config](src/config.py)—the default configuration and related helper functions
 
-- `release`
+- [database](src/database.py)—the data model, defined using [SQLAlchemy ORM](https://docs.sqlalchemy.org/latest/orm)
 
-### Development Environment
+- [migrations](src/migrations/)—database schema migrations handled by [Alembic](https://alembic.sqlalchemy.org/)
 
-```
-pip install -e .[dev]
-```
+- [schemas](src/schemas)—parsers for data imports and exports defined using [marshmallow-sqlalchemy](https://marshmallow-sqlalchemy.readthedocs.io/)
 
-https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+- **packaging**—package layout or other metadata, e.g., the arrangement of [src/](src/), alterations to [pyproject.toml](pyproject.toml) or [Dockerfile](Dockerfile)
 
-https://stackoverflow.com/questions/69711606/how-to-install-a-package-using-pip-in-editable-mode-with-pyproject-toml
+- no scope—for **refactor** or **test** changes covering multiple packages; or for **build**, **ci**, or **doc** changes not specific to one package
 
-https://pre-commit.com/
+## Database Migrations
 
-### Database Migrations Using Alembic
+Lethbridge uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema.  This project started with Alembic's multidb template.  Unlike Alembic's generic template, multidb will run migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).
 
-[Alembic](https://alembic.sqlalchemy.org/) is installed as part of the development environment documented above.
-
-This project started with Alembic's multidb template.  The primary difference between that and the generic template is that multidb will run the migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).  Adjust `databases` in [Alembic's configuration](alembic.ini) as necessary, with a `sqlalchemy.url` for each engine name, but **DO NOT** commit usernames or passwords as part of recorded changes to that file.
-
-**Alembic commands MUST be run from the project root directory, i.e., the same directory as _alembic.ini_.**
+**Alembic commands _MUST_ be run from the project root directory, i.e., the same directory as [alembic.ini](alembic.ini).**
 
 To develop new database migrations:
 
-1. Perform an editable installation of Lethbridge as documented in ["Development Environment"](#development-environment) above.
+1. Perform an editable installation of Lethbridge as documented in [Development Environment](#development-environment) above.
 
-2. Deploy the test databases, e.g., PostgreSQL in a container.
+2. Deploy the test databases, e.g., start PostgreSQL in a container.
 
 3. Check the Alembic configuration by running `alembic current` from the project root directory.
 
@@ -120,11 +114,10 @@ To develop new database migrations:
 
 6. Migrate the test databases to the latest model by running `alembic upgrade head`.
 
-### Test Environment
+To add support for a new database engine:
 
-```
-pip install -e .[test]
-pytest -s -v integration/
-```
+1. Add the engine to the `databases` list in [alembic.ini](alembic.ini).  Please sort this list in alphabetical order.
 
-</details>
+2. Add a section for that engine between the `[alembic]` and `[post_write_hooks]` sections.  Please also keep the database sections in alphabetical order.
+
+3. In the new database section, specify a `sqlalchemy.url` for the engine.  **DO NOT** commit usernames or passwords as part of recorded changes to **alembic.ini**.
