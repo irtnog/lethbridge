@@ -39,9 +39,11 @@ dev = [
     "build",
     "flake8",
     "isort",
+    "id",
     "jedi",
     "pre-commit",
     "python-semantic-release",
+    "twine",
     "yapf",
 ]
 psycopg2 = [
@@ -60,6 +62,10 @@ test = [
     "pytest-reportlog",
     "python-dateutil>=2.8.2",
 ]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
 
 [project.scripts]
 lethbridge = "lethbridge.__main__:main"

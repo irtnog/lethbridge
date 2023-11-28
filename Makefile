@@ -25,6 +25,7 @@ dev-infra: .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
 lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
+	. .venv/bin/activate; pip install -U pip-with-requires-python
 	. .venv/bin/activate; pip install -U pip setuptools
 	. .venv/bin/activate; pip install -e .[psycopg2cffi,dev,test]
 
@@ -39,6 +40,15 @@ test tests: dev-infra
 
 coverage: dev-infra
 	. .venv/bin/activate; pytest --cov=lethbridge
+
+dist: dev-infra
+	. .venv/bin/activate; python -m build
+
+distcheck: dist
+	. .venv/bin/activate; twine check dist/*
+
+distclean:
+	rm -rf dist
 
 # Install, run, or update pre-commit hooks.
 
