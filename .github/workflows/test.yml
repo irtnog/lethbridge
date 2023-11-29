@@ -35,7 +35,7 @@ jobs:
         with:
           key: pytest-${{ matrix.python-version }}-${{ steps.hash-sources.outputs.hash }}
           lookup-only: true
-          path: .pytest-successful-${{ matrix.python-version }}
+          path: pytest.out
       - if: steps.cache-pytest.outputs.cache-hit != 'true'
         uses: actions/setup-python@v4
         with:
@@ -53,6 +53,4 @@ jobs:
       - if: steps.cache-pytest.outputs.cache-hit != 'true'
         uses: pavelzw/pytest-action@v2
         with:
-          custom-arguments: --cov
-      - if: steps.cache-pytest.outputs.cache-hit != 'true'
-        run: touch .pytest-successful-${{ matrix.python-version }}
+          custom-arguments: --cov --report-log=pytest.out
