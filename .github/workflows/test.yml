@@ -24,9 +24,11 @@ jobs:
         with:
           key: workdir-${{ github.sha }}
           path: .
+      # Computer science has only 3 hard problems: naming things,
+      # cache invaconcurrency, lidation, and off-by-one errors.
       - id: hash-sources
         run: |
-          echo "hash=$(tar cf - src tests | sha512sum | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "hash=$(find src tests -type f -exec cat '{}' \; | sha512sum | awk '{print $1}')" >> $GITHUB_OUTPUT
         shell: bash
       - id: cache-pytest
         uses: actions/cache@v3
