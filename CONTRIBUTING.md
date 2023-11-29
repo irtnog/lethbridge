@@ -4,15 +4,15 @@ This project uses the [Git feature branch workflow](https://www.atlassian.com/gi
 
 ## Development Environment
 
-Lethbridge requires Python 3.10 or newer.  To set up your development environment on Linux, run these commands from the project root directory:
+This project requires Python 3.10 or newer.  To set up your development environment on Linux, run these commands from the project root directory:
 
 - `sudo make build-deps`—installs build dependencies (Debian/Ubuntu only)
 
-- `make`—creates a virtual environment named `.venv` in the current working directory and performs an editable installation of Lethbridge, including development and testing tools
+- `make`—creates a virtual environment named `.venv` in the current working directory and performs an editable installation of this project, including development and testing tools
 
 - `make pre-commit`—installs pre-commit hooks (requires the virtual environment to be active in your code editor or [Git porcelain](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain))
 
-- `make test`—performs comprehensive functional and integration testing of Lethbridge
+- `make test`—performs comprehensive functional and integration testing of this project
 
 - `make smoke`—runs a shorter, faster subset of the test suite
 
@@ -70,13 +70,13 @@ A commit's scope should be the second-level Python module name sans the `lethbri
 
 ## Database Migrations
 
-Lethbridge uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema.  This project started with Alembic's multidb template.  Unlike Alembic's generic template, multidb will run migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).
+This project uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema.  This project started with Alembic's multidb template.  Unlike Alembic's generic template, multidb will run migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).
 
 **Alembic commands _MUST_ be run from the project root directory, i.e., the same directory as [alembic.ini](alembic.ini).**
 
 To develop new database migrations:
 
-1. Perform an editable installation of Lethbridge as documented in [Development Environment](#development-environment) above.
+1. Perform an editable installation of this project as documented in [Development Environment](#development-environment) above.
 
 2. Deploy the test databases, e.g., start PostgreSQL in a container.
 
