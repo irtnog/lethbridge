@@ -29,6 +29,8 @@ lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
 	. .venv/bin/activate; pip install -U pip setuptools
 	. .venv/bin/activate; pip install -e .[psycopg2cffi,dev,test]
 
+venv: .venv
+
 .venv:
 	python3 -m venv $@
 
