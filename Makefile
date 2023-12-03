@@ -34,16 +34,16 @@ venv: .venv
 .venv:
 	python3 -m venv $@
 
-smoke: dev-infra
+smoke: .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	. .venv/bin/activate; pytest -m "smoke and not slow"
 
-test tests: dev-infra
+test tests: .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	. .venv/bin/activate; pytest
 
-coverage: dev-infra
+coverage: .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	. .venv/bin/activate; pytest --cov=lethbridge
 
-dist: dev-infra
+dist: .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	. .venv/bin/activate; python -m build
 
 distcheck: dist
@@ -56,10 +56,10 @@ distclean:
 
 pre-commit: .git/hooks/pre-commit
 
-.git/hooks/pre-commit: .pre-commit-config.yaml dev-infra
+.git/hooks/pre-commit: .pre-commit-config.yaml .venv/lib/python$(PYV)/site-packages/psycopg2.py
 	. .venv/bin/activate; pre-commit install --install-hooks
 
-check checks lint: pre-commit
+check checks lint: .git/hooks/pre-commit
 	. .venv/bin/activate; pre-commit validate-config
 	. .venv/bin/activate; pre-commit validate-manifest
 	. .venv/bin/activate; pre-commit run --show-diff-on-failure --all-files
