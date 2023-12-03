@@ -2,6 +2,70 @@
 
 
 
+## v0.2.1 (2023-12-03)
+
+### Build
+
+* build: replace aliases in target dependency lists with the actual artifacts in question
+
+Otherwise, make will re-run targets unnecessarily. ([`656ccfd`](https://github.com/irtnog/lethbridge/commit/656ccfd3283ef5f047781d47ddb9573d7871f030))
+
+* build: add alias for venv creation ([`5a91cf2`](https://github.com/irtnog/lethbridge/commit/5a91cf21ddaa6ff00c2c298df8c083395df5b691))
+
+* build: sort imports before saving in Emacs ([`7ebf49a`](https://github.com/irtnog/lethbridge/commit/7ebf49a4763137216a5f3e220a56dc96991002a4))
+
+* build(packaging): force Twine to parse the project README as Markdown, not reStructuredText
+
+All the documentation says the content type gets detected
+automatically, yet `twine check` as of Twine 4.0.2 fails with the
+error &#34;\`long_description\` has syntax errors in markup and would not
+be rendered on PyPI&#34;. ([`e016186`](https://github.com/irtnog/lethbridge/commit/e01618617d8c2e27ad5468cbc5d02ed88bae65b5))
+
+### Ci
+
+* ci: grant python-semantic-release permission to update the GitHub repo ([`00e99bd`](https://github.com/irtnog/lethbridge/commit/00e99bdd9094056847d12ce1f02772cdd7d9b335))
+
+* ci: adjust publishing order to do TestPyPI before PyPI ([`2140c03`](https://github.com/irtnog/lethbridge/commit/2140c03660994ae83faca7816f2224cce276c08c))
+
+* ci: limit test coverage reporting to this package ([`b60692b`](https://github.com/irtnog/lethbridge/commit/b60692b0426ffe98022762a97c16fd8a09982223))
+
+* ci: cache the pytest report log instead of an empty file ([`ef8c160`](https://github.com/irtnog/lethbridge/commit/ef8c160a964224f46122f48996e9bd0bd4601dd2))
+
+* ci: calculate the source hash based on file contents only
+
+The previous version mistakenly included file system metadata in the
+hash calculation. ([`6346270`](https://github.com/irtnog/lethbridge/commit/6346270c017b72b23f2821588bc7b52691865ef0))
+
+* ci: reduce workflow execution time by caching dependencies, the working directory, and test results ([`60c1c6c`](https://github.com/irtnog/lethbridge/commit/60c1c6cf561eb5b820578aa9d82eaab20b91671a))
+
+* ci: publish packages to PyPI and GitHub Releases ([`9136a28`](https://github.com/irtnog/lethbridge/commit/9136a28a36d86b35a91a5a4f49c6a75afcf45a3c))
+
+* ci(release): publish package distributions to TestPyPI ([`93f50f4`](https://github.com/irtnog/lethbridge/commit/93f50f42d8ee9f0fab5b2a28bda3c3eb7c24bbb1))
+
+* ci(release): cache the release and build jobs&#39; outputs ([`00f4b3e`](https://github.com/irtnog/lethbridge/commit/00f4b3e39cd492c81c15ad1cc24544873027d4be))
+
+* ci(release): build distributions in an isolated, unprivileged environment
+
+This stops privilege escalation attacks that work by injecting
+malicious scripts into the build environment. ([`9320a3b`](https://github.com/irtnog/lethbridge/commit/9320a3b4c7639a0ec6c14cd0cdab02e1088737ca))
+
+### Documentation
+
+* docs: generalize some of the language used in the developer guidance ([`3c9b71b`](https://github.com/irtnog/lethbridge/commit/3c9b71b77ef04d47aadcc2b9caa2b0521c6b5c76))
+
+* docs: add a build status shield ([`c4ae6e2`](https://github.com/irtnog/lethbridge/commit/c4ae6e27e3c0ff235e6bd0dbdd314b335af36947))
+
+* docs: move developer guidance to a separate document ([`d1dc86e`](https://github.com/irtnog/lethbridge/commit/d1dc86e830f7fd6c293de5dc17fd68d9f91cca85))
+
+* docs: remove preliminary content from the project&#39;s long description ([`25b5b04`](https://github.com/irtnog/lethbridge/commit/25b5b04018c5fdf52f4465e47cc82366da909148))
+
+### Fix
+
+* fix(lethbridge): migrate from pkg_resources to importlib.metadata
+
+Cf. https://setuptools.pypa.io/en/latest/pkg_resources.html. ([`df6932e`](https://github.com/irtnog/lethbridge/commit/df6932ec7c6e3bd536293edb48b8fb1bcb7fc61c))
+
+
 ## v0.2.0 (2023-11-28)
 
 ### Build
