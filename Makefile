@@ -15,6 +15,11 @@
 # License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+.PHONY: dev-infra venv debug run smoke test tests tests coverage dist \
+	distcheck distclean pre-commit check checks list builder \
+	tester container docker prune bashbrew manifest-tool \
+	build-deps clean-deps clean
+
 # Install Lethbridge in a virtual environment.  (See also the build-deps target.)
 
 PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
