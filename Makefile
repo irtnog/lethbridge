@@ -104,7 +104,12 @@ manifest-tool: .venv/bin/manifest-tool
 # Launch databases for developing Alembic migrations
 
 postgresql:
-	docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=lethbridge postgres:14
+	docker run -d --name alembic-postgresql \
+		-p 127.0.0.1:5432:5432 \
+		-v alembic_pgdata:/var/lib/postgresql/data \
+		-e POSTGRES_HOST_AUTH_METHOD=trust \
+		-e POSTGRES_DB=lethbridge \
+		postgres:14
 
 # Install (or remove) build dependencies on Debian/Ubuntu.  Note that
 # these targets must be invoked by root.  Also note that the
