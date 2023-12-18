@@ -18,7 +18,9 @@
 .PHONY: dev-infra venv debug run smoke test tests tests coverage dist \
 	distcheck distclean pre-commit check checks list builder \
 	tester container docker prune bashbrew manifest-tool \
-	build-deps clean-deps clean
+	postgresql postgresql-backup postgresql-restore postgresql-load \
+	postgresql-delete sqlite sqlite-backup sqlite-restore sqlite-load \
+	sqlite-delete build-deps clean-deps clean
 
 # Install Lethbridge in a virtual environment.  (See also the build-deps target.)
 
@@ -101,15 +103,70 @@ manifest-tool: .venv/bin/manifest-tool
 	cp $(TMP)/manifest-tool $@
 	rm -rf $(TMP)
 
-# Launch databases for developing Alembic migrations
+# Manage development database engines.
+
+DB_REVISION ?= head
 
 postgresql:
-	docker run -d --name alembic-postgresql \
+	docker run -d --name lethbridge-dev-pgsql \
 		-p 127.0.0.1:5432:5432 \
-		-v alembic_pgdata:/var/lib/postgresql/data \
+		-v lethbridge_dev_pgdata:/var/lib/postgresql/data \
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		-e POSTGRES_DB=lethbridge \
 		postgres:14
+
+postgresql-backup:
+	docker stop lethbridge-dev-pgsql
+	docker run -it --rm \
+		--volumes-from lethbridge-dev-pgsql \
+		-v `pwd`:/backup \
+		debian \
+		tar -C /var/lib/postgresql/data \
+			-cvzf /backup/db.pgsql-backup.tgz .
+	docker start lethbridge-dev-pgsql
+
+postgresql-restore:
+	docker stop lethbridge-dev-pgsql
+	docker run -it --rm \
+		--volumes-from lethbridge-dev-pgsql \
+		-v `pwd`:/backup \
+		debian \
+		tar -C /var/lib/postgresql/data \
+			-xvzf /backup/db.pgsql-backup.tgz .
+	docker start lethbridge-dev-pgsql
+
+postgresql-load: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
+		configure set database uri \
+		"postgresql+psycopg2://postgres@localhost/lethbridge?options=-c timezone=utc"
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
+		database upgrade $(DB_REVISION)
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
+		import spansh --fg tests/mock-galaxy-data.json
+
+postgresql-delete:
+	docker stop lethbridge-dev-pgsql || true
+	docker rm lethbridge-dev-pgsql || true
+	docker volume rm lethbridge_dev_pgdata || true
+
+sqlite: db.sqlite3
+
+db.sqlite3:; touch $@
+
+sqlite-backup: db.sqlite3; cp db.sqlite3 db.sqlite3-backup
+
+sqlite-restore: db.sqlite3; cp db.sqlite3-backup db.sqlite3
+
+sqlite-load: db.sqlite3 .venv/lib/python$(PYV)/site-packages/psycopg2.py
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
+		configure set database uri \
+		"sqlite:///db.sqlite3"
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
+		database upgrade $(DB_REVISION)
+	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
+		import spansh --fg tests/mock-galaxy-data.json
+
+sqlite-delete:; rm -f db.sqlite3 || true
 
 # Install (or remove) build dependencies on Debian/Ubuntu.  Note that
 # these targets must be invoked by root.  Also note that the
