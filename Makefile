@@ -24,12 +24,12 @@
 
 # Install Lethbridge in a virtual environment.  (See also the build-deps target.)
 
-PYV = $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
+PYTHON_VERSION := $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
+PSYCOPG2CFFI_COMPAT := .venv/lib/python$(PYTHON_VERSION)/site-packages/psycopg2.py
 
-dev-infra: .venv/lib/python$(PYV)/site-packages/psycopg2.py \
-	.venv/bin/bashbrew .venv/bin/manifest-tool
+dev-infra: $(PSYCOPG2CFFI_COMPAT) .venv/bin/bashbrew .venv/bin/manifest-tool
 
-.venv/lib/python$(PYV)/site-packages/psycopg2.py: lethbridge.egg-info
+$(PSYCOPG2CFFI_COMPAT): lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
 
 lethbridge.egg-info: .venv pyproject.toml src/*.py src/*/*.py
@@ -42,16 +42,16 @@ venv: .venv
 .venv:
 	python3 -m venv $@
 
-smoke: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+smoke: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest -m "smoke and not slow"
 
-test tests: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+test tests: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest
 
-coverage: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+coverage: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest --cov=lethbridge
 
-dist: .venv/lib/python$(PYV)/site-packages/psycopg2.py
+dist: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; python -m build
 
 distcheck: dist
@@ -64,7 +64,7 @@ distclean:
 
 pre-commit: .git/hooks/pre-commit
 
-.git/hooks/pre-commit: .pre-commit-config.yaml .venv/lib/python$(PYV)/site-packages/psycopg2.py
+.git/hooks/pre-commit: .pre-commit-config.yaml $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pre-commit install --install-hooks
 
 check checks lint: .git/hooks/pre-commit
