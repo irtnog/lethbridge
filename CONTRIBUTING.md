@@ -1,6 +1,6 @@
 # Contributing
 
-This project uses the [Git feature branch workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).  Please submit your changes for review as a [GitHub pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests).
+This project combines [test-driven development](https://tdd.mooc.fi/) with the [Git feature branch workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).  Please submit your changes for review as a [GitHub pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests).  Changes must include functional and integration tests.
 
 ## Development Environment
 
