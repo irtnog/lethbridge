@@ -70,28 +70,26 @@ A commit's scope should be the second-level Python module name sans the `lethbri
 
 ## Database Migrations
 
-This project uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema.  This project started with Alembic's multidb template.  Unlike Alembic's generic template, multidb will run migrations as many times as there are databases configured, providing one engine name and associated context for each run.  The migration will restrict what runs within it to just the appropriate migrations for that engine; cf. [the mako template](src/migrations/script.py.mako).
+This project uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema on supported [engines](https://docs.sqlalchemy.org/latest/core/engines.html) via the [multidb migration template](https://github.com/sqlalchemy/alembic/tree/main/alembic/templates/multidb).  **Alembic commands _MUST_ be run from the project root directory, i.e., the same directory as [alembic.ini](alembic.ini).**  For convenience's sake, the Makefile provides these targets:
 
-**Alembic commands _MUST_ be run from the project root directory, i.e., the same directory as [alembic.ini](alembic.ini).**
+- `make alembic-<COMMAND> ARGS="[ARGUMENT]..."`—a generic wrapper for Alembic commands, e.g., `make alembic-history ARGS="-v -i"`
 
-To develop new database migrations:
+- `make alembic-start` and `make alembic-stop`—creates or destroys databases for use by Alembic or other project development work
 
-1. Perform an editable installation of this project as documented in [Development Environment](#development-environment) above.
+- `make alembic-backup` and `make alembic-restore`—dumps or loads data into the above databases
 
-2. Deploy the test databases, e.g., start PostgreSQL in a container.
+To develop a new database migration:
 
-3. Check the Alembic configuration by running `alembic current` from the project root directory.
+1. After modifying the data model, [generate a new schema revision](https://alembic.sqlalchemy.org/latest/autogenerate.html) with `make alembic-autogenerate MESSAGE="<revision summary>"`.  **WARNING: This command will delete any existing databases created by `make alembic-start`.**  Revision summaries should mirror the corresponding Git commit description, e.g., `address conflict with FDevIDs`.
 
-4. Generate a new revision based on the current model by running `alembic revision --autogenerate -m "<summary>"`.  Revision summaries MUST follow the same conventions as Git commit message summaries, and one SHOULD use the same summary for both.
+2. Review the new schema revision.  Alembic cannot detect certain changes, e.g., renaming tables or column names, nor can it create data transformations.  The developer must handle these cases.  For more information, refer to ["What does Autogenerate Detect (and what does it not detect?)"](https://alembic.sqlalchemy.org/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect) in the Alembic documentation.
 
-5. Reset the test databases by running `alembic downgrade base`.
+3. Create database dumps for integration testing from the [mock galaxy data](tests/mock-galaxy-data.json) with `make migration-test-fixtures`.  **WARNING: This command will delete any existing databases created by `make alembic-start`.**
 
-6. Migrate the test databases to the latest model by running `alembic upgrade head`.
+4. Update [the database migration tests](tests/test_cli_database.py).
 
 To add support for a new database engine:
 
-1. Add the engine to the `databases` list in [alembic.ini](alembic.ini).  Please sort this list in alphabetical order.
+1. In the Alembic configuration file, [alembic.ini](alembic.ini), add the engine to the `databases` list in [alembic.ini](alembic.ini).  Add a section for that engine between the `[alembic]` and `[post_write_hooks]` sections.  In the new database section, specify a `sqlalchemy.url` for the engine.  **DO NOT** commit usernames or passwords as part of recorded changes to **alembic.ini**.
 
-2. Add a section for that engine between the `[alembic]` and `[post_write_hooks]` sections.  Please also keep the database sections in alphabetical order.
-
-3. In the new database section, specify a `sqlalchemy.url` for the engine.  **DO NOT** commit usernames or passwords as part of recorded changes to **alembic.ini**.
+2. In the [Makefile](Makefile), add support for the new engine to the `alembic-%` target and the `generate-migration-test-fixture-target` macro.
