@@ -8,7 +8,7 @@ This project requires Python 3.10 or newer.  To set up your development environm
 
 - `sudo make build-deps`—installs build dependencies (Debian/Ubuntu only)
 
-- `make`—creates a virtual environment named `.venv` in the current working directory and performs an editable installation of this project, including development and testing tools
+- `make`—creates (or updates) a virtual environment named `.venv` in the project root directory and performs an editable installation of this project plus development and testing tools
 
 - `make pre-commit`—installs optional pre-commit hooks that require the virtual environment to be active in your code editor or [Git porcelain](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)
 
