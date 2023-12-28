@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
+import typer.core
 
 from .. import ERRORS, __app_name__, __version__
 from ..config import CONFIG_FILE_PATH, DEFAULT_CONFIG, load_config
@@ -32,8 +33,12 @@ from ..config import CONFIG_FILE_PATH, DEFAULT_CONFIG, load_config
 # configure module-level logging
 logger = logging.getLogger(__name__)
 
+# disable Rich; cf.
+# https://github.com/tiangolo/typer/pull/647#issuecomment-1868190451
+typer.core.rich = None
+
 # create the CLI
-app = typer.Typer()
+app = typer.Typer(pretty_exceptions_enable=False)
 
 # load CLI commands from submodules
 __path__ = pkgutil.extend_path(__path__, __name__)  # noqa: F821
