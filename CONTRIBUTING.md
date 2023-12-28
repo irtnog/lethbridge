@@ -32,7 +32,9 @@ The following code styles are in use:
 
 ## Commit Messages
 
-This project implements [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) using [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).  Valid commit types are:
+This project implements [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) using [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).  Please use English in commit messages.  The first line of the commit message should be at most 100 characters, while the rest of the commit message should be wrapped at column 70.  A commit's description should be a verb phrase in the imperative present tense, with the starting verb in lower case and no ending punctuation.
+
+Valid commit types are:
 
 - **build**—changes to the build system or external dependencies
 
