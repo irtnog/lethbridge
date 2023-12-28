@@ -63,14 +63,25 @@ def mock_cmd_prefix_initialized(mock_cmd_prefix):
 
 
 @mark.order("last")
-def test_cli_import_spansh(mock_cmd_prefix_initialized, mock_spansh_import):
+@mark.parametrize(
+    "mock_import_file_fixture, expected_systems",
+    [
+        param("mock_spansh_import", 6),
+        param("mock_galaxy_data_file", 11, marks=mark.slow),
+    ],
+)
+def test_cli_import_spansh(
+    mock_cmd_prefix_initialized, mock_import_file_fixture, expected_systems, request
+):
+    mock_import_file = request.getfixturevalue(mock_import_file_fixture)
     result = runner.invoke(
         cli.app,
         ["-v"]
         + mock_cmd_prefix_initialized
-        + ["import", "spansh", mock_spansh_import, "--foreground"],
+        + ["import", "spansh", mock_import_file, "--foreground"],
     )
     assert result.exit_code == 0
+    assert "IntegrityError" not in result.output
 
     # inspect mock database contents
     app_cfg = ConfigParser()
@@ -80,7 +91,7 @@ def test_cli_import_spansh(mock_cmd_prefix_initialized, mock_spansh_import):
     Session = sessionmaker(engine)
     with Session.begin() as session:
         stmt = select(func.count()).select_from(System)
-        assert 6 == session.scalars(stmt).first()
+        assert expected_systems == session.scalars(stmt).first()
 
 
 @fixture
