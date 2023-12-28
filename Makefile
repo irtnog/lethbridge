@@ -51,7 +51,7 @@ smoke: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest -m "smoke and not slow"
 
 test tests: $(PSYCOPG2CFFI_COMPAT)
-	. .venv/bin/activate; pytest
+	. .venv/bin/activate; pytest $(ARGS)
 
 coverage: $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest --cov=lethbridge
