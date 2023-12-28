@@ -97,6 +97,11 @@ def thunk_old_outfitting(x: System):
     x.stations[0].outfitting.updateTime -= timedelta(days=1)
 
 
+def thunk_null_thargoid_war_state(x: System):
+    x.date += timedelta(days=1)
+    x.thargoidWar.currentState = None
+
+
 @mark.parametrize(
     "thunk, expectation",
     [
@@ -106,6 +111,7 @@ def thunk_old_outfitting(x: System):
         param(
             thunk_old_outfitting, raises(ValueError, match="Update uses outdated data")
         ),
+        param(thunk_null_thargoid_war_state, does_not_raise()),
     ],
 )
 def test_relationships(mock_session, thunk, expectation):
