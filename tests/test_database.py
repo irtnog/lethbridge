@@ -85,15 +85,15 @@ def thunk_no_op(x):
     pass
 
 
-def thunk_old_system(x):
+def thunk_old_system(x: System):
     x.date -= timedelta(days=1)
 
 
-def thunk_old_station(x):
+def thunk_old_station(x: System):
     x.stations[0].updateTime -= timedelta(days=1)
 
 
-def thunk_old_outfitting(x):
+def thunk_old_outfitting(x: System):
     x.stations[0].outfitting.updateTime -= timedelta(days=1)
 
 
