@@ -12,13 +12,13 @@ This project requires Python 3.10 or newer.  To set up your development environm
 
 - `make pre-commit`—installs pre-commit hooks (requires the virtual environment to be active in your code editor or [Git porcelain](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain))
 
+Additional [make(1)](https://linux.die.net/man/1/make) targets are available, several of which are listed below.  Review the [Makefile](Makefile) for details.
+
 - `make test`—performs comprehensive functional and integration testing of this project
 
 - `make smoke`—runs a shorter, faster subset of the test suite
 
 - `make docker`—builds a fully tested and release-ready container image
-
-Additional [make(1)](https://linux.die.net/man/1/make) targets are available.  Review the [Makefile](Makefile) for details.
 
 ## Code Style
 
