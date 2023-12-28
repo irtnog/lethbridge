@@ -4,7 +4,7 @@ This project uses the [Git feature branch workflow](https://www.atlassian.com/gi
 
 ## Development Environment
 
-This project requires Python 3.10 or newer.  To set up your development environment on Linux, run these commands from the project root directory:
+This project requires Python 3.10 and Docker 20.10 (or newer).  To set up your development environment on Linux, run these commands from the project root directory:
 
 - `sudo make build-deps`—installs build dependencies (Debian/Ubuntu only)
 
