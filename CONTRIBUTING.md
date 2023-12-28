@@ -18,7 +18,7 @@ Additional [make(1)](https://linux.die.net/man/1/make) targets are available, se
 
 - `make test`—performs comprehensive functional and integration testing of this project
 
-- `make smoke`—runs a shorter, faster subset of the test suite
+- `make smoke`—runs a subset of the test suite (SQLite-only)
 
 - `make docker`—builds a fully tested and release-ready container image
 
