@@ -162,12 +162,21 @@ alembic-%: $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 		rm -f db.sqlite3 \
 	)
 
-# Generate database migration test fixtures.  In the multi-line
-# variable definition, note the use of late binding with conditional
-# functions, which force re-evaluation of those expressions.  Also
-# note how awk's PRNG gets seeded with the previous result because
-# consecutive invocations of rand() within short timeframes return the
-# same value.
+# Generate database migration test fixture targets.  Please note the
+# following:
+#
+# - In the multi-line variable definition, the use of late binding
+#   with conditional functions forces re-evaluation of those
+#   expressions every time the subsequent foreach functions call the
+#   macro.
+#
+# - awk's PRNG gets seeded with the previous result because
+#   consecutive invocations of rand() within short timeframes return
+#   the same value!
+#
+# - Only run migration test fixture targets if they don't already
+#   exist; cf. order-only pre-requisites
+#   (https://www.gnu.org/software/make/manual/make.html#Prerequisite-Types).
 
 tests/migration-fixtures:
 	mkdir -p $@
@@ -184,7 +193,7 @@ $(eval port = $(or $(shell awk -v seed=$(port) \
 )))
 $(eval lethbridge = . .venv/bin/activate; lethbridge -f $(tmpdir)/lethbridge.conf)
 $(eval MIGRATION_TEST_FIXTURES += $(fixture))
-$(fixture): $(migration) $(PSYCOPG2CFFI_COMPAT) tests/migration-fixtures
+$(fixture): | $(migration) $(PSYCOPG2CFFI_COMPAT) tests/migration-fixtures
 	$(if $(is_postgresql), \
 		docker stop alembic-postgresql; \
 		docker rm alembic-postgresql; \
