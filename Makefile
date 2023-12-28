@@ -18,6 +18,7 @@
 .PHONY: dev-infra venv debug run smoke test tests tests coverage dist \
 	distcheck distclean pre-commit check checks list builder \
 	tester container docker prune bashbrew manifest-tool \
+	wait-until alembic-% migration-test-fixtures \
 	build-deps clean-deps clean
 
 # Install Lethbridge in a virtual environment.  (See also the
@@ -160,6 +161,64 @@ alembic-%: $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 		docker rm alembic-postgresql; \
 		rm -f db.sqlite3 \
 	)
+
+# Generate database migration test fixtures.  In the multi-line
+# variable definition, note the use of late binding with conditional
+# functions, which force re-evaluation of those expressions.  Also
+# note how awk's PRNG gets seeded with the previous result because
+# consecutive invocations of rand() within short timeframes return the
+# same value.
+
+tests/migration-fixtures:
+	mkdir -p $@
+
+define generate-migration-test-fixture-target
+$(eval database = $1)
+$(eval migration = $2)
+$(eval revision = $(word 1, $(subst _, , $(notdir $(basename $(migration))))))
+$(eval fixture = tests/migration-fixtures/$(database)-$(revision).sql)
+$(eval tmpdir = $(or $(shell mktemp -d)))
+$(eval is_postgresql = $(filter postgresql, $(database)))
+$(eval port = $(or $(shell awk -v seed=$(port) \
+	'BEGIN{srand(seed);print int(rand()*(65535-41952+1))+41952}' \
+)))
+$(eval lethbridge = . .venv/bin/activate; lethbridge -f $(tmpdir)/lethbridge.conf)
+$(eval MIGRATION_TEST_FIXTURES += $(fixture))
+$(fixture): $(migration) $(PSYCOPG2CFFI_COMPAT) tests/migration-fixtures
+	$(if $(is_postgresql), \
+		docker stop alembic-postgresql; \
+		docker rm alembic-postgresql; \
+		docker run -d --name alembic-postgresql \
+			-p 127.0.0.1:$(port):5432 \
+			-e POSTGRES_HOST_AUTH_METHOD=trust \
+			-e POSTGRES_DB=lethbridge \
+			postgres:14; \
+		. .venv/bin/activate; wait-until \
+			"docker exec alembic-postgresql psql -U postgres lethbridge -c 'select 1'" \
+	)
+	$(lethbridge) configure set database uri \
+		$(if $(is_postgresql), \
+			"postgresql+psycopg2://postgres@localhost:$(port)/lethbridge?options=-c timezone=utc", \
+			sqlite:///$(tmpdir)/galaxy.sqlite \
+		)
+	$(lethbridge) database upgrade $(revision)
+	$(lethbridge) import spansh --fg tests/mock-galaxy-data.json
+	$(if $(is_postgresql), \
+	docker exec -t alembic-postgresql pg_dumpall -c -U postgres > $(fixture), \
+	sqlite3 $(tmpdir)/galaxy.sqlite .dump > $(fixture) \
+	)
+	$(if $(is_postgresql), \
+		docker stop alembic-postgresql; \
+		docker rm alembic-postgresql \
+	)
+	rm -rf $(tmpdir)
+endef
+
+$(foreach database, $(shell awk '/^databases = /{gsub(/,/,"",$$0);for(i=3;i<=NF;++i)print $$i}' alembic.ini), \
+	$(foreach migration, $(wildcard src/migrations/versions/*.py), \
+		$(eval $(call generate-migration-test-fixture-target,$(database),$(migration)))))
+
+migration-test-fixtures: $(MIGRATION_TEST_FIXTURES)
 
 # Install (or remove) build dependencies on Debian/Ubuntu.  Note that
 # these targets must be invoked by root.
