@@ -18,16 +18,20 @@
 .PHONY: dev-infra venv debug run smoke test tests tests coverage dist \
 	distcheck distclean pre-commit check checks list builder \
 	tester container docker prune bashbrew manifest-tool \
-	postgresql postgresql-backup postgresql-restore postgresql-load \
-	postgresql-delete sqlite sqlite-backup sqlite-restore sqlite-load \
-	sqlite-delete build-deps clean-deps clean
+	build-deps clean-deps clean
 
-# Install Lethbridge in a virtual environment.  (See also the build-deps target.)
+# Install Lethbridge in a virtual environment.  (See also the
+# build-deps target.)
 
 PYTHON_VERSION := $(shell python3 -c "import sys;print('{}.{}'.format(*sys.version_info[:2]))")
 PSYCOPG2CFFI_COMPAT := .venv/lib/python$(PYTHON_VERSION)/site-packages/psycopg2.py
+DEVELOPMENT_INFRASTRUCTURE := \
+	$(PSYCOPG2CFFI_COMPAT) \
+	.venv/bin/bashbrew \
+	.venv/bin/manifest-tool \
+	.venv/bin/wait-until
 
-dev-infra: $(PSYCOPG2CFFI_COMPAT) .venv/bin/bashbrew .venv/bin/manifest-tool
+dev-infra: $(DEVELOPMENT_INFRASTRUCTURE)
 
 $(PSYCOPG2CFFI_COMPAT): lethbridge.egg-info
 	echo "from psycopg2cffi import compat\ncompat.register()" > $@
@@ -103,75 +107,62 @@ manifest-tool: .venv/bin/manifest-tool
 	cp $(TMP)/manifest-tool $@
 	rm -rf $(TMP)
 
-# Manage development database engines.
+wait-until: .venv/bin/wait-until
 
-DB_REVISION ?= head
+.venv/bin/wait-until: .venv
+	curl -L https://raw.githubusercontent.com/nickjj/wait-until/v0.3.0/wait-until -o $@
+	chmod +x $@
 
-postgresql:
-	docker run -d --name lethbridge-dev-pgsql \
-		-p 127.0.0.1:5432:5432 \
-		-v lethbridge_dev_pgdata:/var/lib/postgresql/data \
-		-e POSTGRES_HOST_AUTH_METHOD=trust \
-		-e POSTGRES_DB=lethbridge \
-		postgres:14
+# Manage the database schema.
 
-postgresql-backup:
-	docker stop lethbridge-dev-pgsql
-	docker run -it --rm \
-		--volumes-from lethbridge-dev-pgsql \
-		-v `pwd`:/backup \
-		debian \
-		tar -C /var/lib/postgresql/data \
-			-cvzf /backup/db.pgsql-backup.tgz .
-	docker start lethbridge-dev-pgsql
-
-postgresql-restore:
-	docker stop lethbridge-dev-pgsql
-	docker run -it --rm \
-		--volumes-from lethbridge-dev-pgsql \
-		-v `pwd`:/backup \
-		debian \
-		tar -C /var/lib/postgresql/data \
-			-xvzf /backup/db.pgsql-backup.tgz .
-	docker start lethbridge-dev-pgsql
-
-postgresql-load: .venv/lib/python$(PYV)/site-packages/psycopg2.py
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
-		configure set database uri \
-		"postgresql+psycopg2://postgres@localhost/lethbridge?options=-c timezone=utc"
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
-		database upgrade $(DB_REVISION)
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-pgsql.conf \
-		import spansh --fg tests/mock-galaxy-data.json
-
-postgresql-delete:
-	docker stop lethbridge-dev-pgsql || true
-	docker rm lethbridge-dev-pgsql || true
-	docker volume rm lethbridge_dev_pgdata || true
-
-sqlite: db.sqlite3
-
-db.sqlite3:; touch $@
-
-sqlite-backup: db.sqlite3; cp db.sqlite3 db.sqlite3-backup
-
-sqlite-restore: db.sqlite3; cp db.sqlite3-backup db.sqlite3
-
-sqlite-load: db.sqlite3 .venv/lib/python$(PYV)/site-packages/psycopg2.py
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
-		configure set database uri \
-		"sqlite:///db.sqlite3"
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
-		database upgrade $(DB_REVISION)
-	. .venv/bin/activate; lethbridge -f .venv/lethbridge-dev-sqlite.conf \
-		import spansh --fg tests/mock-galaxy-data.json
-
-sqlite-delete:; rm -f db.sqlite3 || true
+alembic-%: $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
+	$(eval alembic = . .venv/bin/activate; alembic)
+	$(eval alembic_cmd = $(word 2, $(subst -, ,$@)))
+	$(eval is_autogenerate_cmd = $(filter autogenerate, $(alembic_cmd)))
+	$(eval is_backup_cmd = $(filter backup, $(alembic_cmd)))
+	$(eval is_restore_cmd = $(filter restore, $(alembic_cmd)))
+	$(eval is_start_cmd = $(filter start, $(alembic_cmd)))
+	$(eval is_stop_cmd = $(filter stop, $(alembic_cmd)))
+	$(eval has_no_message = $(if $(MESSAGE),,true))
+	$(if $(and $(is_autogenerate_cmd),$(has_no_message)), \
+		@echo Provide a revision summary via the MESSAGE variable\; e.g.:; \
+		echo "    make" $@ 'MESSAGE="revised something"'; \
+		exit 1 \
+	)
+	$(if $(is_autogenerate_cmd), \
+		$(eval alembic_cmd = revision --autogenerate -m "$(MESSAGE)") \
+	)
+	$(eval is_alembic_cmd = $(filter-out backup restore start stop, $(alembic_cmd)))
+	$(if $(or $(is_autogenerate_cmd),$(is_start_cmd)), \
+		docker stop alembic-postgresql; \
+		docker rm alembic-postgresql; \
+		docker run -d --name alembic-postgresql \
+			-p 127.0.0.1:5432:5432 \
+			-e POSTGRES_HOST_AUTH_METHOD=trust \
+			-e POSTGRES_DB=lethbridge \
+			postgres:14; \
+		. .venv/bin/activate; wait-until  \
+			"docker exec alembic-postgresql psql -U postgres lethbridge -c 'select 1'"; \
+		rm -f db.sqlite3; \
+		$(alembic) upgrade head \
+	)
+	$(if $(is_alembic_cmd), \
+		-$(alembic) $(alembic_cmd) $(ARGS), \
+	$(if $(is_backup_cmd), \
+		docker exec -t alembic-postgresql pg_dumpall -c -U postgres > db.postgresql.bak; \
+		sqlite3 db.sqlite3 .dump > db.sqlite3.bak, \
+	$(if $(is_restore_cmd), \
+		docker exec -t alembic-postgresql psql -U postgres postgres < db.postgresql.bak; \
+		sqlite3 db.sqlite3 .read db.sqlite3.bak, \
+	)))
+	$(if $(or $(is_autogenerate_cmd),$(is_stop_cmd)), \
+		docker stop alembic-postgresql; \
+		docker rm alembic-postgresql; \
+		rm -f db.sqlite3 \
+	)
 
 # Install (or remove) build dependencies on Debian/Ubuntu.  Note that
-# these targets must be invoked by root.  Also note that the
-# purge-deps target can remove packages other that the ones listed
-# here, so keep the confirmation prompts to avoid footguns.
+# these targets must be invoked by root.
 
 DEBIAN_BUILD_DEPS = build-essential devscripts equivs postgresql
 DEBIAN_INSTALL_TOOL = apt-get -o Debug::pkgProblemResolver=yes -y --no-install-recommends
@@ -186,6 +177,7 @@ endif
 	$(DEBIAN_INSTALL_TOOL) install $(DEBIAN_BUILD_DEPS)
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi
+	$(DEBIAN_INSTALL_TOOL) sqlite3
 	rm -f *.buildinfo *.changes
 
 clean-deps: /etc/debian_version
@@ -193,7 +185,7 @@ ifneq ($(shell id -u), 0)
 	@echo You must be root to perform this action.
 	@exit 1
 endif
-	apt-mark auto $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps
+	apt-mark auto $(DEBIAN_BUILD_DEPS) psycopg2-build-deps python-psycopg2cffi-build-deps sqlite3
 	apt-get autoremove
 
 clean:
