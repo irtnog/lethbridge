@@ -1,0 +1,184 @@
+---
+name: Continuous Integration
+
+# Trigger this workflow manually, by pushing commits to any branch, or
+# by filing a pull request.
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - id: cache-workdir
+        uses: actions/cache@v3
+        with:
+          key: workdir-${{ github.sha }}
+          path: .
+      - if: steps.cache-workdir.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install .
+
+  test-matrix:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+    steps:
+      - uses: actions/cache/restore@v3
+        with:
+          key: workdir-${{ github.sha }}
+          path: .
+      # Computer science has only 3 hard problems: naming things,
+      # cache invaconcurrency, lidation, and off-by-one errors.
+      - id: hash-sources
+        run: |
+          echo "hash=$(find src tests -type f -exec cat '{}' \; | sha512sum | awk '{print $1}')" >> $GITHUB_OUTPUT
+        shell: bash
+      - id: cache-pytest
+        uses: actions/cache@v3
+        with:
+          key: pytest-${{ matrix.python-version }}-${{ steps.hash-sources.outputs.hash }}
+          lookup-only: true
+          path: pytest.out
+      - if: steps.cache-pytest.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - if: steps.cache-pytest.outputs.cache-hit != 'true'
+        name: Install test infrastructure
+        run: |
+          sudo make build-deps
+          pip install .[psycopg2cffi,test]
+          USER_SITE=`python -m site --user-site`
+          mkdir -p "${USER_SITE}"
+          echo "from psycopg2cffi import compat" > "${USER_SITE}/psycopg2.py"
+          echo "compat.register()" >> "${USER_SITE}/psycopg2.py"
+      - if: steps.cache-pytest.outputs.cache-hit != 'true'
+        uses: pavelzw/pytest-action@v2
+        with:
+          custom-arguments: --cov=lethbridge --report-log=pytest.out
+
+  release:
+    needs: test-matrix
+    if:
+      github.repository == 'irtnog/lethbridge' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/cache/restore@v3
+        with:
+          key: workdir-${{ github.sha }}
+          path: .
+      # - id: release
+      #   uses: python-semantic-release/python-semantic-release@v8.3.0
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/cache/save@v3
+        with:
+          key: release-${{ github.sha }}
+          path: .
+    # outputs:
+    #   released: ${{ steps.release.outputs.released }}
+    #   tag: ${{ steps.release.outputs.tag }}
+
+  build:
+    needs: release
+    # if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache/restore@v3
+        with:
+          key: release-${{ github.sha }}
+          path: .
+      - run: pip install build && python -m build
+      - uses: actions/cache/save@v3
+        with:
+          key: build-${{ github.sha }}
+          path: .
+
+  # testpypi:
+  #   needs:
+  #     - release
+  #     - build
+  #   if: needs.release.outputs.released == 'true'
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: testpypi
+  #     url: https://test.pypi.org/p/lethbridge
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/cache/restore@v3
+  #       with:
+  #         key: build-${{ github.sha }}
+  #         path: .
+  #     - name: Publish package distributions to TestPyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         print-hash: true
+  #         repository-url: https://test.pypi.org/legacy/
+  #         verbose: true
+
+  # pypi:
+  #   needs:
+  #     - release
+  #     - build
+  #     - testpypi
+  #   if: needs.release.outputs.released == 'true'
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/lethbridge
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/cache/restore@v3
+  #       with:
+  #         key: build-${{ github.sha }}
+  #         path: .
+  #     - name: Publish package distributions to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         print-hash: true
+  #         verbose: true
+
+  # github:
+  #   needs:
+  #     - release
+  #     - build
+  #   if: needs.release.outputs.released == 'true'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/cache/restore@v3
+  #       with:
+  #         key: build-${{ github.sha }}
+  #         path: .
+  #     - name: Publish package distributions to GitHub Releases
+  #       uses: python-semantic-release/upload-to-gh-release@main
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         tag: ${{ needs.release.outputs.tag }}
