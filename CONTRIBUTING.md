@@ -76,11 +76,11 @@ A commit's scope should be the second-level Python module name sans the `lethbri
 
 This project uses [Alembic](https://alembic.sqlalchemy.org/) to manage the database schema on supported [engines](https://docs.sqlalchemy.org/latest/core/engines.html) via the [multidb migration template](https://github.com/sqlalchemy/alembic/tree/main/alembic/templates/multidb).  **Alembic commands _MUST_ be run from the project root directory, i.e., the same directory as [alembic.ini](alembic.ini).**  For convenience's sake, the Makefile provides these targets:
 
-- `make alembic-<COMMAND> ARGS="[ARGUMENT]..."`—a generic wrapper for Alembic commands, e.g., `make alembic-history ARGS="-v -i"`
-
 - `make alembic-start` and `make alembic-stop`—creates or destroys databases for use by Alembic or other project development work
 
 - `make alembic-backup` and `make alembic-restore`—dumps or loads data into the above databases
+
+- `make alembic-<COMMAND> ARGS="[ARGUMENT]..."`—a generic wrapper for Alembic commands, e.g., `make alembic-history ARGS="-v -i"`; uses the databases created by `make alembic-start`
 
 To develop a new database migration:
 
