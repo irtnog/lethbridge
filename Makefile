@@ -153,8 +153,8 @@ alembic-%: | $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 		docker exec -t alembic-postgresql pg_dumpall -c -U postgres > db.postgresql.bak; \
 		sqlite3 db.sqlite3 .dump > db.sqlite3.bak, \
 	$(if $(is_restore_cmd), \
-		docker exec -t alembic-postgresql psql -U postgres postgres < db.postgresql.bak; \
 		sqlite3 db.sqlite3 .read db.sqlite3.bak, \
+		docker exec -i alembic-postgresql psql -U postgres postgres < db.postgresql.bak; \
 	)))
 	$(if $(or $(is_autogenerate_cmd),$(is_stop_cmd)), \
 		docker stop alembic-postgresql; \
