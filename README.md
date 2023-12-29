@@ -4,5 +4,3 @@
 # Lethbridge
 
 SQLAlchemy ORM and Marshmallow schemas for Elite: Dangerous game data
-
-TODO: Quick start
