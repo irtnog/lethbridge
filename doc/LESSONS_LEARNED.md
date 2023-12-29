@@ -6,6 +6,8 @@ https://www.bitecode.dev/p/relieving-your-python-packaging-pain
 
 https://www.bitecode.dev/p/why-not-tell-people-to-simply-use
 
+isort works differently when the project home directory is renamed.
+
 ## Working with bad data
 
 TODO
