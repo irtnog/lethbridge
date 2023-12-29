@@ -2,6 +2,19 @@
 
 
 
+## v0.2.3 (2023-12-29)
+
+### Documentation
+
+* docs: remove extraneous code tag ([`2855c49`](https://github.com/irtnog/lethbridge/commit/2855c49e1896b23973577bef63efac75fd0e3658))
+
+* docs: re-point the build status shield at the new CI workflow ([`cb1a53a`](https://github.com/irtnog/lethbridge/commit/cb1a53a7368e38240723efaaab831510d9684ab9))
+
+### Fix
+
+* fix(packaging): add missing project description ([`362cefc`](https://github.com/irtnog/lethbridge/commit/362cefc4cecb665b1e557c78419442f7bc77f550))
+
+
 ## v0.2.2 (2023-12-29)
 
 ### Build
