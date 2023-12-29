@@ -90,7 +90,7 @@ To develop a new database migration:
 
 3. Create database dumps for integration testing from the [mock galaxy data](tests/mock-galaxy-data.json) with `make migration-test-fixtures`.  **WARNING: This command will delete any existing databases created by `make alembic-start`.**
 
-4. Update [the database migration tests](tests/test_cli_database.py).
+4. Add the new revision to [the database migration tests](tests/test_cli_database.py).
 
 To add support for a new database engine:
 
