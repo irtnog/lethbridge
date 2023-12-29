@@ -31,8 +31,18 @@ jobs:
           cache: pip
       - run: python -m pip install .
 
-  test-matrix:
+  lint:
     needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache/restore@v3
+        with:
+          key: workdir-${{ github.sha }}
+          path: .
+      - uses: pre-commit/action@v3.0.0
+
+  test-matrix:
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
