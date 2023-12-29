@@ -213,8 +213,8 @@ $(fixture): | $(migration) $(PSYCOPG2CFFI_COMPAT) tests/migration-fixtures
 	$(lethbridge) database upgrade $(revision)
 	$(lethbridge) import spansh --fg tests/mock-galaxy-data.json
 	$(if $(is_postgresql), \
-	docker exec -t alembic-postgresql pg_dumpall -c -U postgres > $(fixture), \
-	sqlite3 $(tmpdir)/galaxy.sqlite .dump > $(fixture) \
+		docker exec -t alembic-postgresql pg_dump -c -U postgres lethbridge > $(fixture), \
+		sqlite3 $(tmpdir)/galaxy.sqlite .dump > $(fixture) \
 	)
 	$(if $(is_postgresql), \
 		docker stop alembic-postgresql; \
