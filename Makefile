@@ -47,19 +47,19 @@ venv: .venv
 .venv:
 	python3 -m venv $@
 
-smoke: $(PSYCOPG2CFFI_COMPAT)
+smoke: | $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest -m "smoke and not slow"
 
-test tests: $(PSYCOPG2CFFI_COMPAT)
+test tests: | $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest $(ARGS)
 
-coverage: $(PSYCOPG2CFFI_COMPAT)
+coverage: | $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pytest --cov=lethbridge
 
-dist: $(PSYCOPG2CFFI_COMPAT)
+dist: | $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; python -m build
 
-distcheck: dist
+distcheck: | dist
 	. .venv/bin/activate; twine check dist/*
 
 distclean:
@@ -69,7 +69,7 @@ distclean:
 
 pre-commit: .git/hooks/pre-commit
 
-.git/hooks/pre-commit: .pre-commit-config.yaml $(PSYCOPG2CFFI_COMPAT)
+.git/hooks/pre-commit: .pre-commit-config.yaml | $(PSYCOPG2CFFI_COMPAT)
 	. .venv/bin/activate; pre-commit install --install-hooks
 
 check checks lint: .git/hooks/pre-commit
@@ -90,7 +90,7 @@ prune:
 
 bashbrew: .venv/bin/bashbrew
 
-.venv/bin/bashbrew: .venv
+.venv/bin/bashbrew: | .venv
 # cf. https://stackoverflow.com/a/40119933
 	$(eval TMP := $(shell mktemp -d))
 	git clone --depth=1 https://github.com/docker-library/bashbrew $(TMP)
@@ -101,7 +101,7 @@ bashbrew: .venv/bin/bashbrew
 
 manifest-tool: .venv/bin/manifest-tool
 
-.venv/bin/manifest-tool: .venv
+.venv/bin/manifest-tool: | .venv
 	$(eval TMP := $(shell mktemp -d))
 	git clone --depth=1 https://github.com/estesp/manifest-tool $(TMP)
 	cd $(TMP); make binary
@@ -110,13 +110,13 @@ manifest-tool: .venv/bin/manifest-tool
 
 wait-until: .venv/bin/wait-until
 
-.venv/bin/wait-until: .venv
+.venv/bin/wait-until: | .venv
 	curl -L https://raw.githubusercontent.com/nickjj/wait-until/v0.3.0/wait-until -o $@
 	chmod +x $@
 
 # Manage the database schema.
 
-alembic-%: $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
+alembic-%: | $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 	$(eval alembic = . .venv/bin/activate; alembic)
 	$(eval alembic_cmd = $(word 2, $(subst -, ,$@)))
 	$(eval is_autogenerate_cmd = $(filter autogenerate, $(alembic_cmd)))
