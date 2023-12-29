@@ -249,7 +249,7 @@ endif
 	$(DEBIAN_INSTALL_TOOL) install $(DEBIAN_BUILD_DEPS)
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2
 	mk-build-deps -i -r -t "$(DEBIAN_INSTALL_TOOL)" python3-psycopg2cffi
-	$(DEBIAN_INSTALL_TOOL) sqlite3
+	$(DEBIAN_INSTALL_TOOL) install sqlite3
 	rm -f *.buildinfo *.changes
 
 clean-deps: /etc/debian_version
