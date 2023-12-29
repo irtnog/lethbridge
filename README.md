@@ -3,6 +3,6 @@
 
 # Lethbridge
 
-[Free/libre/open source](LICENSE) client for the [Elite Dangerous Data Network](https://github.com/EDCD/EDDN) (and more)
+SQLAlchemy ORM and Marshmallow schemas for Elite: Dangerous game data
 
 TODO: Quick start
