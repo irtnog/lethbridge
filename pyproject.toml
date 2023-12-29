@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lethbridge"
+description = "SQLAlchemy ORM and Marshmallow schemas for Elite: Dangerous game data"
 version = "0.2.2"
 requires-python = ">=3.10"
 # cf. https://pypi.org/classifiers/
