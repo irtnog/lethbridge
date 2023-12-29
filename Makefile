@@ -114,7 +114,9 @@ wait-until: .venv/bin/wait-until
 	curl -L https://raw.githubusercontent.com/nickjj/wait-until/v0.3.0/wait-until -o $@
 	chmod +x $@
 
-# Manage the database schema.
+# Manage the database schema.  Note that for SQLite, `alembic-restore`
+# simulates a database DROP, similar to the PostgreSQL restore script.
+# For further instructions, review CONTRIBUTING.md#database-migrations.
 
 alembic-%: | $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 	$(eval alembic = . .venv/bin/activate; alembic)
@@ -153,8 +155,10 @@ alembic-%: | $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 		docker exec -t alembic-postgresql pg_dump -c -U postgres lethbridge > db.postgresql.bak; \
 		sqlite3 db.sqlite3 .dump > db.sqlite3.bak, \
 	$(if $(is_restore_cmd), \
-		sqlite3 db.sqlite3 .read db.sqlite3.bak, \
 		docker exec -i alembic-postgresql psql -U postgres postgres < db.postgresql.bak; \
+		rm -f db.sqlite3; \
+		touch db.sqlite3; \
+		sqlite3 db.sqlite3 ".read db.sqlite3.bak", \
 	)))
 	$(if $(or $(is_autogenerate_cmd),$(is_stop_cmd)), \
 		docker stop alembic-postgresql; \
