@@ -2,6 +2,128 @@
 
 
 
+## v0.2.2 (2023-12-29)
+
+### Build
+
+* build: add missing apt-get verb ([`d71ca55`](https://github.com/irtnog/lethbridge/commit/d71ca557ed6c90b7fa27bc820fd7eaad64c5ebc4))
+
+* build: simulate a database DROP when restoring SQLite backups ([`7e3f1c5`](https://github.com/irtnog/lethbridge/commit/7e3f1c5dfe515476b1945a803c553f180198c7fc))
+
+* build: only back up the `lethbridge` database, same as the migration test fixtures ([`42f4952`](https://github.com/irtnog/lethbridge/commit/42f49522f54f83ae5faaf090cad22693c2fd04cc))
+
+* build: run `docker exec` in interactive mode so I/O redirection works ([`fed7808`](https://github.com/irtnog/lethbridge/commit/fed7808c7d833931bb55738dfb4842e910290a37))
+
+* build: fix indentation ([`4de9416`](https://github.com/irtnog/lethbridge/commit/4de9416c9f5219e9dee950a042e9ce94d9fa52ff))
+
+* build: prevent virtual environment updates when running unrelated targets ([`5f872fa`](https://github.com/irtnog/lethbridge/commit/5f872faea5c4f840b8d8e38f4b213f6a90d7d291))
+
+* build: pass arguments to pytest similar to Alembic ([`95c154e`](https://github.com/irtnog/lethbridge/commit/95c154e9e0844309c5bebe9b8c51833d2be6c215))
+
+* build: only run migration test fixture targets if they don&#39;t already exist
+
+Migration test fixtures should be write-once since they depend on the
+code base at the time they&#39;re run.  Changes to dependencies shouldn&#39;t
+regenerate them. ([`6641c80`](https://github.com/irtnog/lethbridge/commit/6641c8032c89fa3dc6de044c3f448167288fe475))
+
+* build: generate migration test fixtures from the mock galaxy data ([`3a91cf5`](https://github.com/irtnog/lethbridge/commit/3a91cf501d257f6b6968c6b142925a4a2c693335))
+
+* build: combine development database management with an Alembic command wrapper ([`55b6e1b`](https://github.com/irtnog/lethbridge/commit/55b6e1b404b90c44fbd16a3262e72ea14e7f61a1))
+
+* build: sort imports in Alembic revision scripts ([`675d29f`](https://github.com/irtnog/lethbridge/commit/675d29f1160e331e47c456ddd16d029b6c9494f7))
+
+* build: shorten/rename dependencies on psycopg2cffi compatibility target ([`ae61612`](https://github.com/irtnog/lethbridge/commit/ae6161256bd06658ff328ec9a8a5bd9758a81e61))
+
+* build: have make manage the complete lifecycle of the development databases ([`0216751`](https://github.com/irtnog/lethbridge/commit/0216751da87deae8f2ae6c07cc9600ab5c2a0882))
+
+* build: add a volume to the migration dev database to facilitate restores ([`2f7d7d2`](https://github.com/irtnog/lethbridge/commit/2f7d7d26fb8eae3577dad894505e447929f3ba5b))
+
+* build: mark phony make targets to avoid inadvertent conflicts with real files/directories ([`efb71a1`](https://github.com/irtnog/lethbridge/commit/efb71a11cb3bd9016373d8728ce27837a17c26af))
+
+* build: add bashbrew and manifest-tool to the development environment ([`e768765`](https://github.com/irtnog/lethbridge/commit/e76876557438c5130c98b25490c87244d1a8fe71))
+
+* build: install or activate the development environment automatically in Emacs
+
+This requires enabling
+[`pyvenv-mode`](https://github.com/jorgenschaefer/pyvenv). ([`9b6eeec`](https://github.com/irtnog/lethbridge/commit/9b6eeec374dc8980cde62bf20f7a20f4a4558a6b))
+
+### Ci
+
+* ci: merge the ci and lint workflows ([`0dda3a0`](https://github.com/irtnog/lethbridge/commit/0dda3a02e11230131deaadef57c5d70d2cbbe0af))
+
+* ci: re-enable automated releases ([`9201d83`](https://github.com/irtnog/lethbridge/commit/9201d83133c65edbfc67f0f9676c9b87b6da1ba2))
+
+* ci: merge test and release workflows ([`76f5b8d`](https://github.com/irtnog/lethbridge/commit/76f5b8df0d4cbafafafc1f7990335937bf984c1f))
+
+* ci: simplify linting ([`8e22c4d`](https://github.com/irtnog/lethbridge/commit/8e22c4d5b21fa0a311223aa8265e540ac726b0d9))
+
+### Documentation
+
+* docs: note isort&#39;s behavior ([`398ff66`](https://github.com/irtnog/lethbridge/commit/398ff66f3fa67e7a6bf3a2fb5b582a8e509d9adc))
+
+* docs: emphasize the Alembic command wrapper&#39;s dependence on running/existing databases ([`a36f20a`](https://github.com/irtnog/lethbridge/commit/a36f20ab837c6d1e5776ea777fa2047c12570195))
+
+* docs: update description ([`d16b6ec`](https://github.com/irtnog/lethbridge/commit/d16b6ecac2cfe9ef8931dd935c0834c48a84e8a8))
+
+* docs: require tests for all code changes ([`ff76cd0`](https://github.com/irtnog/lethbridge/commit/ff76cd0542ef45aef807959f95ba326bcc7e6664))
+
+* docs: include Docker in the project dependencies ([`5935013`](https://github.com/irtnog/lethbridge/commit/593501307999fea3441692618249ae8883460c17))
+
+* docs: add parenthetical noting the same command also handles updates ([`4b2407f`](https://github.com/irtnog/lethbridge/commit/4b2407f860b7932a028e429ae91dd6d40edcbbd0))
+
+* docs: note that the shorter test suite restricts itself to one database engine ([`a6f1778`](https://github.com/irtnog/lethbridge/commit/a6f177848cf139628d90c6d3da33e11d6d725bd2))
+
+* docs: replace parenthetical with relative clause ([`1919234`](https://github.com/irtnog/lethbridge/commit/191923408f58aa2feb19637176baf709810b77cc))
+
+* docs: show how to activate the virtual environment ([`81aaa35`](https://github.com/irtnog/lethbridge/commit/81aaa35460d9e89e0b09645fdd0f0f762c0cec82))
+
+* docs: mention other make targets sooner ([`fa5989d`](https://github.com/irtnog/lethbridge/commit/fa5989d76d4108c072b5460f9edbea6e6c113a00))
+
+* docs: emphasize changes covering multiple scopes, not just multiple packages ([`f42710f`](https://github.com/irtnog/lethbridge/commit/f42710f16b1e60cabd29ffd11aedb9361bf4642f))
+
+* docs: add Git commit message style guidance missing from Conventional Commits 1.0.0
+
+This is derived in part from the [Angular Commit Message
+Format](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit)
+specification. ([`4ba18d6`](https://github.com/irtnog/lethbridge/commit/4ba18d6a0386df408fd4119a0b63c5594f900c58))
+
+* docs: explain how to use the new Alembic wrapper and migration test fixture generator ([`705c2a2`](https://github.com/irtnog/lethbridge/commit/705c2a22b60a9c413e02936e48d1e28d35738bab))
+
+### Fix
+
+* fix(migrations): make ThargoidWar fields optional ([`fa5d008`](https://github.com/irtnog/lethbridge/commit/fa5d008f498b2653ae22af27c87a268a1d882c29))
+
+* fix(migrations): switch to batch migrations
+
+This is required if we want to continue supporting SQLite, which
+imposes severe limits on `ALTER` statements.  See also [Running
+“Batch” Migrations for SQLite and Other
+Databases](https://alembic.sqlalchemy.org/en/latest/batch.html). ([`98ebf49`](https://github.com/irtnog/lethbridge/commit/98ebf4943c3f0218a898eb9bd487d3c184cd3448))
+
+* fix(cli): disable Rich
+
+This works around bugs in Typer or Rich, e.g., tiangolo/typer#578,
+tiangolo/typer#622, and tiangolo/typer#646. ([`023aa33`](https://github.com/irtnog/lethbridge/commit/023aa332002c749e1adc6be49043501d29475577))
+
+### Refactor
+
+* refactor(migrations): shorten revision script names ([`6a75da3`](https://github.com/irtnog/lethbridge/commit/6a75da39b0e44401150bc59af4b143aea8197ac1))
+
+### Test
+
+* test(cli): check database migrations against mock galaxy data ([`42943a6`](https://github.com/irtnog/lethbridge/commit/42943a6c51b1a5d6461429d06c8ada6c13dfa1fb))
+
+* test(cli): use the mock galaxy data in Spansh import integration testing
+
+This is the first place where the data model and deserialization
+schemas are checked against the Alembic-managed database schema as
+opposed to the SQLAlchemy ORM version. ([`fb3a806`](https://github.com/irtnog/lethbridge/commit/fb3a806cf587b81def5a31da6050a666464d7a39))
+
+* test(database): verify that null Thargoid War states work with the built-in schema ([`12bd1e6`](https://github.com/irtnog/lethbridge/commit/12bd1e6fdd061b162ab739e4ac2c06ff4033c0ea))
+
+* test(database): add type hints to enable IDE tab completion ([`42d7f27`](https://github.com/irtnog/lethbridge/commit/42d7f276f722450fc5eaf2da9afa4af2e1558963))
+
+
 ## v0.2.1 (2023-12-03)
 
 ### Build
