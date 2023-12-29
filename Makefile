@@ -150,7 +150,7 @@ alembic-%: | $(PSYCOPG2CFFI_COMPAT) .venv/bin/wait-until
 	$(if $(is_alembic_cmd), \
 		-$(alembic) $(alembic_cmd) $(ARGS), \
 	$(if $(is_backup_cmd), \
-		docker exec -t alembic-postgresql pg_dumpall -c -U postgres > db.postgresql.bak; \
+		docker exec -t alembic-postgresql pg_dump -c -U postgres lethbridge > db.postgresql.bak; \
 		sqlite3 db.sqlite3 .dump > db.sqlite3.bak, \
 	$(if $(is_restore_cmd), \
 		sqlite3 db.sqlite3 .read db.sqlite3.bak, \
