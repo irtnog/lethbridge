@@ -70,7 +70,7 @@ A commit's scope should be the second-level Python module name sans the `lethbri
 
 - **packaging**—package layout or other metadata, e.g., the arrangement of [src/](src/), alterations to [pyproject.toml](pyproject.toml) or [Dockerfile](Dockerfile)
 
-- no scope—for **refactor** or **test** changes covering multiple scopes; or for **build**, **ci**, or **doc** changes not specific to one scope
+- no scope—for **refactor** or **test** changes covering multiple scopes or for **build**, **ci**, or **docs** changes not specific to one scope
 
 ## Database Migrations
 
