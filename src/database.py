@@ -333,8 +333,12 @@ class Signals(Base):
     def __repr__(self):
         return (
             f"<Signals({len(self.signals)} signals, "
-            + f"{len(self.genuses)} genuses,"
-            + f"body_id64={self.body_id64 or 'pending'})>"
+            + f"{len(self.genuses)} genuses, "
+            + f"body_id64={self.body_id64}"
+            if self.body_id64
+            else f"ring_name={self.ring_name}"
+            if self.ring_name
+            else "location pending" + ")>"
         )
 
     def __eq__(self, other: Signals) -> bool:
