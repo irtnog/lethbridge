@@ -323,8 +323,8 @@ class Signals(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    signals: Mapped[List["DetectedSignal"]] = relationship()
-    genuses: Mapped[List["DetectedGenus"]] = relationship()
+    signals: Mapped[List["DetectedSignal"]] = relationship(cascade="all,delete-orphan")
+    genuses: Mapped[List["DetectedGenus"]] = relationship(cascade="all,delete-orphan")
     updateTime: Mapped[datetime]
 
     body_id64: Mapped[int | None] = mapped_column(ForeignKey("body.id64"))
@@ -415,7 +415,7 @@ class Ring(Base):
     mass: Mapped[int] = mapped_column(BigInteger)
     innerRadius: Mapped[int] = mapped_column(BigInteger)
     outerRadius: Mapped[int] = mapped_column(BigInteger)
-    signals: Mapped[Optional["Signals"]] = relationship()
+    signals: Mapped[Optional["Signals"]] = relationship(cascade="all,delete-orphan")
 
     body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"))
     body: Mapped[Optional["Body"]] = relationship(back_populates="rings")
@@ -490,16 +490,20 @@ class Body(Base):
     surfacePressure: Mapped[Decimal | None]
     volcanismType: Mapped[str | None]
     atmosphereType: Mapped[str | None]
-    atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship()
-    solidComposition: Mapped[List["SolidComposition"]] = relationship()
+    atmosphereComposition: Mapped[List["AtmosphereComposition"]] = relationship(
+        cascade="all,delete-orphan"
+    )
+    solidComposition: Mapped[List["SolidComposition"]] = relationship(
+        cascade="all,delete-orphan"
+    )
     terraformingState: Mapped[str | None]
-    materials: Mapped[List["Material"]] = relationship()
-    signals: Mapped[Optional["Signals"]] = relationship()
+    materials: Mapped[List["Material"]] = relationship(cascade="all,delete-orphan")
+    signals: Mapped[Optional["Signals"]] = relationship(cascade="all,delete-orphan")
     reserveLevel: Mapped[str | None]
     rotationalPeriod: Mapped[Decimal | None]
     rotationalPeriodTidallyLocked: Mapped[bool | None]
     axialTilt: Mapped[Decimal | None]
-    parents: Mapped[List["Parent"]] = relationship()
+    parents: Mapped[List["Parent"]] = relationship(cascade="all,delete-orphan")
     orbitalPeriod: Mapped[Decimal | None]
     semiMajorAxis: Mapped[Decimal | None]
     orbitalEccentricity: Mapped[Decimal | None]
@@ -507,10 +511,18 @@ class Body(Base):
     argOfPeriapsis: Mapped[Decimal | None]
     meanAnomaly: Mapped[Decimal | None]
     ascendingNode: Mapped[Decimal | None]
-    belts: Mapped[List["Belt"]] = relationship(back_populates="body")
-    rings: Mapped[List["Ring"]] = relationship(back_populates="body")
-    timestamps: Mapped[List["BodyTimestamp"]] = relationship()
-    stations: Mapped[List["Station"]] = relationship(back_populates="body")
+    belts: Mapped[List["Belt"]] = relationship(
+        back_populates="body", cascade="all,delete-orphan"
+    )
+    rings: Mapped[List["Ring"]] = relationship(
+        back_populates="body", cascade="all,delete-orphan"
+    )
+    timestamps: Mapped[List["BodyTimestamp"]] = relationship(
+        cascade="all,delete-orphan"
+    )
+    stations: Mapped[List["Station"]] = relationship(
+        back_populates="body", cascade="all,delete-orphan"
+    )
     updateTime: Mapped[datetime]
 
     # a system may contain many bodies; model this as a
@@ -638,8 +650,10 @@ class Market(Base):
 
     __tablename__ = "market"
 
-    commodities: Mapped[List["MarketOrder"]] = relationship()
-    prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship()
+    commodities: Mapped[List["MarketOrder"]] = relationship(cascade="all,delete-orphan")
+    prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship(
+        cascade="all,delete-orphan"
+    )
     updateTime: Mapped[datetime]
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
@@ -690,7 +704,7 @@ class Shipyard(Base):
 
     __tablename__ = "shipyard"
 
-    ships: Mapped[List["ShipyardStock"]] = relationship()
+    ships: Mapped[List["ShipyardStock"]] = relationship(cascade="all,delete-orphan")
     updateTime: Mapped[datetime]
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
@@ -754,7 +768,7 @@ class Outfitting(Base):
 
     __tablename__ = "outfitting"
 
-    modules: Mapped[List["OutfittingStock"]] = relationship()
+    modules: Mapped[List["OutfittingStock"]] = relationship(cascade="all,delete-orphan")
     updateTime: Mapped[datetime]
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
@@ -792,19 +806,23 @@ class Station(Base):
     controllingFactionState: Mapped[str | None]
     distanceToArrival: Mapped[Decimal | None]
     primaryEconomy: Mapped[str | None]
-    economies: Mapped[List["StationEconomy"]] = relationship()
+    economies: Mapped[List["StationEconomy"]] = relationship(
+        cascade="all,delete-orphan"
+    )
     allegiance: Mapped[str | None]
     government: Mapped[str | None]
-    services: Mapped[List["StationService"]] = relationship()
+    services: Mapped[List["StationService"]] = relationship(cascade="all,delete-orphan")
     type: Mapped[str | None]
     latitude: Mapped[Decimal | None]
     longitude: Mapped[Decimal | None]
     largeLandingPads: Mapped[int | None]  # landingPads
     mediumLandingPads: Mapped[int | None]
     smallLandingPads: Mapped[int | None]
-    market: Mapped[Optional["Market"]] = relationship()
-    shipyard: Mapped[Optional["Shipyard"]] = relationship()
-    outfitting: Mapped[Optional["Outfitting"]] = relationship()
+    market: Mapped[Optional["Market"]] = relationship(cascade="all,delete-orphan")
+    shipyard: Mapped[Optional["Shipyard"]] = relationship(cascade="all,delete-orphan")
+    outfitting: Mapped[Optional["Outfitting"]] = relationship(
+        cascade="all,delete-orphan"
+    )
 
     # a body might support many surface ports; model this as a
     # bi-directional, nullable, many-to-one relationship
@@ -857,13 +875,21 @@ class System(Base):
     controllingFaction: Mapped[Optional["Faction"]] = relationship(
         back_populates="controlledSystems"
     )
-    factions: Mapped[List["FactionState"]] = relationship(back_populates="system")
+    factions: Mapped[List["FactionState"]] = relationship(
+        back_populates="system", cascade="all,delete-orphan"
+    )
     powers: Mapped[List["PowerPlay"]] = relationship()
     powerState: Mapped[str | None]
-    thargoidWar: Mapped[Optional["ThargoidWar"]] = relationship()
+    thargoidWar: Mapped[Optional["ThargoidWar"]] = relationship(
+        cascade="all,delete-orphan"
+    )
     date: Mapped[datetime]
-    bodies: Mapped[List["Body"]] = relationship(back_populates="system")
-    stations: Mapped[List["Station"]] = relationship(back_populates="system")
+    bodies: Mapped[List["Body"]] = relationship(
+        back_populates="system", cascade="all,delete-orphan"
+    )
+    stations: Mapped[List["Station"]] = relationship(
+        back_populates="system", cascade="all,delete-orphan"
+    )
 
     def __repr__(self):
         return f"<System(id64={self.id64!r}, {self.name!r})>"

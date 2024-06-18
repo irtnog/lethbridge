@@ -1,6 +1,6 @@
 [
 	{"id64":1,"name":"Test System 1","coords":{"x":1.0,"y":1.0,"z":1.0},"date":"1970-01-01 00:00:01+00","bodies":[],"stations":[]},
-	{"id64":2,"name":"Test System 2","coords":{"x":2.0,"y":2.0,"z":2.0},"date":"1970-01-01 00:00:01+00","bodies":[],"stations":[]},
+	{"id64":2,"name":"Test System 2","coords":{"x":2.0,"y":2.0,"z":2.0},"date":"1970-01-01 00:00:01+00","bodies":[{"id64":40,"bodyId":0,"name":"Test System 4","type":"Star","subType":"K (Yellow-Orange) Star","distanceToArrival":0,"mainStar":true,"age":4770,"spectralClass":"K9","luminosity":"Va","absoluteMagnitude":7.817368,"solarMasses":0.453125,"solarRadius":0.608764595255212,"surfaceTemperature":3723,"rotationalPeriod":2.79354514109954,"axialTilt":0,"timestamps":{"distanceToArrival":"1970-01-01T00:00:01"},"stations":[],"updateTime":"1970-01-01 00:00:01+00"}],"stations":[]},
 	{"id64":3,"name":"Test System 3","coords":{"x":3.0,"y":3.0,"z":3.0},"date":"1970-01-01 00:00:01+00","bodies":[],"stations":[]},
 	{"id64":1,"name":"Duplicate System","coords":{"x":1.0,"y":1.0,"z":1.0},"date":"1970-01-01 00:00:01+00","bodies":[],"stations":[]},
 	{"id64":4,"name":"Test System 4","coords":{"x":4.0,"y":4.0,"z":4.0},"date":"1970-01-01 00:00:01+00","bodies":[],"stations":[]},

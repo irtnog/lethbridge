@@ -136,11 +136,12 @@ def test_cli_import_spansh_update(
     mock_spansh_update = request.getfixturevalue(mock_spansh_update_fixture)
     result = runner.invoke(
         cli.app,
-        ["-v"]
+        ["-d"]
         + mock_cmd_prefix_imported
         + ["import", "spansh", mock_spansh_update, "--foreground"],
     )
     assert result.exit_code == 0
+    assert "Dependency rule tried to blank-out primary key column" not in result.output
 
     # inspect mock database contents
     with Session.begin() as session:
