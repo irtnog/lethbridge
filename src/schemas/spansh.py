@@ -59,10 +59,6 @@ logger = logging.getLogger(__name__)
 # use the same configuration for all schemas
 class BaseOpts(SQLAlchemyAutoSchemaOpts):
     def __init__(self, meta, ordered=False):
-        if not hasattr(meta, "include_fk"):
-            meta.include_fk = True
-        if not hasattr(meta, "include_relationships"):
-            meta.include_relationships = True
         if not hasattr(meta, "render_module"):
             meta.render_module = simplejson
         if not hasattr(meta, "load_instance"):
@@ -77,7 +73,6 @@ class BaseSchema(SQLAlchemyAutoSchema):
 class FactionSchema(BaseSchema):
     class Meta:
         model = Faction
-        exclude = ["controlledSystems", "controlledStations", "systems"]
         unknown = EXCLUDE
 
     @post_load
@@ -98,7 +93,6 @@ class FactionSchema(BaseSchema):
 class FactionStateSchema(BaseSchema):
     class Meta:
         model = FactionState
-        exclude = ["faction_name", "system_id64", "system"]
 
     faction = Nested(FactionSchema)
 
@@ -121,7 +115,6 @@ class FactionStateSchema(BaseSchema):
 class PowerPlaySchema(BaseSchema):
     class Meta:
         model = PowerPlay
-        exclude = ["system_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -135,13 +128,11 @@ class PowerPlaySchema(BaseSchema):
 class ThargoidWarSchema(BaseSchema):
     class Meta:
         model = ThargoidWar
-        exclude = ["system_id64"]
 
 
 class StationEconomySchema(BaseSchema):
     class Meta:
         model = StationEconomy
-        exclude = ["station_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -155,7 +146,6 @@ class StationEconomySchema(BaseSchema):
 class StationServiceSchema(BaseSchema):
     class Meta:
         model = StationService
-        exclude = ["station_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -169,14 +159,12 @@ class StationServiceSchema(BaseSchema):
 class MarketOrderSchema(BaseSchema):
     class Meta:
         model = MarketOrder
-        exclude = ["market_id"]
         unknown = EXCLUDE
 
 
 class ProhibitedCommoditySchema(BaseSchema):
     class Meta:
         model = ProhibitedCommodity
-        exclude = ["market_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -191,7 +179,6 @@ class ProhibitedCommoditySchema(BaseSchema):
 class MarketSchema(BaseSchema):
     class Meta:
         model = Market
-        exclude = ["station_id"]
 
     commodities = Nested(MarketOrderSchema, many=True, required=False)
     prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
@@ -200,13 +187,11 @@ class MarketSchema(BaseSchema):
 class ShipyardStockSchema(BaseSchema):
     class Meta:
         model = ShipyardStock
-        exclude = ["shipyard_id"]
 
 
 class ShipyardSchema(BaseSchema):
     class Meta:
         model = Shipyard
-        exclude = ["station_id"]
 
     ships = Nested(ShipyardStockSchema, many=True, required=False)
 
@@ -214,7 +199,6 @@ class ShipyardSchema(BaseSchema):
 class OutfittingStockSchema(BaseSchema):
     class Meta:
         model = OutfittingStock
-        exclude = ["outfitting_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -233,7 +217,6 @@ class OutfittingStockSchema(BaseSchema):
 class OutfittingSchema(BaseSchema):
     class Meta:
         model = Outfitting
-        exclude = ["station_id"]
 
     modules = Nested(OutfittingStockSchema, many=True, required=False)
 
@@ -241,13 +224,6 @@ class OutfittingSchema(BaseSchema):
 class StationSchema(BaseSchema):
     class Meta:
         model = Station
-        exclude = [
-            "controllingFaction_id",
-            "body_id64",
-            "body",
-            "system_id64",
-            "system",
-        ]
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     economies = Nested(StationEconomySchema, many=True, required=False)
@@ -320,7 +296,6 @@ class StationSchema(BaseSchema):
 class AtmosphereCompositionSchema(BaseSchema):
     class Meta:
         model = AtmosphereComposition
-        exclude = ["body_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -334,7 +309,6 @@ class AtmosphereCompositionSchema(BaseSchema):
 class SolidCompositionSchema(BaseSchema):
     class Meta:
         model = SolidComposition
-        exclude = ["body_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -348,7 +322,6 @@ class SolidCompositionSchema(BaseSchema):
 class MaterialSchema(BaseSchema):
     class Meta:
         model = Material
-        exclude = ["body_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -362,7 +335,6 @@ class MaterialSchema(BaseSchema):
 class DetectedSignalSchema(BaseSchema):
     class Meta:
         model = DetectedSignal
-        exclude = ["signals_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -376,7 +348,6 @@ class DetectedSignalSchema(BaseSchema):
 class DetectedGenusSchema(BaseSchema):
     class Meta:
         model = DetectedGenus
-        exclude = ["signals_id"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -390,7 +361,7 @@ class DetectedGenusSchema(BaseSchema):
 class SignalsSchema(BaseSchema):
     class Meta:
         model = Signals
-        exclude = ["id", "body_id64", "ring_name"]
+        exclude = ["id"]
 
     signals = Nested(DetectedSignalSchema, many=True, required=False)
     genuses = Nested(DetectedGenusSchema, many=True, required=False)
@@ -398,9 +369,8 @@ class SignalsSchema(BaseSchema):
     @post_dump
     def post_process_output(self, out_data, **kwargs):
         if not out_data["genuses"]:
-            # FIXME: not clear when an empty list of genuses should be
-            # included or not, so exclude them; cf. 36 Ophiuchi C 9 a
-            # and C 10 a in the test data
+            # FIXME: should this output an empty list of genuses?
+            # cf. 36 Ophiuchi C 9 a and C 10 a in the test data
             out_data.pop("genuses")
         out_data["signals"] = dict(ChainMap(*out_data["signals"]))
         return out_data
@@ -415,7 +385,6 @@ class SignalsSchema(BaseSchema):
 class ParentSchema(BaseSchema):
     class Meta:
         model = Parent
-        exclude = ["body_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -430,13 +399,11 @@ class ParentSchema(BaseSchema):
 class BeltSchema(BaseSchema):
     class Meta:
         model = Belt
-        exclude = ["body_id64", "body"]
 
 
 class RingSchema(BaseSchema):
     class Meta:
         model = Ring
-        exclude = ["body_id64", "body"]
 
     signals = Nested(SignalsSchema, required=False)
 
@@ -450,7 +417,6 @@ class RingSchema(BaseSchema):
 class BodyTimestampSchema(BaseSchema):
     class Meta:
         model = BodyTimestamp
-        exclude = ["body_id64"]
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -464,7 +430,6 @@ class BodyTimestampSchema(BaseSchema):
 class BodySchema(BaseSchema):
     class Meta:
         model = Body
-        exclude = ["system_id64", "system"]
 
     atmosphereComposition = Nested(
         AtmosphereCompositionSchema, many=True, required=False
@@ -516,8 +481,7 @@ class BodySchema(BaseSchema):
 class SystemSchema(BaseSchema):
     class Meta:
         model = System
-        exclude = ["controllingFaction_id"]
-        ordered = True  # see note below
+        ordered = True
 
     # NOTE: Order is significant!  Process the factions list first
     # because sometimes a station's faction data is wrong.
