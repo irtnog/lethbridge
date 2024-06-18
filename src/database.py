@@ -344,8 +344,10 @@ class Signals(Base):
     def __eq__(self, other: Signals) -> bool:
         return (
             self.signals == other.signals
+            and self.genuses == other.genuses
             and self.updateTime == other.updateTime
             and self.body_id64 == other.body_id64
+            and self.ring_name == other.ring_name
         )
 
     @validates("updateTime")
