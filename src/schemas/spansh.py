@@ -20,7 +20,7 @@ from collections import ChainMap
 
 import simplejson
 from marshmallow import EXCLUDE, post_dump, post_load, pre_load
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemyAutoSchemaOpts
 from marshmallow_sqlalchemy.fields import Nested
 
 from ..database import (
@@ -56,15 +56,29 @@ from ..database import (
 logger = logging.getLogger(__name__)
 
 
-class FactionSchema(SQLAlchemyAutoSchema):
+# use the same configuration for all schemas
+class BaseOpts(SQLAlchemyAutoSchemaOpts):
+    def __init__(self, meta, ordered=False):
+        if not hasattr(meta, "include_fk"):
+            meta.include_fk = True
+        if not hasattr(meta, "include_relationships"):
+            meta.include_relationships = True
+        if not hasattr(meta, "render_module"):
+            meta.render_module = simplejson
+        if not hasattr(meta, "load_instance"):
+            meta.load_instance = True
+        super(BaseOpts, self).__init__(meta, ordered=ordered)
+
+
+class BaseSchema(SQLAlchemyAutoSchema):
+    OPTIONS_CLASS = BaseOpts
+
+
+class FactionSchema(BaseSchema):
     class Meta:
         model = Faction
         exclude = ["controlledSystems", "controlledStations", "systems"]
         unknown = EXCLUDE
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_load
     def post_process_input(self, in_data, **kwargs):
@@ -81,14 +95,10 @@ class FactionSchema(SQLAlchemyAutoSchema):
             return self.context["factions"][in_data.name]
 
 
-class FactionStateSchema(SQLAlchemyAutoSchema):
+class FactionStateSchema(BaseSchema):
     class Meta:
         model = FactionState
         exclude = ["faction_name", "system_id64", "system"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     faction = Nested(FactionSchema)
 
@@ -108,14 +118,10 @@ class FactionStateSchema(SQLAlchemyAutoSchema):
         }
 
 
-class PowerPlaySchema(SQLAlchemyAutoSchema):
+class PowerPlaySchema(BaseSchema):
     class Meta:
         model = PowerPlay
         exclude = ["system_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -126,24 +132,16 @@ class PowerPlaySchema(SQLAlchemyAutoSchema):
         return {"power": in_data}
 
 
-class ThargoidWarSchema(SQLAlchemyAutoSchema):
+class ThargoidWarSchema(BaseSchema):
     class Meta:
         model = ThargoidWar
         exclude = ["system_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
 
-class StationEconomySchema(SQLAlchemyAutoSchema):
+class StationEconomySchema(BaseSchema):
     class Meta:
         model = StationEconomy
         exclude = ["station_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -154,14 +152,10 @@ class StationEconomySchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "weight": in_data[1]}
 
 
-class StationServiceSchema(SQLAlchemyAutoSchema):
+class StationServiceSchema(BaseSchema):
     class Meta:
         model = StationService
         exclude = ["station_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -172,25 +166,17 @@ class StationServiceSchema(SQLAlchemyAutoSchema):
         return {"name": in_data}
 
 
-class MarketOrderSchema(SQLAlchemyAutoSchema):
+class MarketOrderSchema(BaseSchema):
     class Meta:
         model = MarketOrder
         exclude = ["market_id"]
         unknown = EXCLUDE
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
 
-class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
+class ProhibitedCommoditySchema(BaseSchema):
     class Meta:
         model = ProhibitedCommodity
         exclude = ["market_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -202,49 +188,33 @@ class ProhibitedCommoditySchema(SQLAlchemyAutoSchema):
         return {"name": in_data}
 
 
-class MarketSchema(SQLAlchemyAutoSchema):
+class MarketSchema(BaseSchema):
     class Meta:
         model = Market
         exclude = ["station_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     commodities = Nested(MarketOrderSchema, many=True, required=False)
     prohibitedCommodities = Nested(ProhibitedCommoditySchema, many=True, required=False)
 
 
-class ShipyardStockSchema(SQLAlchemyAutoSchema):
+class ShipyardStockSchema(BaseSchema):
     class Meta:
         model = ShipyardStock
         exclude = ["shipyard_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
 
-class ShipyardSchema(SQLAlchemyAutoSchema):
+class ShipyardSchema(BaseSchema):
     class Meta:
         model = Shipyard
         exclude = ["station_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     ships = Nested(ShipyardStockSchema, many=True, required=False)
 
 
-class OutfittingStockSchema(SQLAlchemyAutoSchema):
+class OutfittingStockSchema(BaseSchema):
     class Meta:
         model = OutfittingStock
         exclude = ["outfitting_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -260,19 +230,15 @@ class OutfittingStockSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
-class OutfittingSchema(SQLAlchemyAutoSchema):
+class OutfittingSchema(BaseSchema):
     class Meta:
         model = Outfitting
         exclude = ["station_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     modules = Nested(OutfittingStockSchema, many=True, required=False)
 
 
-class StationSchema(SQLAlchemyAutoSchema):
+class StationSchema(BaseSchema):
     class Meta:
         model = Station
         exclude = [
@@ -282,10 +248,6 @@ class StationSchema(SQLAlchemyAutoSchema):
             "system_id64",
             "system",
         ]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     controllingFaction = Nested(FactionSchema, required=False, allow_none=True)
     economies = Nested(StationEconomySchema, many=True, required=False)
@@ -355,14 +317,10 @@ class StationSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
-class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
+class AtmosphereCompositionSchema(BaseSchema):
     class Meta:
         model = AtmosphereComposition
         exclude = ["body_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -373,14 +331,10 @@ class AtmosphereCompositionSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
-class SolidCompositionSchema(SQLAlchemyAutoSchema):
+class SolidCompositionSchema(BaseSchema):
     class Meta:
         model = SolidComposition
         exclude = ["body_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -391,14 +345,10 @@ class SolidCompositionSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
-class MaterialSchema(SQLAlchemyAutoSchema):
+class MaterialSchema(BaseSchema):
     class Meta:
         model = Material
         exclude = ["body_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -409,14 +359,10 @@ class MaterialSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "percentage": in_data[1]}
 
 
-class DetectedSignalSchema(SQLAlchemyAutoSchema):
+class DetectedSignalSchema(BaseSchema):
     class Meta:
         model = DetectedSignal
         exclude = ["signals_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -427,14 +373,10 @@ class DetectedSignalSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "quantity": in_data[1]}
 
 
-class DetectedGenusSchema(SQLAlchemyAutoSchema):
+class DetectedGenusSchema(BaseSchema):
     class Meta:
         model = DetectedGenus
         exclude = ["signals_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -445,14 +387,10 @@ class DetectedGenusSchema(SQLAlchemyAutoSchema):
         return {"name": in_data}
 
 
-class SignalsSchema(SQLAlchemyAutoSchema):
+class SignalsSchema(BaseSchema):
     class Meta:
         model = Signals
         exclude = ["id", "body_id64", "ring_name"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     signals = Nested(DetectedSignalSchema, many=True, required=False)
     genuses = Nested(DetectedGenusSchema, many=True, required=False)
@@ -474,14 +412,10 @@ class SignalsSchema(SQLAlchemyAutoSchema):
         return in_data
 
 
-class ParentSchema(SQLAlchemyAutoSchema):
+class ParentSchema(BaseSchema):
     class Meta:
         model = Parent
         exclude = ["body_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -493,24 +427,16 @@ class ParentSchema(SQLAlchemyAutoSchema):
         return {"name": name, "bodyId": bodyId}
 
 
-class BeltSchema(SQLAlchemyAutoSchema):
+class BeltSchema(BaseSchema):
     class Meta:
         model = Belt
         exclude = ["body_id64", "body"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
 
-class RingSchema(SQLAlchemyAutoSchema):
+class RingSchema(BaseSchema):
     class Meta:
         model = Ring
         exclude = ["body_id64", "body"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     signals = Nested(SignalsSchema, required=False)
 
@@ -521,14 +447,10 @@ class RingSchema(SQLAlchemyAutoSchema):
         return out_data
 
 
-class BodyTimestampSchema(SQLAlchemyAutoSchema):
+class BodyTimestampSchema(BaseSchema):
     class Meta:
         model = BodyTimestamp
         exclude = ["body_id64"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     @post_dump
     def post_process_output(self, out_data, **kwargs):
@@ -539,14 +461,10 @@ class BodyTimestampSchema(SQLAlchemyAutoSchema):
         return {"name": in_data[0], "value": in_data[1]}
 
 
-class BodySchema(SQLAlchemyAutoSchema):
+class BodySchema(BaseSchema):
     class Meta:
         model = Body
         exclude = ["system_id64", "system"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
 
     atmosphereComposition = Nested(
         AtmosphereCompositionSchema, many=True, required=False
@@ -595,14 +513,10 @@ class BodySchema(SQLAlchemyAutoSchema):
         return in_data
 
 
-class SystemSchema(SQLAlchemyAutoSchema):
+class SystemSchema(BaseSchema):
     class Meta:
         model = System
         exclude = ["controllingFaction_id"]
-        include_fk = True
-        include_relationships = True
-        render_module = simplejson
-        load_instance = True
         ordered = True  # see note below
 
     # NOTE: Order is significant!  Process the factions list first
