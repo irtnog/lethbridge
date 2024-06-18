@@ -68,13 +68,11 @@ class FactionState(Base):
     # link this association table to the corresponding ORM objects via
     # the named attribute (and vice versa in the named ORM classes)
     faction_name: Mapped[str] = mapped_column(
-        ForeignKey("faction.name"),
-        primary_key=True,
+        ForeignKey("faction.name"), primary_key=True
     )
     faction: Mapped["Faction"] = relationship(back_populates="systems")
     system_id64: Mapped[int] = mapped_column(
-        ForeignKey("system.id64"),
-        primary_key=True,
+        ForeignKey("system.id64"), primary_key=True
     )
     system: Mapped["System"] = relationship(back_populates="factions")
 
@@ -145,8 +143,7 @@ class PowerPlay(Base):
     # latter.)
 
     system_id64: Mapped[int] = mapped_column(
-        ForeignKey("system.id64"),
-        primary_key=True,
+        ForeignKey("system.id64"), primary_key=True
     )
 
     def __repr__(self):
@@ -174,8 +171,7 @@ class ThargoidWar(Base):
     successReached: Mapped[bool | None]
 
     system_id64: Mapped[int] = mapped_column(
-        ForeignKey("system.id64"),
-        primary_key=True,
+        ForeignKey("system.id64"), primary_key=True
     )
 
     def __repr__(self):
