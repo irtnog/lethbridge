@@ -217,7 +217,7 @@ def mock_session_initialized(mock_session, mock_galaxy_data_small):
                 "id64": 4,
                 "name": "Test System 4",
                 "coords": {"x": 4.0, "y": 4.0, "z": 4.0},
-                "date": "1970-01-01 00:00:01+00",
+                "date": "1970-01-01 00:00:02+00",
                 "bodies": [
                     {
                         "id64": 40,
@@ -236,9 +236,9 @@ def mock_session_initialized(mock_session, mock_galaxy_data_small):
                         "surfaceTemperature": 3723,
                         "rotationalPeriod": 2.79354514109954,
                         "axialTilt": 0,
-                        "timestamps": {"distanceToArrival": "1970-01-01T00:00:01"},
+                        "timestamps": {"distanceToArrival": "1970-01-01T00:00:02"},
                         "stations": [],
-                        "updateTime": "1970-01-01 00:00:01+00",
+                        "updateTime": "1970-01-01 00:00:02+00",
                     }
                 ],
                 "stations": [],
