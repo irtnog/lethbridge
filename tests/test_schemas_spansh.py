@@ -44,7 +44,9 @@ def test_systemschema_load_and_dump(
                 session.add(new_system)
         except Exception as e:
             # add system name/id64 to error message for diagnostics
-            raise (type(e))(f"Loading {load_data['name']} ({load_data['id64']}): {e}")
+            raise (type(e))(
+                f"Loading {load_data['name']} (id64={load_data['id64']}): {e}"
+            ) from e
 
         # Note that the sqlalchemy.exc.SAWarning "Object of
         # type... not in session, add operation along... will not
@@ -136,7 +138,9 @@ def mock_session_initialized(mock_session, mock_galaxy_data_small):
                 session.add(new_system)
         except Exception as e:
             # add system name/id64 to error message for diagnostics
-            raise (type(e))(f"Loading {load_data['name']} ({load_data['id64']}): {e}")
+            raise (type(e))(
+                f"Loading {load_data['name']} (id64={load_data['id64']}): {e}"
+            ) from e
     yield mock_session
 
 
@@ -249,4 +253,6 @@ def test_systemschema_update(mock_session_initialized, load_data):
             session.add(new_system)
     except Exception as e:
         # add system name/id64 to error message for diagnostics
-        raise (type(e))(f"Loading {load_data['name']} ({load_data['id64']}): {e}")
+        raise (type(e))(
+            f"Loading {load_data['name']} (id64={load_data['id64']}): {e}"
+        ) from e
