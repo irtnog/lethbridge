@@ -42,15 +42,15 @@ runner = CliRunner()
     ],
 )
 def test_cli_database_upgrade(mock_cmd_prefix, revision, request):
-    # note that mock_cmd_prefix is already parameterized via
+    # Note that mock_cmd_prefix is already parameterized via
     # mock_db_uri (cf. conftest.py), so grab the relevant configs and
-    # adjust what would be parameters here on the fly
+    # adjust what would be parameters here on the fly.
     app_cfg = ConfigParser()
     app_cfg.read_file(open(mock_cmd_prefix[-1]))
     db_uri = make_url(app_cfg["database"]["uri"])
     db_type = db_uri.get_backend_name()
 
-    # select and load a backup, if one exists for this engine/revision
+    # Select and load a backup if one exists for this engine/revision.
     db_backup = (
         Path(__file__).parent / "migration-fixtures" / f"{db_type}-{revision}.sql"
     )
@@ -76,17 +76,17 @@ def test_cli_database_upgrade(mock_cmd_prefix, revision, request):
                     check=True,
                 )
 
-    # run the migration (which is just a wrapper for Alembic)
+    # Run the migration (which is just a wrapper for Alembic).
     result = runner.invoke(cli.app, mock_cmd_prefix + ["database", "upgrade", "head"])
     assert result.exit_code == 0
 
-    # ask Alembic for the latest schema revision
+    # Ask Alembic for the latest schema revision.
     alembic_cfg = Config()
     alembic_cfg.set_main_option("script_location", "lethbridge:migrations")
     alembic_script = ScriptDirectory.from_config(alembic_cfg)
     head_revision = alembic_script.get_current_head()
 
-    # verify the upgrade succeeded
+    # Verify the upgrade succeeded.
     engine = create_engine(db_uri)
     with engine.connect() as conn:
         result = conn.execute(text("select version_num from alembic_version"))

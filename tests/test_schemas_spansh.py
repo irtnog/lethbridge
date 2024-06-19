@@ -67,8 +67,8 @@ def test_systemschema_load_and_dump(
             dump_data = SystemSchema().dump(new_system)
             assert isinstance(dump_data, dict)
 
-        # walk source and output data in parallel, depth first,
-        # comparing each pair of source/output nodes along the way
+        # Walk source and output data in parallel, depth first,
+        # comparing each pair of source/output nodes along the way.
         stack = deque()
         stack.append((dump_data, load_data, "top level"))
         while stack:

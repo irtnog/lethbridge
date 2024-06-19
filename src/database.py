@@ -65,8 +65,8 @@ class FactionState(Base):
     influence: Mapped[Decimal]
     state: Mapped[str]
 
-    # link this association table to the corresponding ORM objects via
-    # the named attribute (and vice versa in the named ORM classes)
+    # Link this association table to the corresponding ORM objects via
+    # the named attribute (and vice versa in the named ORM classes).
     faction_name: Mapped[str] = mapped_column(
         ForeignKey("faction.name"), primary_key=True
     )
@@ -84,8 +84,8 @@ class FactionState(Base):
         )
 
     def __eq__(self, other: FactionState) -> bool:
-        # don't check back-populated columns since that would lead to
-        # an infinite loop
+        # Don't check back-populated columns since that would lead to
+        # an infinite loop.
         return (
             self.faction_name == other.faction_name
             and self.system_id64 == other.system_id64
@@ -527,9 +527,8 @@ class Body(Base):
     )
     updateTime: Mapped[datetime]
 
-    # a system may contain many bodies; model this as a
-    # bi-directional, nullable, many-to-one relationship
-    # (bodies:system)
+    # A system may contain many bodies.  Model this as a
+    # bi-directional, nullable, many-to-one relationship.
     system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
     system: Mapped[Optional["System"]] = relationship(back_populates="bodies")
 
@@ -826,15 +825,13 @@ class Station(Base):
         cascade="all,delete-orphan"
     )
 
-    # a body might support many surface ports; model this as a
-    # bi-directional, nullable, many-to-one relationship
-    # (stations:body)
+    # A body might support many surface ports.  Model this as a
+    # bi-directional, nullable, many-to-one relationship.
     body_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("body.id64"))
     body: Mapped[Optional["Body"]] = relationship(back_populates="stations")
 
-    # a system may contain many space stations; model this as a
-    # bi-directional, nullable, many-to-one relationship
-    # (stations:system)
+    # A system may contain many space stations.  Model this as a
+    # bi-directional, nullable, many-to-one relationship.
     system_id64: Mapped[Optional[int]] = mapped_column(ForeignKey("system.id64"))
     system: Mapped[Optional["System"]] = relationship(back_populates="stations")
 

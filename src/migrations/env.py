@@ -46,7 +46,8 @@ def run_migrations_offline() -> None:
 
     Calls to context.execute() here emit the given string to the
     script output."""
-    # for the --sql use case, run migrations for each URL into
+
+    # For the --sql use case, run migrations for each URL into
     # individual files.
 
     engines = {}
@@ -78,8 +79,9 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine and associate a
     connection with the context."""
 
-    # for the direct-to-DB use case, start a transaction on all
-    # engines, then run all migrations, then commit all transactions.
+    # For the direct-to-DB use case, start a transaction on all
+    # engines, then run all migrations, and finally commit all
+    # transactions.
 
     engines = {}
     for name in re.split(r",\s*", db_names):

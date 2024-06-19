@@ -43,16 +43,17 @@ runner = CliRunner()
 
 @fixture
 def mock_cmd_prefix_initialized(mock_cmd_prefix):
-    # note that mock_cmd_prefix is already parameterized via
+    # Note that mock_cmd_prefix is already parameterized via
     # mock_db_uri (cf. conftest.py), so grab the relevant configs and
-    # adjust what would be parameters here on the fly
+    # adjust what would be parameters here on the fly.
     app_cfg = ConfigParser()
     app_cfg.read_file(open(mock_cmd_prefix[-1]))
     db_uri = app_cfg["database"]["uri"]
     db_type = "postgresql" if db_uri.startswith("postgres") else db_uri.split(":")[0]
 
-    # since we can't run "lethbridge database upgrade head" here
-    # without breaking tests, init the database directly via Alembic
+    # Since we can't run "lethbridge database upgrade head" here
+    # without breaking tests, initialize the database directly using
+    # Alembic.
     alembic_cfg = alembic.config.Config()
     alembic_cfg.set_main_option("script_location", "lethbridge:migrations")
     alembic_cfg.set_main_option("databases", db_type)
@@ -96,8 +97,8 @@ def test_cli_import_spansh(
 
 @fixture
 def mock_cmd_prefix_imported(mock_cmd_prefix_initialized, mock_spansh_import):
-    # manually load "lethbridge.cli.import" since the name is
-    # technically invalid lol
+    # Manually load "lethbridge.cli.import" since the name is
+    # technically invalid.
     cli_import = importlib.import_module("lethbridge.cli.import")
     import_spansh = getattr(cli_import, "spansh")
 
@@ -123,7 +124,7 @@ def mock_cmd_prefix_imported(mock_cmd_prefix_initialized, mock_spansh_import):
 def test_cli_import_spansh_update(
     mock_cmd_prefix_imported, mock_spansh_update_fixture, request
 ):
-    # cache the last update time of the first test system
+    # Cache the last update time of the first test system.
     app_cfg = ConfigParser()
     app_cfg.read_file(open(mock_cmd_prefix_imported[-1]))
     db_uri = app_cfg["database"]["uri"]
@@ -143,7 +144,7 @@ def test_cli_import_spansh_update(
     assert result.exit_code == 0
     assert "Dependency rule tried to blank-out primary key column" not in result.output
 
-    # inspect mock database contents
+    # Inspect the contents of the mock database.
     with Session.begin() as session:
         test_system_1 = session.get(System, 1)
         assert old_date <= test_system_1.date

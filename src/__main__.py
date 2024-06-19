@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    # ensures that users get the correct app name when running the
-    # --help option on their command line
+    # Ensure users get the correct app name when running the `--help`
+    # option on the command line.
     cli.app(prog_name=__app_name__)
 
 
