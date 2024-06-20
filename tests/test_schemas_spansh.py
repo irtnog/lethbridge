@@ -74,8 +74,8 @@ def test_systemschema_load_and_dump(
         while stack:
             (to, fro, ctx) = stack.pop()
             if isinstance(to, list):
-                assert isinstance(fro, list)
-                assert len(to) == len(fro), ctx
+                assert isinstance(fro, list), f"ctx={ctx}"
+                assert len(to) == len(fro), f"ctx={ctx}"
                 if len(to):
                     # peek at first element to figure out sorting
                     start = next(iter(to))
@@ -101,8 +101,8 @@ def test_systemschema_load_and_dump(
                         )
                     )
             elif isinstance(to, dict):
-                assert isinstance(fro, dict)
-                assert set(to) <= set(fro), ctx
+                assert isinstance(fro, dict), f"ctx={ctx}"
+                assert set(to) <= set(fro), f"ctx={ctx}"
                 if "name" in to and "symbol" not in to:
                     ctx = to["name"]
                 for k in to:
@@ -126,7 +126,9 @@ def test_systemschema_load_and_dump(
                 with warnings.catch_warnings():
                     # suppress the warning about an approximate match
                     warnings.simplefilter("ignore")
-                    assert utilities.approximately(to, fro), ctx
+                    assert utilities.approximately(
+                        to, fro
+                    ), f"to={to}, fro={fro}, ctx={ctx}"
 
 
 @fixture
