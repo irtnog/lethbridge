@@ -18,11 +18,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List, Optional
 
-from sqlalchemy import BigInteger, ForeignKey
+from sqlalchemy import BigInteger, DateTime, ForeignKey
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -30,9 +30,31 @@ from sqlalchemy.orm import (
     relationship,
     validates,
 )
+from sqlalchemy.types import TypeDecorator
 
 # configure module-level logging
 logger = logging.getLogger(__name__)
+
+
+class TimeStamp(TypeDecorator):
+    """Assume naïve date/times are always in UTC;
+    cf. https://mike.depalatis.net/blog/sqlalchemy-timestamps.html."""
+
+    impl = DateTime
+
+    def process_bind_param(self, value: datetime, dialect):
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
+
+    def process_result_value(self, value: datetime, dialect):
+        return (
+            value.replace(tzinfo=timezone.utc)
+            if value.tzinfo is None
+            else value.astimezone(timezone.utc)
+        )
 
 
 class Base(DeclarativeBase):
@@ -321,7 +343,7 @@ class Signals(Base):
 
     signals: Mapped[List["DetectedSignal"]] = relationship(cascade="all,delete-orphan")
     genuses: Mapped[List["DetectedGenus"]] = relationship(cascade="all,delete-orphan")
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
 
     body_id64: Mapped[int | None] = mapped_column(ForeignKey("body.id64"))
     ring_name: Mapped[str | None] = mapped_column(ForeignKey("ring.name"))
@@ -332,9 +354,11 @@ class Signals(Base):
             + f"{len(self.genuses)} genuses, "
             + f"body_id64={self.body_id64}"
             if self.body_id64
-            else f"ring_name={self.ring_name}"
-            if self.ring_name
-            else "location pending" + ")>"
+            else (
+                f"ring_name={self.ring_name}"
+                if self.ring_name
+                else "location pending" + ")>"
+            )
         )
 
     def __eq__(self, other: Signals) -> bool:
@@ -375,7 +399,6 @@ class Parent(Base):
         )
 
 
-# rings: name/type/mass/innerRadius/outerRadius/signals
 class Belt(Base):
     """Diffuse icy, metallic, or rocky debris in a relatively large
     orbit around one or more stars."""
@@ -443,7 +466,7 @@ class BodyTimestamp(Base):
     __tablename__ = "body_timestamp"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    value: Mapped[datetime]
+    value: Mapped[datetime] = mapped_column(TimeStamp)
 
     body_id64: Mapped[int] = mapped_column(ForeignKey("body.id64"), primary_key=True)
 
@@ -525,7 +548,7 @@ class Body(Base):
     stations: Mapped[List["Station"]] = relationship(
         back_populates="body", cascade="all,delete-orphan"
     )
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
 
     # A system may contain many bodies.  Model this as a
     # bi-directional, nullable, many-to-one relationship.
@@ -655,7 +678,7 @@ class Market(Base):
     prohibitedCommodities: Mapped[List["ProhibitedCommodity"]] = relationship(
         cascade="all,delete-orphan"
     )
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
@@ -706,7 +729,7 @@ class Shipyard(Base):
     __tablename__ = "shipyard"
 
     ships: Mapped[List["ShipyardStock"]] = relationship(cascade="all,delete-orphan")
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
@@ -770,7 +793,7 @@ class Outfitting(Base):
     __tablename__ = "outfitting"
 
     modules: Mapped[List["OutfittingStock"]] = relationship(cascade="all,delete-orphan")
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
 
     station_id: Mapped[int] = mapped_column(ForeignKey("station.id"), primary_key=True)
 
@@ -797,7 +820,7 @@ class Station(Base):
 
     name: Mapped[str]
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    updateTime: Mapped[datetime]
+    updateTime: Mapped[datetime] = mapped_column(TimeStamp)
     controllingFaction_id: Mapped[str | None] = mapped_column(
         ForeignKey("faction.name")
     )
@@ -882,7 +905,7 @@ class System(Base):
     thargoidWar: Mapped[Optional["ThargoidWar"]] = relationship(
         cascade="all,delete-orphan"
     )
-    date: Mapped[datetime]
+    date: Mapped[datetime] = mapped_column(TimeStamp)
     bodies: Mapped[List["Body"]] = relationship(
         back_populates="system", cascade="all,delete-orphan"
     )

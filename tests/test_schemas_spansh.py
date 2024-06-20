@@ -17,6 +17,7 @@
 
 import warnings
 from collections import deque
+from datetime import timezone
 from itertools import zip_longest
 from operator import itemgetter, methodcaller
 
@@ -111,13 +112,9 @@ def test_systemschema_load_and_dump(
                 try:
                     # try parsing to/fro as date/time values
                     new_to = parse(to)
-                    # try detecting which date/time format Spansh used
-                    if "T" in fro:
-                        # e.g., "2023-06-12T05:05:24"
-                        new_fro = parse(fro)
-                    else:
-                        # e.g., "2023-06-12 05:05:24+00"
-                        new_fro = parse(fro[:-3])
+                    new_fro = parse(fro)
+                    if new_fro.tzinfo is None:
+                        new_fro = new_fro.replace(tzinfo=timezone.utc)
                     # if we got this far, it worked
                     to = new_to
                     fro = new_fro
